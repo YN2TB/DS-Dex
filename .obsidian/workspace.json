@@ -1,0 +1,224 @@
+{
+  "main": {
+    "id": "f099dc9a437a430e",
+    "type": "split",
+    "children": [
+      {
+        "id": "ca018a37b959066b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "51d56cf2cb0865fc",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Computer Vision/note/1 - Image Formation.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "1 - Image Formation"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2cea95fea808c2e8",
+    "type": "split",
+    "children": [
+      {
+        "id": "94747c100d45ae6a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f6f7e0ea2eb932c0",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "5f73234622295d7b",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "342ee3fa70a6c2b6",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "12242e9d0a80715b",
+    "type": "split",
+    "children": [
+      {
+        "id": "2944daf69b7f4947",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a7cf38c8fdc47a3c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "7970321a79d0fc7b",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "7ec5636182e11357",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "6aa41789520caf1c",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "4c822544b0c7a078",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "51d56cf2cb0865fc",
+  "lastOpenFiles": [
+    "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf",
+    "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf.crdownload",
+    "Machine Learning/contents/00-Index.md",
+    "MLOps/CLAUDE.md",
+    "Computer Vision/note/1 - Image Formation.md",
+    "MLOps/contents/01 - Introduction to MLOps.md",
+    "Computer Vision/contents/00-Index.md",
+    "Computer Vision/note/01 - Taking risks and making profits within the dynamic business environment.md",
+    "Computer Vision/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
+    "Computer Vision/slides/Slide Business Management - SV_c3a3f15af62c807a812a858544cda1c3.pptx",
+    "Computer Vision/contents/09 - Accounting and Financial Information.md",
+    "Computer Vision/contents/08 - Marketing - Helping Buyers Buy.md",
+    "Computer Vision/contents/04 - Ethics and Corporate Social Responsibility.md",
+    "Computer Vision/contents/07 - Human Resource Management.md",
+    "Computer Vision/contents/02 - Economics and Business.md",
+    "Computer Vision/contents/06 - Management and Leadership.md",
+    "Computer Vision/contents/05 - How to Form a Business.md",
+    "Computer Vision/contents/03 - Doing Business in Global Markets.md",
+    "Computer Vision/contents/01 - Business, Profit and Risk.md",
+    "Computer Vision/note",
+    "Computer Vision/documents",
+    "Computer Vision/slides",
+    "Computer Vision/contents",
+    "Computer Vision/CLAUDE.md",
+    "Computer Vision",
+    "Probability Theory/contents/04 - Random Variables.md",
+    "Probability Theory/contents/00-Index.md",
+    "Commercial Banking/contents/00-Index.md",
+    "temp_img/Untitled.md",
+    "Principles of Marketing/documents/Principles of Marketing (2017_ Pearson)(1).pdf",
+    "Principles of Marketing/contents/12 - Integrated Marketing Communications and Digital Marketing.md",
+    "CLAUDE.md",
+    "Big Data Analytics/note/1.md",
+    "Big Data Analytics/note/Overview.md",
+    "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
+    "Business Management/slides/Slide Business Management - SV_c3a3f15af62c807a812a858544cda1c3.pptx"
+  ]
+}
