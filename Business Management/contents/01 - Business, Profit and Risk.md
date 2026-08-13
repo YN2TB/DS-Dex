@@ -9,7 +9,7 @@ source: "Nickels, McHugh & McHugh, *Understanding Business*, 12th ed., ch. 1 (bo
 
 **The opening chapter of the last subject in the vault. Two results, both built from figures Nickels prints in adjacent sentences and never connects.**
 
-**§6 — ⚠️ HIS FARM NUMBERS PROVE HIS OWN FIVE-FACTORS THESIS, AND HE DOESN'T USE THEM THAT WAY.** *(Farmers fell from **33% of the population to under 1%** while average farm size went **150 → 430 acres**.)* **⇒ output per farmer rose by AT LEAST 33×** — and **bigger farms explain only 2.87× of it; the remaining 11.51× is output per acre.** **In log terms consolidation is 30.1% of the gain and yield-and-mechanisation is 69.9%.** ***Land was unchanged and labour fell 33-fold, so capital and KNOWLEDGE did the work — which is exactly the Drucker claim he quotes two pages earlier.***
+**§6 — ⚠️ HIS FARM NUMBERS PROVE HIS OWN FIVE-FACTORS THESIS, AND HE DOESN'T USE THEM THAT WAY.** *(Farmers fell from **33% of the population to under 1%** while average farm size went **150 → 430 acres**.)* **⇒ output per farmer rose by AT LEAST 33×** — and **bigger farms explain only 2.87× of it; the remaining 11.51× is output per acre.** **In log terms consolidation is 30.1% of the gain and yield-and-mechanisation is 69.9%.** ***Land was unchanged and labor fell 33-fold, so capital and KNOWLEDGE did the work — which is exactly the Drucker claim he quotes two pages earlier.***
 
 **§8 — ⚠️ HE LISTS FOUR OPTIONS FOR SOCIAL SECURITY AND NEVER SIZES THE PROBLEM.** *(Workers per retiree: **42 (1940) → 5 (1960) → under 3 today → 2 by 2030**.)* **In a pay-as-you-go system $t = (B/W)/N$, so at a constant replacement rate the required tax rate rises 21-fold from 1940 to 2030 — purely demographic.** **⇒ and between today and 2030 the system must find either a 50% HIGHER TAX RATE or a 33.3% BENEFIT CUT.**
 
@@ -18,14 +18,15 @@ source: "Nickels, McHugh & McHugh, *Understanding Business*, 12th ed., ch. 1 (bo
 ### 1. What a business is, and the four core terms
 
 > **Business** — any activity that seeks to provide **goods and services** to others **while operating at a profit**.
-> **Goods** — tangible products. **Services** — intangible products *(education, health care, insurance, recreation, travel)*.
+> **Goods** — tangible products. 
+> **Services** — intangible products *(education, health care, insurance, recreation, travel)*.
 > **Entrepreneur** — a person who **risks time and money** to start and manage a business.
 
-| | |
-|---|---|
-| **revenue** | the **total** money taken in during a period by selling goods and services |
-| **profit** | what the business earns **above and beyond** what it spends on salaries and other expenses |
-| **loss** | when expenses **exceed** revenues |
+|             |                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| **revenue** | the **total** money taken in during a period by selling goods and services                 |
+| **profit**  | what the business earns **above and beyond** what it spends on salaries and other expenses |
+| **loss**    | when expenses **exceed** revenues                                                          |
 
 > [!warning] ⚠️ The definition of profit contains a trap that the hot-dog example exists to defuse
 > **"Profit is over and above the money you pay yourself in salary."** **⇒ the owner's own labour is a COST, not a residual.**
@@ -77,12 +78,14 @@ source: "Nickels, McHugh & McHugh, *Understanding Business*, 12th ed., ch. 1 (bo
 >
 > **⇒ so "stakeholder management" is not a list to satisfy — it is a CONSTRAINED OPTIMISATION with no dominant solution**, which is why Nickels immediately says "pleasing stakeholders… often calls for trade-offs."
 
-**Outsourcing** — contracting with other companies (often abroad) to do some or all of a firm's functions. **Insourcing** — foreign companies setting up design and production in the home country *(Hyundai in Detroit and Montgomery; Honda's 12th US plant in 2016; Charter returning its Spanish-language call centres)*.
+>**Outsourcing** — contracting with other companies (often abroad) to do some or all of a firm's functions.
+
+>**Insourcing** — foreign companies setting up design and production in the home country *(Hyundai in Detroit and Montgomery; Honda's 12th US plant in 2016; Charter returning its Spanish-language call centers)*.
 
 > [!note] ⚠️ Nickels's framing is honest and worth keeping
 > **"It may be legal and profitable to outsource, but is it best for all the stakeholders?"** **⇒ the stakeholder frame turns outsourcing from an efficiency question into a distributional one** — and that distinction is [[Macroeconomics & Microeconomics/contents/00-Index|Macro/Micro]]'s central finding that **efficiency is fixed by fundamentals and distribution by institutional detail, and the two are independent.**
 
-**Nonprofit organization** — an organization whose goals **do not include making a personal profit** for its owners or organizers. **They may still seek financial gains, but apply them to social or educational goals.** *(The Red Cross assists around 30 million people annually.)*
+>**Nonprofit organization** — an organization whose goals **do not include making a personal profit** for its owners or organizers. **They may still seek financial gains, but apply them to social or educational goals.** *(The Red Cross assists around 30 million people annually.)*
 
 ### 5. ⚠️ The five factors of production
 
