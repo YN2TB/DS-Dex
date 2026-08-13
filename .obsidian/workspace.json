@@ -11,17 +11,30 @@
             "id": "51d56cf2cb0865fc",
             "type": "leaf",
             "state": {
+              "type": "pdf",
+              "state": {
+                "file": "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0"
+            }
+          },
+          {
+            "id": "d2cbc85c95350c0c",
+            "type": "leaf",
+            "state": {
               "type": "markdown",
               "state": {
-                "file": "Computer Vision/note/1 - Image Formation.md",
+                "file": "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "1 - Image Formation"
+              "title": "01 - Taking risks and making profits within the dynamic business environment"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -173,6 +186,7 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "obsidian-git:Open Git source control": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
@@ -182,13 +196,15 @@
       "bases:Create new base": false
     }
   },
-  "active": "51d56cf2cb0865fc",
+  "active": "d2cbc85c95350c0c",
   "lastOpenFiles": [
+    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
+    "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
+    "Computer Vision/note/1 - Image Formation.md",
     "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf",
     "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf.crdownload",
     "Machine Learning/contents/00-Index.md",
     "MLOps/CLAUDE.md",
-    "Computer Vision/note/1 - Image Formation.md",
     "MLOps/contents/01 - Introduction to MLOps.md",
     "Computer Vision/contents/00-Index.md",
     "Computer Vision/note/01 - Taking risks and making profits within the dynamic business environment.md",
@@ -217,8 +233,6 @@
     "Principles of Marketing/contents/12 - Integrated Marketing Communications and Digital Marketing.md",
     "CLAUDE.md",
     "Big Data Analytics/note/1.md",
-    "Big Data Analytics/note/Overview.md",
-    "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
-    "Business Management/slides/Slide Business Management - SV_c3a3f15af62c807a812a858544cda1c3.pptx"
+    "Big Data Analytics/note/Overview.md"
   ]
 }
