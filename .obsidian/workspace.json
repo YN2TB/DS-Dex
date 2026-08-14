@@ -11,44 +11,17 @@
             "id": "51d56cf2cb0865fc",
             "type": "leaf",
             "state": {
-              "type": "pdf",
-              "state": {
-                "file": "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0"
-            }
-          },
-          {
-            "id": "d2cbc85c95350c0c",
-            "type": "leaf",
-            "state": {
               "type": "markdown",
               "state": {
-                "file": "Business Management/contents/01 - Business, Profit and Risk.md",
+                "file": "Big Data Analytics/note/2.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "01 - Business, Profit and Risk"
-            }
-          },
-          {
-            "id": "d62b0ee5c3f2bf84",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Business Management/note/ch01-homework.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "ch01-homework"
+              "title": "2"
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -210,13 +183,16 @@
       "bases:Create new base": false
     }
   },
-  "active": "d62b0ee5c3f2bf84",
+  "active": "51d56cf2cb0865fc",
   "lastOpenFiles": [
-    "Business Management/contents/01 - Business, Profit and Risk.md",
+    "Big Data Analytics/note/Overview.md",
+    "Big Data Analytics/note/2.md",
+    "Big Data Analytics/note/1.md",
+    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "Business Management/note/ch01-homework.md",
+    "Business Management/contents/01 - Business, Profit and Risk.md",
     "Business Management/contents/02 - Economics and Business.md",
     "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
-    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "Computer Vision/note/1 - Image Formation.md",
     "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf",
     "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf.crdownload",
@@ -244,9 +220,6 @@
     "Computer Vision",
     "Probability Theory/contents/04 - Random Variables.md",
     "Probability Theory/contents/00-Index.md",
-    "Commercial Banking/contents/00-Index.md",
-    "temp_img/Untitled.md",
-    "Principles of Marketing/contents/12 - Integrated Marketing Communications and Digital Marketing.md",
-    "CLAUDE.md"
+    "Commercial Banking/contents/00-Index.md"
   ]
 }
