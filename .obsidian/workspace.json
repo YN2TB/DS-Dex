@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "ca018a37b959066b",
+        "id": "8a4c5042b20759ba",
         "type": "tabs",
         "children": [
           {
-            "id": "51d56cf2cb0865fc",
+            "id": "9960744224f98cdd",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Big Data Analytics/note/2.md",
+                "file": "Deep Learning/note/1 Linear Regression.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "2"
+              "title": "1 Linear Regression"
             }
           }
         ]
@@ -183,43 +183,43 @@
       "bases:Create new base": false
     }
   },
-  "active": "51d56cf2cb0865fc",
+  "active": "9960744224f98cdd",
   "lastOpenFiles": [
-    "Big Data Analytics/note/Overview.md",
+    "CLAUDE.md.tmp.30592.89c757b6b764",
+    "CLAUDE.md.tmp.30592.813ca3d62c70",
+    "Deep Learning/contents/02 - Linear Regression.md",
+    "CLAUDE.md.tmp.30592.db6e277e12b7",
+    "CLAUDE.md.tmp.30592.ac8f88099e8b",
+    "Deep Learning/CLAUDE.md.tmp.30592.7a6d4bfd8ccf",
+    "Deep Learning/CLAUDE.md.tmp.30592.5027efac2d2e",
+    "Deep Learning/CLAUDE.md.tmp.30592.eca8a7c0cb65",
+    "Deep Learning/contents/00-Index.md.tmp.30592.7074b083e0b4",
+    "Deep Learning/contents/01 - Introduction to Deep Learning.md",
+    "Deep Learning/contents/01 - Introduction to Deep Learning.md.tmp.30592.5ccc59e7f57c",
+    "Deep Learning/contents/00-Index.md",
+    "Deep Learning/CLAUDE.md",
+    "Deep Learning/documents/Dive into Deep Learning.pdf",
+    "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf",
+    "Deep Learning/note/1 Linear Regression.md",
+    "Deep Learning/note/Index.md",
     "Big Data Analytics/note/2.md",
+    "Big Data Analytics/note/Overview.md",
     "Big Data Analytics/note/1.md",
-    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "Business Management/note/ch01-homework.md",
     "Business Management/contents/01 - Business, Profit and Risk.md",
     "Business Management/contents/02 - Economics and Business.md",
     "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
     "Computer Vision/note/1 - Image Formation.md",
-    "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf",
-    "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf.crdownload",
     "Machine Learning/contents/00-Index.md",
     "MLOps/CLAUDE.md",
     "MLOps/contents/01 - Introduction to MLOps.md",
     "Computer Vision/contents/00-Index.md",
     "Computer Vision/note/01 - Taking risks and making profits within the dynamic business environment.md",
-    "Computer Vision/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
-    "Computer Vision/slides/Slide Business Management - SV_c3a3f15af62c807a812a858544cda1c3.pptx",
     "Computer Vision/contents/09 - Accounting and Financial Information.md",
     "Computer Vision/contents/08 - Marketing - Helping Buyers Buy.md",
     "Computer Vision/contents/04 - Ethics and Corporate Social Responsibility.md",
     "Computer Vision/contents/07 - Human Resource Management.md",
     "Computer Vision/contents/02 - Economics and Business.md",
-    "Computer Vision/contents/06 - Management and Leadership.md",
-    "Computer Vision/contents/05 - How to Form a Business.md",
-    "Computer Vision/contents/03 - Doing Business in Global Markets.md",
-    "Computer Vision/contents/01 - Business, Profit and Risk.md",
-    "Computer Vision/note",
-    "Computer Vision/documents",
-    "Computer Vision/slides",
-    "Computer Vision/contents",
-    "Computer Vision/CLAUDE.md",
-    "Computer Vision",
-    "Probability Theory/contents/04 - Random Variables.md",
-    "Probability Theory/contents/00-Index.md",
-    "Commercial Banking/contents/00-Index.md"
+    "Computer Vision/contents/06 - Management and Leadership.md"
   ]
 }

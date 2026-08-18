@@ -13,9 +13,17 @@ Not a software project — an Obsidian vault used as a personal "second brain" f
 
 ## Resume state — read this, then stop reading
 
-**Last updated: 2026-08-08.**
+**Last updated: 2026-08-14.**
 
-- **🎉 THE VAULT IS COMPLETE. Business Management — the last subject — finished today:** `00-Index` + **ch. 01–09** (nine notes from Nickels's curated nine chapters), **no erratum filed, 6 discrepancies investigated and declined.**
+- **⚠️ THE VAULT IS NO LONGER COMPLETE — the user added documents for TWO NEW SUBJECTS.** Verified by listing `D:\NEU` directly: **24 → 26 folders.**
+  - **Deep Learning** — `Dive into Deep Learning` (Zhang/Lipton/Li/Smola, PyTorch ed., 1185 pp.). **🚧 IN PROGRESS: `CLAUDE.md` + `00-Index` + ch. 01–03 written. Next: ch. 04 (Neural Network — D2L ch. 5 + ch. 6 + ch. 12 optimizers).**
+  - **Computer Vision** — `Szeliski_CVAABook_2ndEd.pdf`. **NOT STARTED** — no `CLAUDE.md`, empty `contents/`. Queued after Deep Learning.
+- **⚠️ THE USER IS WORKING ALONGSIDE AND ASKED TO PAUSE AFTER EACH CHAPTER.** Write one chapter, do the three updates, stop and report. Do not batch chapters.
+- **⚠️ DEEP LEARNING'S SCOPE IS NOT AN EDITORIAL GUESS — the user wrote the syllabus.** `Deep Learning/note/Index.md` lists **8 topics**; the eight chapter notes are built to that list and D2L's 20 chapters are quarried to fill them. Mapping table is in `Deep Learning/CLAUDE.md`. **Check every new subject's `note/` folder for a user-written index before choosing a scope.** *(Computer Vision's `note/` has only a one-line stub — that subject will need the usual scope decision.)*
+- **⚠️ D2L HAS A NON-FIXED MATH CIPHER, the Mankiw hazard again: `1` means BOTH `∞` and literal `1` in adjacent sentences** (verified by codepoint). It also deletes `−`, `←`, `×`, `η`, `λ` and fraction bars outright, `:` is a decimal point, and `!` is `→`. **Never transcribe a formula; reconstruct and verify numerically.** Full table in `Deep Learning/CLAUDE.md`.
+- **⚠️ The four long-blocked subjects are STILL blocked** — `Big Data Analytics`, `Natural Language Processing`, `PowerBI`, `Programming for Data Science (Python)` all have genuinely empty `documents/`. *(Commercial Banking's `documents/` is now empty too, but that subject is finished — do not re-open it.)*
+- **The other 20 subjects are complete: 215 chapter notes.** Everything worth keeping from each is in its own `<Subject>/CLAUDE.md`. **Do NOT re-read finished subjects.**
+- *(Historical, 2026-08-08:)* **Business Management was the last of the original 20:** `00-Index` + **ch. 01–09** (nine notes from Nickels's curated nine chapters), **no erratum filed, 6 discrepancies investigated and declined.**
 - **⚠️ VERIFIED AGAINST THE FILESYSTEM, NOT AGAINST THE TABLE BELOW: 215 chapter notes across 20 subjects.** The remaining four — **Big Data Analytics, Natural Language Processing, PowerBI, Programming for Data Science (Python)** — are **permanently blocked, `documents/` genuinely empty.** *(The 2026-08-08 audit that found three subjects missing from the progress table is why this check is now done directly.)*
 - **⚠️ Everything worth keeping from Business Management is in `Business Management/CLAUDE.md`** — the five findings, the errata table, the piecewise-offset note. **Do NOT re-read the subject.** *(Same for every other subject: each has its own `CLAUDE.md`.)*
 - **⚠️ THE SUBJECT PRODUCED A NEW KIND OF RESULT FOR THE VAULT: A FINDING CONFIRMED BY THREE INDEPENDENT SOURCES.** Marketing ch. 08 computed that the Four Seasons' retention perk breaks even at a **\$2,500** replacement cost. Nickels ch. 04's *"6–213% of salary"* cleared it only **1.2×** at the floor; ch. 07's *"75% entry-level, over 200% for a top manager"* clears it **15× and 40×**. ⇒ ***a finding confirmed by an unrelated source is qualitatively stronger than one derived twice — hunt for more of these.***
@@ -61,7 +69,7 @@ Not a software project — an Obsidian vault used as a personal "second brain" f
 - **What DSA established, worth carrying to every later subject:** derive the claim, then **measure it by doubling $n$ and reading the ratio** (2/4/8 for linear/quadratic/cubic; the constant cancels, so quote **ratios**, not seconds). **The first measurement misled five times** — ch. 08 (needed a *constructed* worst case, not random input), ch. 10 (recursive-vs-iterative → count node visits), ch. 11 (Python-vs-C → count operations), ch. 12 (twice: asserted a conclusion the printed table contradicted; used random strings whose counts weren't monotonic). **When a measurement contradicts a sound proof, suspect the measurement.**
 - **Extraction facts, if either book is revisited.** **Goodrich's Python is destroyed** — indentation lost and **double underscores render as spaces** (`__init__`→`init`), so listings look plausible and are wrong; his *prose* extracts fine. Goodrich page $n$ = PDF page $n+22$. **Lambert's code extracts perfectly** but covers only ch. 01–08. **Johnsonbaugh (Discrete Maths)** extracts unusually well but **silently deletes overlines**, so complements and De Morgan arrive looking false; book page $n$ = PDF page $n+21$. **All figures and statistical tables in every book are images and never extract.**
 - **Environment note:** a Bash call once failed with `claude-sonnet-5[1m] is temporarily unavailable` (tool-classifier outage, not a task problem). **Just re-run it** — it has succeeded immediately on retry both times.
-- **Standing authorisation in force:** write chapter notes directly, no per-file confirmation. Work through the remaining textbook-only subjects in this order: Discrete Mathematics → Data Structures and Algorithms → Database Management Systems → Basic Programming (C++) → Commercial Banking → Macroeconomics & Microeconomics → Monetary and Financial Theories → Principles of Marketing.
+- **Standing authorisation in force:** write chapter notes directly, no per-file confirmation. **Remaining order: Deep Learning (ch. 02–08) → Computer Vision.** *(The original eight-subject queue listed here is fully discharged.)*
 - **Open question for the user, not blocking:** every textbook-only scope is an unconfirmed editorial choice. The one real gap is **optimal control** — `Optimization/documents/Léonard & Long` has no text layer at all, so that topic is absent from the vault. Worth raising with the lecturer.
 
 **To resume: read this section + the one subject's `CLAUDE.md`, then start.** That is ~6 KB and it is sufficient. Do **not** re-read finished subjects, other subjects' files, or the previous transcript — the whole point of the per-subject split is that you don't have to.
@@ -208,6 +216,8 @@ Extract to a file in the scratchpad, then Read it in chunks — never print a wh
 | Monetary and Financial Theories | ✅ `00-Index` + ch. 01–12 (1 erratum found) |
 | Principles of Marketing | ✅ `00-Index` + ch. 01–12 (no erratum; 6 discrepancies declined) |
 | Business Management | ✅ `00-Index` + ch. 01–09 (no erratum; 6 discrepancies declined) |
+| **Deep Learning** | 🚧 **In progress — `00-Index` + ch. 01–03 of 08** (scope given by user's `note/Index.md`; 6 discrepancies declined) |
+| **Computer Vision** | ⬜ **Not started** — Szeliski 2nd ed. in `documents/`, needs a scope decision |
 | Big Data Analytics | 🚫 Blocked — `documents/` is empty |
 | Natural Language Processing | 🚫 Blocked — `documents/` is empty |
 | PowerBI | 🚫 Blocked — `documents/` is empty |
