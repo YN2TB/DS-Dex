@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Deep Learning/note/1 Linear Regression.md",
+                "file": "Business Management/note/ch01-homework.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "1 Linear Regression"
+              "title": "ch01-homework"
             }
           }
         ]
@@ -185,6 +185,7 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Deep Learning/note/1 Linear Regression.md",
     "CLAUDE.md.tmp.30592.89c757b6b764",
     "CLAUDE.md.tmp.30592.813ca3d62c70",
     "Deep Learning/contents/02 - Linear Regression.md",
@@ -199,8 +200,6 @@
     "Deep Learning/contents/00-Index.md",
     "Deep Learning/CLAUDE.md",
     "Deep Learning/documents/Dive into Deep Learning.pdf",
-    "Computer Vision/documents/Szeliski_CVAABook_2ndEd.pdf",
-    "Deep Learning/note/1 Linear Regression.md",
     "Deep Learning/note/Index.md",
     "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/Overview.md",
