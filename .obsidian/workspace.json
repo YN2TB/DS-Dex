@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Business Management/note/ch01-homework.md",
+                "file": "Computer Vision/note/project_topics.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ch01-homework"
+              "title": "project_topics"
             }
           }
         ]
@@ -185,6 +185,8 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Business Management/note/ch01-homework.md",
+    "Computer Vision/note/project_topics.md",
     "Deep Learning/note/1 Linear Regression.md",
     "CLAUDE.md.tmp.30592.89c757b6b764",
     "CLAUDE.md.tmp.30592.813ca3d62c70",
@@ -204,7 +206,6 @@
     "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/Overview.md",
     "Big Data Analytics/note/1.md",
-    "Business Management/note/ch01-homework.md",
     "Business Management/contents/01 - Business, Profit and Risk.md",
     "Business Management/contents/02 - Economics and Business.md",
     "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
