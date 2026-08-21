@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Business Management/note/ch01-homework.md",
+                "file": "Business Management/contents/01 - Business, Profit and Risk.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ch01-homework"
+              "title": "01 - Business, Profit and Risk"
             }
           }
         ]
@@ -185,8 +185,11 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
-    "Business Management/note/ch01-innovation-international-reference.md",
     "Business Management/note/ch01-homework.md",
+    "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
+    "Business Management/contents/01 - Business, Profit and Risk.md",
+    "Natural Language Processing/note/Untitled.md",
+    "Business Management/note/ch01-innovation-international-reference.md",
     "Computer Vision/note/project_topics.md",
     "Deep Learning/note/1 Linear Regression.md",
     "CLAUDE.md.tmp.30592.89c757b6b764",
@@ -207,9 +210,7 @@
     "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/Overview.md",
     "Big Data Analytics/note/1.md",
-    "Business Management/contents/01 - Business, Profit and Risk.md",
     "Business Management/contents/02 - Economics and Business.md",
-    "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
     "Computer Vision/note/1 - Image Formation.md",
     "Machine Learning/contents/00-Index.md",
     "MLOps/CLAUDE.md",
@@ -219,7 +220,6 @@
     "Computer Vision/contents/09 - Accounting and Financial Information.md",
     "Computer Vision/contents/08 - Marketing - Helping Buyers Buy.md",
     "Computer Vision/contents/04 - Ethics and Corporate Social Responsibility.md",
-    "Computer Vision/contents/07 - Human Resource Management.md",
-    "Computer Vision/contents/02 - Economics and Business.md"
+    "Computer Vision/contents/07 - Human Resource Management.md"
   ]
 }
