@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Business Management/contents/01 - Business, Profit and Risk.md",
+                "file": "Big Data Analytics/note/3.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "01 - Business, Profit and Risk"
+              "title": "3"
             }
           }
         ]
@@ -185,9 +185,12 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Big Data Analytics/note/2.md",
+    "Big Data Analytics/note/3.md",
+    "Big Data Analytics/note/1.md",
+    "Business Management/contents/01 - Business, Profit and Risk.md",
     "Business Management/note/ch01-homework.md",
     "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
-    "Business Management/contents/01 - Business, Profit and Risk.md",
     "Natural Language Processing/note/Untitled.md",
     "Business Management/note/ch01-innovation-international-reference.md",
     "Computer Vision/note/project_topics.md",
@@ -207,9 +210,7 @@
     "Deep Learning/CLAUDE.md",
     "Deep Learning/documents/Dive into Deep Learning.pdf",
     "Deep Learning/note/Index.md",
-    "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/Overview.md",
-    "Big Data Analytics/note/1.md",
     "Business Management/contents/02 - Economics and Business.md",
     "Computer Vision/note/1 - Image Formation.md",
     "Machine Learning/contents/00-Index.md",
@@ -219,7 +220,6 @@
     "Computer Vision/note/01 - Taking risks and making profits within the dynamic business environment.md",
     "Computer Vision/contents/09 - Accounting and Financial Information.md",
     "Computer Vision/contents/08 - Marketing - Helping Buyers Buy.md",
-    "Computer Vision/contents/04 - Ethics and Corporate Social Responsibility.md",
-    "Computer Vision/contents/07 - Human Resource Management.md"
+    "Computer Vision/contents/04 - Ethics and Corporate Social Responsibility.md"
   ]
 }
