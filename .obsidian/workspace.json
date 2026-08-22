@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Big Data Analytics/note/3.md",
+                "file": "Deep Learning/contents/03 - Logistic Regression.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "3"
+              "title": "03 - Logistic Regression"
             }
           }
         ]
@@ -185,8 +185,26 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
-    "Big Data Analytics/note/2.md",
+    "Deep Learning/note/3 Batch, Stochastic and Mini-batch Gradient Descent.md",
+    "Deep Learning/note/2 Gradient Descent.md",
+    "Deep Learning/note/Gradient_Descent_Batch_SGD_MiniBatch_Detailed_EN.pdf",
+    "Deep Learning/note/Gradient_Descent_Batch_SGD_MiniBatch_Detailed_EN.pdf.crdownload",
+    "Deep Learning/note/Gradient_Descent_Batch_SGD_MiniBatch_Plotly_Interactive_executed.ipynb",
+    "Deep Learning/note/Unconfirmed 29631.crdownload",
+    "Deep Learning/note/1 Linear Regression.md",
+    "Deep Learning/documents/Dive into Deep Learning.pdf",
+    "Deep Learning/contents/01 - Introduction to Deep Learning.md",
+    "Deep Learning/contents/03 - Logistic Regression.md",
+    "Deep Learning/contents/04 - Neural Network.md",
+    "Deep Learning/contents/02 - Linear Regression.md",
+    "sedAFK3ii",
+    "Deep Learning/contents/sed4cEsfr",
+    "CLAUDE.md",
+    "Deep Learning/note/LR.py.bak",
+    "Deep Learning/note/__pycache__/LR.cpython-314.pyc",
+    "Deep Learning/note/__pycache__",
     "Big Data Analytics/note/3.md",
+    "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/1.md",
     "Business Management/contents/01 - Business, Profit and Risk.md",
     "Business Management/note/ch01-homework.md",
@@ -194,32 +212,13 @@
     "Natural Language Processing/note/Untitled.md",
     "Business Management/note/ch01-innovation-international-reference.md",
     "Computer Vision/note/project_topics.md",
-    "Deep Learning/note/1 Linear Regression.md",
-    "CLAUDE.md.tmp.30592.89c757b6b764",
-    "CLAUDE.md.tmp.30592.813ca3d62c70",
-    "Deep Learning/contents/02 - Linear Regression.md",
-    "CLAUDE.md.tmp.30592.db6e277e12b7",
-    "CLAUDE.md.tmp.30592.ac8f88099e8b",
-    "Deep Learning/CLAUDE.md.tmp.30592.7a6d4bfd8ccf",
-    "Deep Learning/CLAUDE.md.tmp.30592.5027efac2d2e",
-    "Deep Learning/CLAUDE.md.tmp.30592.eca8a7c0cb65",
-    "Deep Learning/contents/00-Index.md.tmp.30592.7074b083e0b4",
-    "Deep Learning/contents/01 - Introduction to Deep Learning.md",
-    "Deep Learning/contents/01 - Introduction to Deep Learning.md.tmp.30592.5ccc59e7f57c",
     "Deep Learning/contents/00-Index.md",
     "Deep Learning/CLAUDE.md",
-    "Deep Learning/documents/Dive into Deep Learning.pdf",
     "Deep Learning/note/Index.md",
     "Big Data Analytics/note/Overview.md",
     "Business Management/contents/02 - Economics and Business.md",
     "Computer Vision/note/1 - Image Formation.md",
     "Machine Learning/contents/00-Index.md",
-    "MLOps/CLAUDE.md",
-    "MLOps/contents/01 - Introduction to MLOps.md",
-    "Computer Vision/contents/00-Index.md",
-    "Computer Vision/note/01 - Taking risks and making profits within the dynamic business environment.md",
-    "Computer Vision/contents/09 - Accounting and Financial Information.md",
-    "Computer Vision/contents/08 - Marketing - Helping Buyers Buy.md",
-    "Computer Vision/contents/04 - Ethics and Corporate Social Responsibility.md"
+    "MLOps/CLAUDE.md"
   ]
 }
