@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Deep Learning/contents/03 - Logistic Regression.md",
+                "file": "Computer Vision/note/project_topics.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "03 - Logistic Regression"
+              "title": "project_topics"
             }
           }
         ]
@@ -185,6 +185,7 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Deep Learning/contents/03 - Logistic Regression.md",
     "Deep Learning/note/3 Batch, Stochastic and Mini-batch Gradient Descent.md",
     "Deep Learning/note/2 Gradient Descent.md",
     "Deep Learning/note/Gradient_Descent_Batch_SGD_MiniBatch_Detailed_EN.pdf",
@@ -194,7 +195,6 @@
     "Deep Learning/note/1 Linear Regression.md",
     "Deep Learning/documents/Dive into Deep Learning.pdf",
     "Deep Learning/contents/01 - Introduction to Deep Learning.md",
-    "Deep Learning/contents/03 - Logistic Regression.md",
     "Deep Learning/contents/04 - Neural Network.md",
     "Deep Learning/contents/02 - Linear Regression.md",
     "sedAFK3ii",
