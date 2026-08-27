@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "CLAUDE.md",
+                "file": "Deep Learning/contents/03 - Logistic Regression.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "CLAUDE"
+              "title": "03 - Logistic Regression"
             }
           }
         ]
@@ -185,8 +185,14 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
-    "Computer Vision/note/project_topics.md",
+    "Deep Learning/note/softmax-regression.html",
+    "Deep Learning/note/Untitled.md",
     "Deep Learning/contents/03 - Logistic Regression.md",
+    "Deep Learning/contents/02 - Linear Regression.md",
+    "Computer Vision/contents/02 - Classical Image Processing.md",
+    "Business Management/contents/01 - Business, Profit and Risk.md",
+    "CLAUDE.md",
+    "Computer Vision/note/project_topics.md",
     "Deep Learning/note/3 Batch, Stochastic and Mini-batch Gradient Descent.md",
     "Deep Learning/note/2 Gradient Descent.md",
     "Deep Learning/note/Gradient_Descent_Batch_SGD_MiniBatch_Detailed_EN.pdf",
@@ -197,17 +203,14 @@
     "Deep Learning/documents/Dive into Deep Learning.pdf",
     "Deep Learning/contents/01 - Introduction to Deep Learning.md",
     "Deep Learning/contents/04 - Neural Network.md",
-    "Deep Learning/contents/02 - Linear Regression.md",
     "sedAFK3ii",
     "Deep Learning/contents/sed4cEsfr",
-    "CLAUDE.md",
     "Deep Learning/note/LR.py.bak",
     "Deep Learning/note/__pycache__/LR.cpython-314.pyc",
     "Deep Learning/note/__pycache__",
     "Big Data Analytics/note/3.md",
     "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/1.md",
-    "Business Management/contents/01 - Business, Profit and Risk.md",
     "Business Management/note/ch01-homework.md",
     "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
     "Natural Language Processing/note/Untitled.md",
@@ -217,8 +220,6 @@
     "Deep Learning/note/Index.md",
     "Big Data Analytics/note/Overview.md",
     "Business Management/contents/02 - Economics and Business.md",
-    "Computer Vision/note/1 - Image Formation.md",
-    "Machine Learning/contents/00-Index.md",
-    "MLOps/CLAUDE.md"
+    "Computer Vision/note/1 - Image Formation.md"
   ]
 }
