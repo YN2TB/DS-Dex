@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Deep Learning/contents/03 - Logistic Regression.md",
+                "file": "Business Management/note/02 - Understanding economics and how it affects business.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "03 - Logistic Regression"
+              "title": "02 - Understanding economics and how it affects business"
             }
           }
         ]
@@ -185,9 +185,14 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Business Management/note/vietnam-gdp-growth-2020-2024.html",
+    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
+    "Business Management/note/02 - Understanding economics and how it affects business.md",
+    "Business Management/contents/02 - Economics and Business.md",
+    "Business Management/note/vietnam-gdp-growth-2020-2024.html.tmp.19344.e0806b55de3f",
+    "Deep Learning/contents/03 - Logistic Regression.md",
     "Deep Learning/note/softmax-regression.html",
     "Deep Learning/note/Untitled.md",
-    "Deep Learning/contents/03 - Logistic Regression.md",
     "Deep Learning/contents/02 - Linear Regression.md",
     "Computer Vision/contents/02 - Classical Image Processing.md",
     "Business Management/contents/01 - Business, Profit and Risk.md",
@@ -204,10 +209,6 @@
     "Deep Learning/contents/01 - Introduction to Deep Learning.md",
     "Deep Learning/contents/04 - Neural Network.md",
     "sedAFK3ii",
-    "Deep Learning/contents/sed4cEsfr",
-    "Deep Learning/note/LR.py.bak",
-    "Deep Learning/note/__pycache__/LR.cpython-314.pyc",
-    "Deep Learning/note/__pycache__",
     "Big Data Analytics/note/3.md",
     "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/1.md",
@@ -218,8 +219,6 @@
     "Deep Learning/contents/00-Index.md",
     "Deep Learning/CLAUDE.md",
     "Deep Learning/note/Index.md",
-    "Big Data Analytics/note/Overview.md",
-    "Business Management/contents/02 - Economics and Business.md",
-    "Computer Vision/note/1 - Image Formation.md"
+    "Big Data Analytics/note/Overview.md"
   ]
 }

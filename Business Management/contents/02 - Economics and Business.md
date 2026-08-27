@@ -21,7 +21,8 @@ source: "Nickels, McHugh & McHugh, *Understanding Business*, 12th ed., ch. 2 (bo
 ### 1. What economics is, and Adam Smith's move
 
 > **Economics** — the study of how society employs resources to produce goods and services for consumption.
-> **Macroeconomics** — the economy as a whole. **Microeconomics** — behaviour of people and organizations in particular markets.
+> **Macroeconomics** — the economy as a whole. 
+> **Microeconomics** — behavior of people and organizations in particular markets.
 > **Resource development** — the study of how to **increase resources** and create conditions that make better use of them.
 
 **Nickels frames the whole subject around one contrast:**
@@ -153,11 +154,11 @@ $$P^* = \tfrac{155}{7} = \mathbf{\$22.14}, \qquad Q^* = 22.14$$
 
 ### 6. The three key indicators
 
-| | |
-|---|---|
-| **GDP** | the total value of final goods and services produced in a country in a given year |
+|                       |                                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **GDP**               | the total value of final goods and services produced in a country in a given year                                                |
 | **unemployment rate** | the percentage of civilians **at least 16 years old** who are unemployed **and tried to find a job within the prior four weeks** |
-| **price indexes** | **CPI** — monthly statistics measuring inflation or deflation; **PPI** — price change at the **wholesale** level |
+| **price indexes**     | **CPI** — monthly statistics measuring inflation or deflation; **PPI** — price change at the **wholesale** level                 |
 
 > [!warning] ⚠️ The unemployment definition contains its own most important limitation
 > **You must have "tried to find a job within the prior four weeks" to be counted.** **⇒ someone who stops looking leaves the numerator AND the labour force, so the measured rate can FALL because people gave up.** **The rate is a measure of active search, not of joblessness.**
