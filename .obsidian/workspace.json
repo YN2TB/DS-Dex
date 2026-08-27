@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Computer Vision/note/project_topics.md",
+                "file": "CLAUDE.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "project_topics"
+              "title": "CLAUDE"
             }
           }
         ]
@@ -185,6 +185,7 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Computer Vision/note/project_topics.md",
     "Deep Learning/contents/03 - Logistic Regression.md",
     "Deep Learning/note/3 Batch, Stochastic and Mini-batch Gradient Descent.md",
     "Deep Learning/note/2 Gradient Descent.md",
@@ -211,7 +212,6 @@
     "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
     "Natural Language Processing/note/Untitled.md",
     "Business Management/note/ch01-innovation-international-reference.md",
-    "Computer Vision/note/project_topics.md",
     "Deep Learning/contents/00-Index.md",
     "Deep Learning/CLAUDE.md",
     "Deep Learning/note/Index.md",

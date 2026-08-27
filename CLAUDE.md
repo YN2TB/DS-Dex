@@ -13,7 +13,7 @@ Not a software project — an Obsidian vault used as a personal "second brain" f
 
 ## Resume state — read this, then stop reading
 
-**Last updated: 2026-08-24.**
+**Last updated: 2026-08-25.**
 
 - **⭐ THE VAULT IS COMPLETE AGAIN — both new subjects are finished. VERIFIED AGAINST THE FILESYSTEM, NOT AGAINST THE TABLE BELOW: 26 subject folders, 22 complete, 237 chapter notes, 4 permanently blocked.** *(`data/` is the agentmemory plugin, not a subject.)*
   - **Deep Learning** — ✅ `00-Index` + ch. 01–08, the user's full eight-topic syllabus. No errata; 9 discrepancies declined.
@@ -37,7 +37,7 @@ Not a software project — an Obsidian vault used as a personal "second brain" f
 - **⚠️ Deep Learning ch. 04's most usable finding, and the source contradicts itself two paragraphs apart: η AND β ARE ONE KNOB.** D2L derives the effective step $\eta/(1-\beta)$, then calls 0.02/0.5 → 0.01/0.1 “a **slight reduction**” when it is **0.0400 → 0.1000, a 2.5× INCREASE** — **and its own printed loss rises 0.246 → 0.254.** Raising β from 0.9 to 0.99 is a 10× learning-rate increase in disguise. *(Also there: **Adam's uncorrected step is never too small — 3.16× too large at t=1, peaking at 6.5685× at t=12** — while D2L describes the bias as “towards smaller values”.)*
 - **⚠️ D2L HAS A NON-FIXED MATH CIPHER, the Mankiw hazard again: `1` means BOTH `∞` and literal `1` in adjacent sentences** (verified by codepoint). It also deletes `−`, `←`, `×`, `η`, `λ` and fraction bars outright, `:` is a decimal point, and `!` is `→`. **Never transcribe a formula; reconstruct and verify numerically.** Full table in `Deep Learning/CLAUDE.md`.
 - **⚠️ The four long-blocked subjects are STILL blocked** — `Big Data Analytics`, `Natural Language Processing`, `PowerBI`, `Programming for Data Science (Python)` all have genuinely empty `documents/`. *(Commercial Banking's `documents/` is now empty too, but that subject is finished — do not re-open it.)*
-- **22 subjects are complete: 237 chapter notes** (verified against the filesystem 2026-08-24 by counting `contents/[0-9][0-9] - *.md` per folder). Everything worth keeping from each is in its own `<Subject>/CLAUDE.md`. **Do NOT re-read finished subjects.**
+- **22 subjects are complete: 237 chapter notes** (verified against the filesystem 2026-08-25 by counting `contents/[0-9][0-9] - *.md` per folder). Everything worth keeping from each is in its own `<Subject>/CLAUDE.md`. **Do NOT re-read finished subjects.**
 - *(Historical, 2026-08-08:)* **Business Management was the last of the original 20:** `00-Index` + **ch. 01–09** (nine notes from Nickels's curated nine chapters), **no erratum filed, 6 discrepancies investigated and declined.**
 - **⚠️ VERIFIED AGAINST THE FILESYSTEM, NOT AGAINST THE TABLE BELOW: 223 chapter notes across 21 subjects.** The remaining four — **Big Data Analytics, Natural Language Processing, PowerBI, Programming for Data Science (Python)** — are **permanently blocked, `documents/` genuinely empty.** *(The 2026-08-08 audit that found three subjects missing from the progress table is why this check is now done directly.)*
 - **⚠️ Everything worth keeping from Business Management is in `Business Management/CLAUDE.md`** — the five findings, the errata table, the piecewise-offset note. **Do NOT re-read the subject.** *(Same for every other subject: each has its own `CLAUDE.md`.)*
