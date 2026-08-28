@@ -11,7 +11,7 @@ source: "Szeliski, *Computer Vision: Algorithms and Applications*, 2nd ed. §5.1
 
 **Five results.**
 
-**§3 — ⚠️ THE CURSE OF DIMENSIONALITY KILLS k-NN ON PIXELS, AND THE NUMBER IS BRUTAL.** At CIFAR-10's **3,072 dimensions the farthest of 1,000 random points is only 6.6% further away than the nearest** (2,575% at $d=1$). **The relative spread falls like $1/\sqrt d$: sd/mean is 0.171 at $d=10$ and 0.0099 at $d=3072$.** ⇒ *"nearest neighbour" stops meaning anything.*
+**§3 — ⚠️ THE CURSE OF DIMENSIONALITY KILLS k-NN ON PIXELS, AND THE NUMBER IS BRUTAL.** At CIFAR-10's **3,072 dimensions the farthest of 1,000 random points is only 6.6% further away than the nearest** (2,575% at $d=1$). **The relative spread falls like $1/\sqrt d$: sd/mean is 0.171 at $d=10$ and 0.0099 at $d=3072$.** ⇒ *"nearest neighbor" stops meaning anything.*
 
 **§2 — ⚠️ k-NN'S COST PROFILE IS EXACTLY BACKWARDS.** Training $O(1)$, prediction $O(ND)$. **Predicting one CIFAR-10 image touches 153.6 million numbers where a linear classifier touches 30,720 — a ratio of $N/K=5{,}000\times$, independent of $D$.** And the whole linear model is **0.02% of the training set it replaces**.
 
