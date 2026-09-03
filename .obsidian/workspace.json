@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "CLAUDE.md",
+                "file": "Business Management/contents/03 - Doing Business in Global Markets.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "CLAUDE"
+              "title": "03 - Doing Business in Global Markets"
             }
           }
         ]
@@ -185,6 +185,9 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
+    "Business Management/contents/03 - Doing Business in Global Markets.md",
+    "CLAUDE.md",
     "Deep Learning/contents/00-Index.md",
     "Deep Learning/contents/04 - Neural Network.md",
     "Deep Learning/contents/02 - Linear Regression.md",
@@ -196,7 +199,6 @@
     "Big Data Analytics/note/1.md",
     "Business Management/note/02 - Understanding economics and how it affects business.md",
     "Business Management/note/vietnam-gdp-growth-2020-2024.html",
-    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "Business Management/contents/02 - Economics and Business.md",
     "Business Management/note/vietnam-gdp-growth-2020-2024.html.tmp.19344.e0806b55de3f",
     "Deep Learning/contents/03 - Logistic Regression.md",
@@ -204,7 +206,6 @@
     "Deep Learning/note/Untitled.md",
     "Computer Vision/contents/02 - Classical Image Processing.md",
     "Business Management/contents/01 - Business, Profit and Risk.md",
-    "CLAUDE.md",
     "Computer Vision/note/project_topics.md",
     "Deep Learning/note/3 Batch, Stochastic and Mini-batch Gradient Descent.md",
     "Deep Learning/note/2 Gradient Descent.md",
@@ -218,8 +219,6 @@
     "Business Management/note/ch01-homework.md",
     "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
     "Natural Language Processing/note/Untitled.md",
-    "Business Management/note/ch01-innovation-international-reference.md",
-    "Deep Learning/CLAUDE.md",
-    "Deep Learning/note/Index.md"
+    "Business Management/note/ch01-innovation-international-reference.md"
   ]
 }
