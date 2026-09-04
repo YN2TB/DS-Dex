@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Business Management/contents/03 - Doing Business in Global Markets.md",
+                "file": "Big Data Analytics/note/3.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "03 - Doing Business in Global Markets"
+              "title": "3"
             }
           }
         ]
@@ -185,8 +185,8 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
-    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "Business Management/contents/03 - Doing Business in Global Markets.md",
+    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "CLAUDE.md",
     "Deep Learning/contents/00-Index.md",
     "Deep Learning/contents/04 - Neural Network.md",

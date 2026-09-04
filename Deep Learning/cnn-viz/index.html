@@ -1,0 +1,251 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CNN Live</title>
+<style>
+  :root{
+    --bg:#080a10; --panel:#0e1219; --line:#1b2330; --dim:#5b6a80;
+    --fg:#dbe6f5; --pos:#3ad6ff; --neg:#ff4d8d; --ok:#59f2a6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow:hidden}
+  #top{display:flex;align-items:center;gap:18px;padding:10px 16px;border-bottom:1px solid var(--line)}
+  .stat{display:flex;flex-direction:column;line-height:1.25}
+  .stat b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+  .stat span{font-size:10px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+  button{background:#141b26;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+         padding:6px 14px;cursor:pointer;font:inherit}
+  button:hover{border-color:var(--pos);color:var(--pos)}
+  input[type=range]{width:110px;accent-color:var(--pos)}
+  .ctl{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:11px}
+  #wrap{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 53px)}
+  #right{border-left:1px solid var(--line);display:grid;grid-template-rows:auto 1fr auto;min-height:0}
+  .pane{padding:12px;min-height:0}
+  .pane+.pane{border-top:1px solid var(--line)}
+  h4{margin:0 0 8px;font-size:10px;letter-spacing:.14em;color:var(--dim);font-weight:600;text-transform:uppercase}
+  canvas{display:block;width:100%}
+  .maps{display:flex;gap:10px;align-items:flex-start}
+  .grow{flex:1}
+</style>
+
+<div id="top">
+  <div class="stat"><b id="s-loss">&mdash;</b><span>loss</span></div>
+  <div class="stat"><b id="s-acc">&mdash;</b><span>batch acc</span></div>
+  <div class="stat"><b id="s-test">&mdash;</b><span>test acc</span></div>
+  <div class="stat"><b id="s-step">0</b><span>step</span></div>
+  <div style="flex:1"></div>
+  <div class="ctl">lr <input id="lr" type="range" min="-4" max="-1" step="0.05" value="-2"><b id="lrv">0.0100</b></div>
+  <div class="ctl">speed <input id="sp" type="range" min="0" max="100" value="80"></div>
+  <button id="pause">pause</button>
+  <button id="reset">reset</button>
+</div>
+
+<div id="wrap">
+  <canvas id="net"></canvas>
+  <div id="right">
+    <div class="pane">
+      <h4>input / feature maps</h4>
+      <div class="maps">
+        <canvas id="img" class="grow" style="max-width:64px"></canvas>
+        <canvas id="m1" class="grow"></canvas>
+        <canvas id="m2" class="grow"></canvas>
+      </div>
+    </div>
+    <div class="pane" style="display:flex;flex-direction:column">
+      <h4>loss &amp; accuracy</h4>
+      <canvas id="chart" style="flex:1"></canvas>
+    </div>
+    <div class="pane"><h4>prediction</h4><canvas id="out"></canvas></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const LAY = [8, 16, 32, 10];
+const z = n => new Array(n).fill(0);
+let act = LAY.map(z), tgt = LAY.map(z);
+let E = null, hist = [], last = null, imgD = null, m1D = null, m2D = null;
+
+/* ---- stream ---- */
+new EventSource('/stream').onmessage = ev => {
+  const d = JSON.parse(ev.data);
+  if (d.t === 'edges') { E = d; return; }
+  if (d.t === 'reset') { hist = []; return; }
+  last = d;
+  tgt = [d.n1, d.n2, d.n3, d.probs];
+  imgD = d.img; m1D = d.m1; m2D = d.m2;
+  hist.push([d.loss, d.acc]);
+  if (hist.length > 600) hist.shift();
+  $('#s-loss').textContent = d.loss.toFixed(4);
+  $('#s-acc').textContent  = (d.acc * 100).toFixed(0) + '%';
+  $('#s-test').textContent = (d.test * 100).toFixed(1) + '%';
+  $('#s-step').textContent = d.step;
+};
+
+/* ---- controls ---- */
+const post = o => fetch('/control', {method:'POST',
+  headers:{'Content-Type':'application/json'}, body: JSON.stringify(o)});
+let running = true;
+$('#pause').onclick = e => {
+  running = !running;
+  e.target.textContent = running ? 'pause' : 'run';
+  post({running});
+};
+$('#reset').onclick = () => { hist = []; post({reset:true}); };
+$('#lr').oninput = e => {
+  const v = Math.pow(10, +e.target.value);
+  $('#lrv').textContent = v.toFixed(4);
+  post({lr:v});
+};
+$('#sp').oninput = e => post({delay: (100 - e.target.value) / 100 * 0.2});
+
+/* ---- canvas helpers ---- */
+function fit(c, h){
+  const r = c.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+  h = h || r.height;
+  c.width = r.width * dpr; c.height = h * dpr;
+  c.style.height = h + 'px';
+  const x = c.getContext('2d');
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [x, r.width, h];
+}
+function heat(c, data, n, ch, cols){
+  const gap = 2, rows = Math.ceil(ch / cols);
+  const w = c.getBoundingClientRect().width;
+  const px = Math.max(2, Math.floor((w - (cols - 1) * gap) / (cols * n)));
+  const [x, W, H] = fit(c, rows * n * px + (rows - 1) * gap);
+  x.clearRect(0, 0, W, H);
+  for (let k = 0; k < ch; k++){
+    const ox = (k % cols) * (n * px + gap), oy = ((k / cols) | 0) * (n * px + gap);
+    for (let i = 0; i < n * n; i++){
+      const v = data[k * n * n + i] / 255;
+      x.fillStyle = 'rgb(' + ((v*58+8)|0) + ',' + ((v*190+10)|0) + ',' + ((v*255+16)|0) + ')';
+      x.fillRect(ox + (i % n) * px, oy + ((i / n) | 0) * px, px, px);
+    }
+  }
+}
+
+/* ---- network ---- */
+function drawNet(){
+  const c = $('#net');
+  const [x, W, H] = fit(c, c.parentElement.clientHeight);
+  x.clearRect(0, 0, W, H);
+  const cols = 5, padX = 80, padY = 34;
+  const cx = i => padX + i * (W - 2 * padX) / (cols - 1);
+  const ns = [1].concat(LAY), pos = [];
+  for (let k = 0; k < cols; k++){
+    const n = ns[k], sp = Math.min(26, (H - 2 * padY) / Math.max(n, 1));
+    const top = H / 2 - (n - 1) * sp / 2;
+    pos.push(Array.from({length:n}, (_, i) => [cx(k), top + i * sp]));
+  }
+
+  if (E){
+    const mats = [E.e1.map(v => [v]), E.e2, E.e3, E.e4];
+    for (let k = 0; k < 4; k++){
+      const m = mats[k];
+      let mx = 1e-9;
+      for (const row of m) for (const v of row) mx = Math.max(mx, Math.abs(v));
+      const A = pos[k], B = pos[k + 1];
+      for (let j = 0; j < m.length; j++){
+        for (let i = 0; i < m[j].length; i++){
+          const w = m[j][i] / mx, a = Math.abs(w);
+          if (a < 0.18) continue;
+          const live = k === 0 ? 1 : 0.2 + 0.8 * (act[k - 1][i] || 0);
+          x.strokeStyle = (w >= 0 ? 'rgba(58,214,255,' : 'rgba(255,77,141,')
+                        + (a * 0.32 * live).toFixed(3) + ')';
+          x.lineWidth = 0.4 + a * 1.5;
+          const p = A[i], q = B[j];
+          x.beginPath();
+          x.moveTo(p[0], p[1]);
+          x.bezierCurveTo(p[0] + 40, p[1], q[0] - 40, q[1], q[0], q[1]);
+          x.stroke();
+        }
+      }
+    }
+  }
+
+  const label = ['input', 'conv 3x3 x8', 'conv 3x3 x16', 'dense 32', 'out 10'];
+  for (let k = 0; k < cols; k++){
+    for (let i = 0; i < pos[k].length; i++){
+      const px = pos[k][i][0], py = pos[k][i][1];
+      const v = k === 0 ? 1 : (act[k - 1][i] || 0);
+      const rr = 3.5 + v * 5;
+      const g = x.createRadialGradient(px, py, 0, px, py, rr * 3.2);
+      g.addColorStop(0, 'rgba(58,214,255,' + (0.32 * v).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(58,214,255,0)');
+      x.fillStyle = g;
+      x.beginPath(); x.arc(px, py, rr * 3.2, 0, 7); x.fill();
+      x.fillStyle = 'rgb(' + ((v*40+18)|0) + ',' + ((v*180+30)|0) + ',' + ((v*240+45)|0) + ')';
+      x.beginPath(); x.arc(px, py, rr, 0, 7); x.fill();
+      x.strokeStyle = 'rgba(58,214,255,' + (0.25 + 0.6 * v).toFixed(3) + ')';
+      x.lineWidth = 1; x.stroke();
+      if (k === 4){
+        x.fillStyle = (last && i === last.pred) ? '#59f2a6' : '#46536a';
+        x.font = '11px ui-monospace'; x.textAlign = 'left';
+        x.fillText(i, px + 13, py + 4);
+      }
+    }
+    x.fillStyle = '#3d4a5c'; x.font = '10px ui-monospace'; x.textAlign = 'center';
+    x.fillText(label[k], cx(k), H - 12);
+  }
+}
+
+/* ---- chart ---- */
+function drawChart(){
+  const c = $('#chart');
+  const [x, W, H] = fit(c, c.clientHeight || 120);
+  x.clearRect(0, 0, W, H);
+  x.strokeStyle = '#141b26'; x.lineWidth = 1;
+  for (let i = 0; i <= 4; i++){
+    const y = Math.round(H * i / 4) + .5;
+    x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke();
+  }
+  if (hist.length < 2) return;
+  let mx = 0;
+  for (const h of hist) mx = Math.max(mx, h[0]);
+  mx = mx || 1;
+  const line = (get, color, fill) => {
+    x.beginPath();
+    for (let i = 0; i < hist.length; i++){
+      const px = W * i / (hist.length - 1), py = H - get(hist[i]) * (H - 6) - 3;
+      i ? x.lineTo(px, py) : x.moveTo(px, py);
+    }
+    x.strokeStyle = color; x.lineWidth = 1.6; x.stroke();
+    if (fill){
+      x.lineTo(W, H); x.lineTo(0, H); x.closePath();
+      x.fillStyle = fill; x.fill();
+    }
+  };
+  line(h => h[0] / mx, '#3ad6ff', 'rgba(58,214,255,0.08)');
+  line(h => h[1], 'rgba(89,242,166,0.8)', null);
+}
+
+/* ---- output bars ---- */
+function drawOut(){
+  const [x, W, H] = fit($('#out'), 90);
+  x.clearRect(0, 0, W, H);
+  if (!last) return;
+  const bw = W / 10;
+  for (let i = 0; i < 10; i++){
+    const h = (act[3][i] || 0) * (H - 20);
+    x.fillStyle = i === last.pred ? '#59f2a6' : '#1d2a3a';
+    x.fillRect(i * bw + 2, H - 16 - h, bw - 4, h);
+    x.fillStyle = i === last.label ? '#3ad6ff' : '#46536a';
+    x.font = '10px ui-monospace'; x.textAlign = 'center';
+    x.fillText(i, i * bw + bw / 2, H - 4);
+  }
+}
+
+/* ---- loop ---- */
+function frame(){
+  for (let l = 0; l < 4; l++)
+    for (let i = 0; i < act[l].length; i++)
+      act[l][i] += ((tgt[l][i] || 0) - act[l][i]) * 0.18;
+  drawNet(); drawChart(); drawOut();
+  if (imgD) heat($('#img'), imgD, 8, 1, 1);
+  if (m1D)  heat($('#m1'),  m1D,  8, 8, 4);
+  if (m2D)  heat($('#m2'),  m2D,  4, 16, 4);
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
