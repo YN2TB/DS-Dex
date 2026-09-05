@@ -13,15 +13,28 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Deep Learning/contents/04 - Neural Network.md",
+                "file": "Big Data Analytics/note/Project explaination.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "04 - Neural Network"
+              "title": "Project explaination"
+            }
+          },
+          {
+            "id": "d6208fc1e7e452c9",
+            "type": "leaf",
+            "state": {
+              "type": "excalidraw",
+              "state": {
+                "file": "Big Data Analytics/note/Drawing 2026-09-05 19.49.34.excalidraw.md"
+              },
+              "icon": "excalidraw-icon",
+              "title": "Drawing 2026-09-05 19.49.34.excalidraw"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -180,11 +193,17 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "9960744224f98cdd",
+  "active": "d6208fc1e7e452c9",
   "lastOpenFiles": [
+    "Big Data Analytics/note/Project explaination.md",
+    "Big Data Analytics/note/Drawing 2026-09-05 19.49.34.excalidraw.md",
+    "Untitled.base",
+    "Big Data Analytics/note/Untitled.canvas",
+    "Deep Learning/contents/04 - Neural Network.md",
     "Deep Learning/cnn-viz/index.html.tmp.8220.2b6936b2ed64",
     "Deep Learning/contents/03 - Logistic Regression.md",
     "Big Data Analytics/note/3.md",
@@ -192,7 +211,6 @@
     "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "CLAUDE.md",
     "Deep Learning/contents/00-Index.md",
-    "Deep Learning/contents/04 - Neural Network.md",
     "Deep Learning/contents/02 - Linear Regression.md",
     "Deep Learning/contents/01 - Introduction to Deep Learning.md",
     "Deep Learning/note/Untitled 1.md",
@@ -215,11 +233,8 @@
     "Deep Learning/note/Gradient_Descent_Batch_SGD_MiniBatch_Plotly_Interactive_executed.ipynb",
     "Deep Learning/note/Unconfirmed 29631.crdownload",
     "Deep Learning/note/1 Linear Regression.md",
-    "Deep Learning/documents/Dive into Deep Learning.pdf",
-    "sedAFK3ii",
     "Business Management/note/ch01-homework.md",
     "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
-    "Natural Language Processing/note/Untitled.md",
-    "Business Management/note/ch01-innovation-international-reference.md"
+    "Natural Language Processing/note/Untitled.md"
   ]
 }
