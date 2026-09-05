@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Big Data Analytics/note/3.md",
+                "file": "Deep Learning/contents/04 - Neural Network.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "3"
+              "title": "04 - Neural Network"
             }
           }
         ]
@@ -185,6 +185,9 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Deep Learning/cnn-viz/index.html.tmp.8220.2b6936b2ed64",
+    "Deep Learning/contents/03 - Logistic Regression.md",
+    "Big Data Analytics/note/3.md",
     "Business Management/contents/03 - Doing Business in Global Markets.md",
     "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "CLAUDE.md",
@@ -194,14 +197,12 @@
     "Deep Learning/contents/01 - Introduction to Deep Learning.md",
     "Deep Learning/note/Untitled 1.md",
     "Computer Vision/contents/03 - Image Classification and Linear Models.md",
-    "Big Data Analytics/note/3.md",
     "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/1.md",
     "Business Management/note/02 - Understanding economics and how it affects business.md",
     "Business Management/note/vietnam-gdp-growth-2020-2024.html",
     "Business Management/contents/02 - Economics and Business.md",
     "Business Management/note/vietnam-gdp-growth-2020-2024.html.tmp.19344.e0806b55de3f",
-    "Deep Learning/contents/03 - Logistic Regression.md",
     "Deep Learning/note/softmax-regression.html",
     "Deep Learning/note/Untitled.md",
     "Computer Vision/contents/02 - Classical Image Processing.md",

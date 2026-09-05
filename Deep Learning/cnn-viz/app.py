@@ -34,7 +34,15 @@ class Net(nn.Module):
         return self.f2(a3), a1, a2, a3
 
 # ---------------------------------------------------------------- state
-S = {"running": True, "lr": 0.01, "delay": 0.04, "reset": False}
+S = {"running": True, "lr": 0.01, "delay": 0.04, "reset": False,
+     "opt": "adam", "bs": 32}
+
+def make_opt(net):
+    if S["opt"] == "sgd":
+        return torch.optim.SGD(net.parameters(), lr=S["lr"])
+    if S["opt"] == "momentum":
+        return torch.optim.SGD(net.parameters(), lr=S["lr"], momentum=0.9)
+    return torch.optim.Adam(net.parameters(), lr=S["lr"])
 
 def q8(a):
     """quantize array to 0..255 ints for cheap transport"""
@@ -67,19 +75,22 @@ def trainer():
     def fresh():
         nonlocal net, opt, step, epoch, testacc
         torch.manual_seed(1)
-        net = Net(); opt = torch.optim.Adam(net.parameters(), lr=S["lr"])
+        net = Net(); opt = make_opt(net)
         step = epoch = 0; testacc = 0.0
         broadcast({"t": "reset"}); broadcast(edges(net))
     fresh()
+    cur_opt = S["opt"]
 
     while True:
         if S["reset"]:
-            S["reset"] = False; fresh()
+            S["reset"] = False; fresh(); cur_opt = S["opt"]
+        if S["opt"] != cur_opt:
+            cur_opt = S["opt"]; opt = make_opt(net)
         if not S["running"]:
             time.sleep(0.1); continue
 
         for gp in opt.param_groups: gp["lr"] = S["lr"]
-        b = torch.randint(0, len(Xtr), (32,))
+        b = torch.randint(0, len(Xtr), (S["bs"],))
         xb, yb = Xtr[b], Ytr[b]
         out, a1, a2, a3 = net(xb)
         loss = F.cross_entropy(out, yb)
@@ -135,8 +146,10 @@ def control():
     if "running" in j: S["running"] = bool(j["running"])
     if "lr" in j:      S["lr"] = float(j["lr"])
     if "delay" in j:   S["delay"] = float(j["delay"])
+    if "opt" in j:     S["opt"] = str(j["opt"])
+    if "bs" in j:      S["bs"] = max(1, min(256, int(j["bs"])))
     if j.get("reset"): S["reset"] = True
-    return jsonify(ok=True, **{k: S[k] for k in ("running", "lr", "delay")})
+    return jsonify(ok=True, **{k: S[k] for k in ("running", "lr", "delay", "opt", "bs")})
 
 if __name__ == "__main__":
     threading.Thread(target=trainer, daemon=True).start()
