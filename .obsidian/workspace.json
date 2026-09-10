@@ -25,12 +25,14 @@
             "id": "d6208fc1e7e452c9",
             "type": "leaf",
             "state": {
-              "type": "excalidraw",
+              "type": "markdown",
               "state": {
-                "file": "Big Data Analytics/note/Drawing 2026-09-05 19.49.34.excalidraw.md"
+                "file": "Computer Vision/contents/03 - Image Classification and Linear Models.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "excalidraw-icon",
-              "title": "Drawing 2026-09-05 19.49.34.excalidraw"
+              "icon": "lucide-file",
+              "title": "03 - Image Classification and Linear Models"
             }
           }
         ],
@@ -199,6 +201,9 @@
   },
   "active": "d6208fc1e7e452c9",
   "lastOpenFiles": [
+    "Computer Vision/contents/04 - From Neural Networks to CNNs.md",
+    "Computer Vision/contents/03 - Image Classification and Linear Models.md",
+    "Computer Vision/note/project_topics.md",
     "Big Data Analytics/note/Drawing 2026-09-05 19.49.34.excalidraw.md",
     "Big Data Analytics/note/Project explaination.md",
     "Untitled.base",
@@ -214,7 +219,6 @@
     "Deep Learning/contents/02 - Linear Regression.md",
     "Deep Learning/contents/01 - Introduction to Deep Learning.md",
     "Deep Learning/note/Untitled 1.md",
-    "Computer Vision/contents/03 - Image Classification and Linear Models.md",
     "Big Data Analytics/note/2.md",
     "Big Data Analytics/note/1.md",
     "Business Management/note/02 - Understanding economics and how it affects business.md",
@@ -225,7 +229,6 @@
     "Deep Learning/note/Untitled.md",
     "Computer Vision/contents/02 - Classical Image Processing.md",
     "Business Management/contents/01 - Business, Profit and Risk.md",
-    "Computer Vision/note/project_topics.md",
     "Deep Learning/note/3 Batch, Stochastic and Mini-batch Gradient Descent.md",
     "Deep Learning/note/2 Gradient Descent.md",
     "Deep Learning/note/Gradient_Descent_Batch_SGD_MiniBatch_Detailed_EN.pdf",
@@ -234,7 +237,6 @@
     "Deep Learning/note/Unconfirmed 29631.crdownload",
     "Deep Learning/note/1 Linear Regression.md",
     "Business Management/note/ch01-homework.md",
-    "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md",
-    "Natural Language Processing/note/Untitled.md"
+    "Business Management/note/01 - Taking risks and making profits within the dynamic business environment.md"
   ]
 }
