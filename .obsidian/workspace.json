@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Deep Learning/note/tabm_wine_plan.md",
+                "file": "Computer Vision/contents/04 - From Neural Networks to CNNs.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "tabm_wine_plan"
+              "title": "04 - From Neural Networks to CNNs"
             }
           },
           {
@@ -200,6 +200,10 @@
   },
   "active": "9960744224f98cdd",
   "lastOpenFiles": [
+    "Computer Vision/contents/05 - CNN Architectures.md",
+    "Computer Vision/contents/06 - Vision Transformers.md",
+    "Business Management/contents/03 - Doing Business in Global Markets.md",
+    "Deep Learning/note/tabm_wine_plan.md",
     "Deep Learning/note/tabm-wine/wine_torch.py",
     "Deep Learning/note/tabm-wine/Unconfirmed 32849.crdownload",
     "Deep Learning/note/tabm-wine/wine_nn_torch.py",
@@ -210,14 +214,12 @@
     "Deep Learning/note/tabm-wine/data",
     "Deep Learning/note/tabm-wine/code/runs/_deep_s51_m7/best.pt",
     "Deep Learning/note/tabm-wine/code/runs/_deep_s51_m7/metrics.csv",
-    "Deep Learning/note/tabm-wine/code/runs/_deep_s51_m7",
     "Deep Learning/note/tabm-wine/04 - Member-wise Loss and the Symmetry Trap.md",
     "Deep Learning/note/tabm-wine/03 - EnsembleLinear - the Rank-1 Modulation.md",
     "Deep Learning/note/tabm-wine/02 - The Vanilla MLP Baseline and What It Costs.md",
     "Deep Learning/note/tabm-wine/01 - Data, Target, and Three Traps in the Split.md",
     "Deep Learning/note/tabm-wine/00 - Index.md",
     "Deep Learning/note/Untitled 2.md",
-    "Deep Learning/note/tabm_wine_plan.md",
     "Deep Learning/contents/05 - Convolutional Neural Network.md",
     "Deep Learning/contents/04 - Neural Network.md",
     "Big Data Analytics/note/Project explaination.md",
@@ -232,10 +234,8 @@
     "Big Data Analytics/note/Untitled.canvas",
     "Deep Learning/contents/03 - Logistic Regression.md",
     "Big Data Analytics/note/3.md",
-    "Business Management/contents/03 - Doing Business in Global Markets.md",
     "CLAUDE.md",
     "Deep Learning/contents/00-Index.md",
-    "Deep Learning/contents/02 - Linear Regression.md",
-    "Deep Learning/contents/01 - Introduction to Deep Learning.md"
+    "Deep Learning/contents/02 - Linear Regression.md"
   ]
 }
