@@ -11,14 +11,24 @@
             "id": "9960744224f98cdd",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "excalidraw",
               "state": {
-                "file": "Computer Vision/contents/04 - From Neural Networks to CNNs.md",
-                "mode": "source",
-                "source": false
+                "file": "Big Data Analytics/note/Drawing 2026-09-05 19.49.34.excalidraw.md"
               },
-              "icon": "lucide-file",
-              "title": "04 - From Neural Networks to CNNs"
+              "icon": "excalidraw-icon",
+              "title": "Drawing 2026-09-05 19.49.34.excalidraw"
+            }
+          },
+          {
+            "id": "329f6beea61ddc43",
+            "type": "leaf",
+            "state": {
+              "type": "excalidraw",
+              "state": {
+                "file": "Excalidraw/Drawing 2026-09-17 16.14.50.excalidraw.md"
+              },
+              "icon": "excalidraw-icon",
+              "title": "Drawing 2026-09-17 16.14.50.excalidraw"
             }
           },
           {
@@ -35,7 +45,8 @@
               "title": "04 - Neural Network"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -198,8 +209,12 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "9960744224f98cdd",
+  "active": "329f6beea61ddc43",
   "lastOpenFiles": [
+    "Big Data Analytics/note/Drawing 2026-09-05 19.49.34.excalidraw.md",
+    "Excalidraw/Drawing 2026-09-17 16.14.50.excalidraw.md",
+    "Excalidraw",
+    "Computer Vision/contents/04 - From Neural Networks to CNNs.md",
     "Computer Vision/contents/05 - CNN Architectures.md",
     "Computer Vision/contents/06 - Vision Transformers.md",
     "Business Management/contents/03 - Doing Business in Global Markets.md",
@@ -213,7 +228,6 @@
     "Deep Learning/note/tabm-wine/data/winedata.csv",
     "Deep Learning/note/tabm-wine/data",
     "Deep Learning/note/tabm-wine/code/runs/_deep_s51_m7/best.pt",
-    "Deep Learning/note/tabm-wine/code/runs/_deep_s51_m7/metrics.csv",
     "Deep Learning/note/tabm-wine/04 - Member-wise Loss and the Symmetry Trap.md",
     "Deep Learning/note/tabm-wine/03 - EnsembleLinear - the Rank-1 Modulation.md",
     "Deep Learning/note/tabm-wine/02 - The Vanilla MLP Baseline and What It Costs.md",
@@ -228,14 +242,11 @@
     "Business Management/note/ch01-innovation-international-reference.md",
     "Business Management/note/02 - Understanding economics and how it affects business.md",
     "Computer Vision/contents/03 - Image Classification and Linear Models.md",
-    "Computer Vision/contents/04 - From Neural Networks to CNNs.md",
     "Computer Vision/note/project_topics.md",
-    "Big Data Analytics/note/Drawing 2026-09-05 19.49.34.excalidraw.md",
     "Big Data Analytics/note/Untitled.canvas",
     "Deep Learning/contents/03 - Logistic Regression.md",
     "Big Data Analytics/note/3.md",
     "CLAUDE.md",
-    "Deep Learning/contents/00-Index.md",
-    "Deep Learning/contents/02 - Linear Regression.md"
+    "Deep Learning/contents/00-Index.md"
   ]
 }
