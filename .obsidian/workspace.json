@@ -37,12 +37,14 @@
             "id": "d6208fc1e7e452c9",
             "type": "leaf",
             "state": {
-              "type": "pdf",
+              "type": "markdown",
               "state": {
-                "file": "Computer Vision/slides/Lecture06_Vision_Transformers.pdf"
+                "file": "Business Management/note/script.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-file-text",
-              "title": "Lecture06_Vision_Transformers"
+              "icon": "lucide-file",
+              "title": "script"
             }
           }
         ],
@@ -211,8 +213,13 @@
   },
   "active": "d6208fc1e7e452c9",
   "lastOpenFiles": [
-    "Big Data Analytics/note/Project explaination.md",
+    "Business Management/note/ppt6215.tmp",
+    "Business Management/note/ppt3A8C.tmp",
+    "Business Management/note/~$Riot Games Ethics - slides.pptx",
+    "Business Management/slides/~$Slide Business Management - SV_c3a3f15af62c807a812a858544cda1c3.pptx",
+    "Business Management/note/ch01-innovation-international-reference.md",
     "Computer Vision/slides/Lecture06_Vision_Transformers.pdf",
+    "Big Data Analytics/note/Project explaination.md",
     "Deep Learning/contents/04 - Neural Network.md",
     "Big Data Analytics/note/Overview.md",
     "Computer Vision/contents/14 - 3D Vision and Emerging Topics.md",
@@ -222,7 +229,6 @@
     "Business Management/note/Riot Games Ethics - slides.pptx",
     "Deep Learning/contents/05 - Convolutional Neural Network.md",
     "Deep Learning/contents/03 - Logistic Regression.md",
-    "Business Management/note/ch01-innovation-international-reference.md",
     "Excalidraw/Drawing 2026-09-17 16.14.50.excalidraw.md",
     "Big Data Analytics/note/Drawing 2026-09-05 19.49.34.excalidraw.md",
     "Excalidraw",
@@ -235,9 +241,6 @@
     "Deep Learning/note/tabm-wine/Unconfirmed 32849.crdownload",
     "Deep Learning/note/tabm-wine/wine_nn_torch.py",
     "Deep Learning/note/tabm-wine/__pycache__/orca_share_media1789111424840_7504077205652670359.cpython-314.pyc",
-    "Deep Learning/note/tabm-wine/__pycache__",
-    "Deep Learning/note/tabm-wine/orca_share_media1789111424840_7504077205652670359.py.tmp.25488.3610c4f67c62",
-    "Deep Learning/note/tabm-wine/data/winedata.csv",
     "Deep Learning/note/tabm-wine/04 - Member-wise Loss and the Symmetry Trap.md",
     "Deep Learning/note/tabm-wine/03 - EnsembleLinear - the Rank-1 Modulation.md",
     "Deep Learning/note/tabm-wine/02 - The Vanilla MLP Baseline and What It Costs.md",
