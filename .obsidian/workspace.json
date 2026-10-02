@@ -39,12 +39,14 @@
             "id": "d6208fc1e7e452c9",
             "type": "leaf",
             "state": {
-              "type": "pdf",
+              "type": "markdown",
               "state": {
-                "file": "Deep Learning/slides/Chapter 5.1 - Convolutional Neural Network ‐ CNN.pdf"
+                "file": "Business Management/contents/06 - Management and Leadership.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-file-text",
-              "title": "Chapter 5.1 - Convolutional Neural Network ‐ CNN"
+              "icon": "lucide-file",
+              "title": "06 - Management and Leadership"
             }
           }
         ],
@@ -213,6 +215,11 @@
   },
   "active": "d6208fc1e7e452c9",
   "lastOpenFiles": [
+    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
+    "Business Management/contents/06 - Management and Leadership.md",
+    "Natural Language Processing/note/Untitled.md",
+    "Untitled.base",
+    "Deep Learning/slides/Chapter 5.1 - Convolutional Neural Network ‐ CNN.pdf",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/colorbar.cpython-311.pyc",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/streamplot.cpython-311.pyc",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/stackplot.cpython-311.pyc",
@@ -221,9 +228,6 @@
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/container.cpython-311.pyc",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/legend.cpython-311.pyc",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/inset.cpython-311.pyc",
-    "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/dates.cpython-311.pyc",
-    "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/contour.cpython-311.pyc",
-    "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/category.cpython-311.pyc",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/Minduka_Present_Blue_Pack.png",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/logo2.png",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/grace_hopper.jpg",
@@ -257,8 +261,6 @@
     "Computer Vision/contents/05 - CNN Architectures.md",
     "Computer Vision/contents/06 - Vision Transformers.md",
     "Business Management/contents/03 - Doing Business in Global Markets.md",
-    "Deep Learning/note/tabm_wine_plan.md",
-    "Deep Learning/note/tabm-wine/04 - Member-wise Loss and the Symmetry Trap.md",
     "Big Data Analytics/note/Untitled.canvas"
   ]
 }
