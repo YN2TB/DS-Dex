@@ -1,450 +1,514 @@
 ---
 subject: Computer Vision
 chapter: 2
-tags: [ds, computer-vision, filtering, convolution, edges, canny, sift, hog, morphology, harris]
-source: "Nguyen Manh Toan (Swinburne Vietnam), *Computer Vision* Lecture 02 — Classical Image Processing (67 slides); Szeliski 2nd ed. ch. 3, 7"
+tags: [ds, computer-vision, filtering, convolution, edges, canny, morphology, harris, sift, hog]
+source: "Nguyen Manh Toan (Swinburne Vietnam), Computer Vision Lecture 02: Classical Image Processing (67 slides); Szeliski 2nd ed. ch. 3 and §7.1–7.2"
 ---
 
 # Classical Image Processing
 
-**Week 2 of 14, and the last chapter with the lecturer's own slides.** Everything from [[03 - Image Classification and Linear Models|ch. 03]] on is built from Szeliski, CS231n and standard practice — see [[00-Index]].
-
-**The lecture answers "why study this in a deep learning course?" in three lines, and they are the right three:**
-> **A CNN *is* a stack of learned convolutions — you cannot reason about it without understanding convolution.** Classical methods still run in production (preprocessing, augmentation, video, calibration, annotation). **They are cheap, interpretable, and need no data.**
-
-**Five results.**
-
-**§10 — ⚠️ HOG'S 3,780 DIMENSIONS DERIVE EXACTLY, AND THE OVERLAP IS THE WHOLE POINT.** $105$ blocks $\times\,36$ values $=\mathbf{3{,}780}$ ✓. **The raw cell histograms are only 1,152 numbers — the descriptor is 3.28× larger because every interior cell is normalized four times under four different local contrasts. That redundancy *is* the illumination invariance.**
-
-**§4 — ⚠️ THE SLIDE'S OWN FORMULA IS [[Deep Learning/contents/05 - Convolutional Neural Network|DEEP LEARNING ch. 05]]'S, AND SO IS ITS ODD-KERNEL CONSEQUENCE.** $H_{\text{out}}=\lfloor(H+2p-f)/s\rfloor+1$ with "same" padding $p=(f-1)/2$ — **an integer only for odd $f$.** *The same conclusion reached from the classical side and the CNN side independently.*
-
-**§6 — ⚠️ THE MEDIAN'S BREAKDOWN POINT IS 50% AND THE MEAN'S IS 0%.** With **4 of 9 pixels corrupted** the mean moves **+53.1** and the median **+0.0**. And on a single impulse, **a Gaussian contaminates 3 pixels where there was 1; the median deletes it.**
-
-**§7 — ⚠️ SOBEL IS AN OUTER PRODUCT, AND SEPARABILITY IS A REAL SAVING THAT GROWS.** $[1,2,1]^\top[-1,0,1]$ reproduces $S_x$ exactly. **$k^2\to2k$ multiplications: 1.5× at $k=3$, 7.5× at $k=15$.**
-
-**§8 — ⚠️ THE LoG FORMULA IS SYMBOLICALLY EXACT AND THE DoG APPROXIMATION IS ONLY GOOD NEAR $k=1$.** $\nabla^2G_\sigma-\frac{x^2+y^2-2\sigma^2}{\sigma^4}G_\sigma=\mathbf 0$ identically. **But the DoG/LoG ratio is 0.868 at $k=1.1$ and 0.375 at $k=2$** — which is why SIFT uses $k$ close to 1.
+Week 2. The hand-designed methods from roughly 1963–2005: point operations, filtering, noise removal, edges, morphology, and features (Harris, SIFT, HOG). The lecture ends by showing that a CNN uses the same machinery with learned weights.
 
 ## 📘 Main Knowledge
 
-### 1. Where these operators come from
+### 1. Why study classical methods in a deep learning course? (slides 4–6)
 
-The lecture's timeline places everything in **1963–2005**:
+- A CNN *is* a stack of learned convolutions, so you can't reason about one without understanding convolution.
+- Classical methods still run in production: preprocessing, augmentation, video, camera calibration, annotation tools.
+- They are cheap, interpretable, and need no training data.
 
-| | |
+The four ideas running through the lecture:
+1. A filter is a small matrix slid over the image.
+2. Smoothing suppresses noise; differencing (taking differences between neighbours) finds structure.
+3. Good features are **invariant** to nuisance changes (lighting, rotation, scale).
+4. Designing those features by hand is hard, which is why we'll learn them instead.
+
+**Timeline (slide 6):** Roberts' first edge operator (1963), Sobel (1968, still in `cv2`), Laplacian of Gaussian, morphology and image pyramids (1980–83), Canny and Harris (1986–88), JPEG (1992), SIFT and HOG (1999–2005). AlexNet (2012) ended the era, *"but not the operators."*
+
+### 2. Point operations and histograms (slides 7–10)
+
+A **point operation** computes each output pixel from the input pixel at the same position only: $J(m,n) = f(I(m,n))$.
+
+| Operation | $f(v)$ |
 |---|---|
-| 1920 | Bartlane cable, **5 grey levels** |
-| 1957 | first digital image (Kirsch) |
-| 1963 | **Roberts** — first edge operator |
-| 1964 | Ranger 7 — JPL corrects lens distortion on an IBM 7094 |
-| 1968 | **Sobel** — still in `cv2` |
-| 1971 | CT scanner (Hounsfield) |
-| 1980–83 | **LoG; morphology; image pyramids** |
-| 1986–88 | **Canny; Harris & Stephens** |
-| 1992 | JPEG |
-| 1999–2005 | **SIFT; HOG** |
-| **2012** | **AlexNet** |
+| Brightness | $v + b$ |
+| Contrast | $a\,v$ |
+| Gamma | $v^\gamma$, with $v \in [0,1]$ ($\gamma < 1$ brightens dark tones, $\gamma > 1$ darkens them) |
+| Negative | $255 - v$ |
+| Threshold | $\mathbb 1[v > \tau]$ (1 if $v > \tau$, else 0) |
 
-> [!note] **"In 2012 AlexNet ended the era — but not the operators."**
-> The right framing. **Sobel, Canny, the median filter and morphology are all still shipped**, and the through-line the lecture states holds for CNNs too:
-> 1. **a filter is a small matrix slid over the image**
-> 2. **smoothing suppresses noise; differencing finds structure**
-> 3. **good features are *invariant* to nuisance changes**
+Point operations use no spatial information. Anything that depends on shape or structure needs a neighbourhood.
 
-### 2. Point operations and histograms
+**The histogram** counts how many pixels have each intensity:
 
-**A point operation depends only on the pixel underneath**: $J(m,n)=f\big(I(m,n)\big)$.
+$$h(v) = \big|\{(m,n) : I(m,n) = v\}\big|, \quad v = 0,\dots,255$$
 
-| | |
-|---|---|
-| brightness | $f(v)=v+b$ |
-| contrast | $f(v)=av$ |
-| gamma | $f(v)=v^\gamma$ on $v\in[0,1]$ |
-| negative | $f(v)=255-v$ |
-| threshold | $f(v)=\mathbb 1[v>\tau]$ |
+Divide by the number of pixels to get a probability distribution $p(v)$.
+- Under- and over-exposure are visible at a glance (counts piled up at 0 or 255).
+- It **discards all spatial layout**: two completely different images can have the same histogram.
+- It is the basis of automatic thresholding (Otsu's method), histogram matching and equalisation.
 
-**"No spatial information. Everything interesting needs a neighbourhood"** — which is §3 onward.
+**Histogram equalisation** spreads intensities so the output histogram is roughly uniform, which increases contrast. Use the cumulative distribution function (CDF):
 
-**The histogram** counts $h(v)=|\{(m,n):I(m,n)=v\}|$, then normalizes.
+$$c(v) = \sum_{u \le v} p(u), \qquad J = \lfloor 255\, c(I) \rfloor$$
 
-> [!warning] ⚠️ A histogram discards *all* spatial layout
-> **"Two very different images can share a histogram."** ⇒ *a histogram is a bag-of-pixels representation, and it fails for exactly the reason bag-of-words fails in text: order carries meaning.* It is still the basis of **Otsu thresholding, histogram matching and equalization**, because exposure is genuinely a per-pixel property.
+Why it works: if a random variable $V$ has CDF $c$, then $c(V)$ is uniformly distributed on $[0,1]$ (the *probability integral transform*).
 
-**Histogram equalization** spreads intensities toward uniform using the CDF:
-$$c(v)=\sum_{u\le v}p(u),\qquad J=\lfloor 255\,c(I)\rfloor$$
+Example: a 4×4 image using only the values 50, 52, 54, 56 with counts 3, 6, 5, 2. The CDF is 0.1875, 0.5625, 0.875, 1, so the values map to 47, 143, 223, 255. A range of 6 grey levels becomes a range of 208.
 
-> [!note] ⚠️ Why this works is the **probability integral transform**
-> **If $V$ has CDF $c$, then $c(V)\sim\mathrm{Uniform}[0,1]$** — a standard result from [[Probability Theory/contents/05 - Continuous Random Variables|Probability Theory ch. 05]], used here as an image operation. *Applying a random variable's own CDF to it always uniformizes it.*
->
-> **Two caveats the lecture supplies:** the global version **amplifies noise in flat regions** (a nearly-constant patch gets stretched across the full range), and the fix is **CLAHE** — equalize in tiles, **clip** the histogram, interpolate between tiles.
+Problems and the fix:
+- Global equalisation also amplifies noise in flat regions.
+- **CLAHE** (Contrast-Limited Adaptive Histogram Equalisation) equalises small tiles separately, clips each tile's histogram so no level is boosted too much, then interpolates between tiles to hide the seams.
 
-### 3. Linear filtering, and the theorem that justifies CNNs
+### 3. Linear filtering and convolution (slides 11–16)
 
-**A linear filter replaces each pixel by a weighted sum of its neighbours, with the same weights at every position — making the operation shift-invariant.**
+A **linear filter** replaces each pixel with a weighted sum of its neighbours. The weights form a small matrix $h$, the **kernel**, and the same weights are used at every position.
 
-| property | |
-|---|---|
-| **linearity** | $h*(\alpha I_1+\beta I_2)=\alpha(h*I_1)+\beta(h*I_2)$ |
-| **shift equivariance** | shift the input, the output shifts identically |
-| **identity** | the delta kernel $\delta$ leaves $I$ unchanged |
-| **convolution theorem** | $\mathcal F\{h*I\}=\mathcal F\{h\}\cdot\mathcal F\{I\}$ |
+**Correlation** (what is usually implemented):
+$$J(m,n) = \sum_{u,v} h(u,v)\, I(m+u,\, n+v)$$
 
-> [!warning] ⚠️ **"Linear + shift-invariant ⇒ the operation *is* a convolution. There is no other choice."**
-> That is a **theorem, not a design preference**, and the lecture states its consequence exactly: *"That is the theoretical justification for convolutional layers: we want translation equivariance."*
->
-> ⇒ **[[Deep Learning/contents/05 - Convolutional Neural Network|Deep Learning ch. 05]] §1 derived the convolution by *imposing* translation invariance and locality on an MLP and measured the payoff at $10^{10}$ parameters.** This lecture arrives at the same object from the opposite direction: **assume linearity and shift-invariance, and convolution is forced.** *Two independent routes to one operator is worth more than either.*
->
-> **And the frequency reading is the useful one**: convolution in space **is** multiplication in frequency, so **smoothing kernels keep low frequencies and derivative kernels keep high ones.** Every filter in this chapter is one or the other.
+**Convolution** flips the kernel first:
+$$J(m,n) = (h * I)(m,n) = \sum_{u,v} h(u,v)\, I(m-u,\, n-v)$$
 
-### 4. ⚠️ Borders and output size — the CNN formula, already here
+For symmetric kernels (Gaussian, box) the two are identical. The flip is what gives convolution its nice algebra: it is commutative and associative, so applying $h_1$ then $h_2$ is the same as applying the single kernel $h_1 * h_2$. CNN "convolution" layers actually compute correlation; since the kernel is learned, the flip doesn't matter.
 
-The window falls off the grid. Four choices: **zero** (introduces a dark rim), **replicate**, **reflect**, **wrap** (toroidal — what the FFT assumes).
+**Properties (slide 15):**
+- **Linearity:** $h * (\alpha I_1 + \beta I_2) = \alpha (h * I_1) + \beta (h * I_2)$.
+- **Shift equivariance:** shift the input and the output shifts by the same amount.
+- **Identity:** the delta kernel $\delta$ (1 in the centre, 0 elsewhere) leaves $I$ unchanged.
+- **Convolution theorem:** $\mathcal F\{h * I\} = \mathcal F\{h\} \cdot \mathcal F\{I\}$. Convolution in space is multiplication in frequency. Smoothing kernels keep low frequencies; derivative kernels keep high ones.
 
-$$\boxed{H_{\text{out}}=\left\lfloor\frac{H+2p-f}{s}\right\rfloor+1}$$
+> [!important] Linear + shift-invariant ⇒ convolution
+> Any operation that is both linear and shift-invariant *is* a convolution; there is no other choice. That is the theoretical reason CNNs use convolutional layers: we want translation equivariance (a cat shifted left should produce features shifted left).
 
-**Verified:** $H=224,f=3,p=1,s=1\to224$; $f=5,p=2\to224$; $f=3,p=1,s=2\to112$; $f=7,p=3,s=2\to112$.
+**Borders (slide 16).** Near the edge, the kernel window hangs off the image. Common choices:
+- **Zero (constant) padding**: fill with 0. Adds a dark rim.
+- **Replicate**: repeat the border pixel.
+- **Reflect**: mirror the image across the border.
+- **Wrap**: treat the image as a torus (what the FFT assumes).
 
-> [!warning] ⚠️ "Same" padding is $p=(f-1)/2$ — an integer **only for odd $f$**
-> | $f$ | $p=(f-1)/2$ | |
-> |---|---|---|
-> | 3 | 1.0 | ✓ |
-> | **4** | **1.5** | ✗ |
-> | 5 | 2.0 | ✓ |
-> | 7 | 3.0 | ✓ |
->
-> ⇒ **exactly [[Deep Learning/contents/05 - Convolutional Neural Network|DL ch. 05]] §3's odd-kernel argument, reached independently from the classical-filtering side.** The lecture's own note — *"Same formula you will use for every CNN layer"* — is the point: **there is no separate CNN arithmetic.**
->
-> **And the border choice is not cosmetic**: zero-padding tells the network there is darkness outside the frame, which is *false*, and is how CNNs learn to detect image boundaries. **Reflect is the safest default for classical filtering; zero is the CNN convention** for reasons of speed, as [[Deep Learning/contents/05 - Convolutional Neural Network|DL ch. 05]] §3 records.
+**Output size** with input size $H$, kernel size $f$, padding $p$, stride $s$:
 
-### 5. Smoothing
+$$H_{out} = \left\lfloor \frac{H + 2p - f}{s} \right\rfloor + 1$$
 
-**A Gaussian is the standard smoother** — separable, rotationally symmetric, and the unique kernel that introduces no new extrema when scale increases (the basis of scale space, §8).
+This is exactly the formula used for every CNN layer. **"Same" padding** (output size = input size at stride 1) means $p = (f-1)/2$, which is a whole number only for **odd** $f$. That's one reason kernels are almost always 3×3, 5×5, 7×7.
 
-**A box filter** is cheaper and worse: not isotropic, and its frequency response rings.
+### 4. Smoothing and noise (slides 17–24)
 
-### 6. ⚠️ The median filter, and a robustness result
+**Noise models (slide 18):**
 
-The median is **not linear and not a convolution** — it is an **order statistic**.
+| Noise | Cause | Model |
+|---|---|---|
+| Additive Gaussian | sensor read noise, amplifier | $I_{obs} = I + \eta$, $\eta \sim \mathcal N(0, \sigma^2)$ |
+| Poisson (shot) | photon counting | $I_{obs} \sim \text{Poisson}(\lambda)$, variance $= \lambda$, so it grows with brightness |
+| Salt & pepper | dead pixels, transmission errors | a fraction of pixels set to 0 or 255 |
 
-> [!warning] ⚠️ THE MEAN'S BREAKDOWN POINT IS 0%; THE MEDIAN'S IS 50%
-> A 9-pixel patch $[128,130,\dots,137]$, corrupting the largest values to 255:
->
-> | corrupted | mean | shift | median | shift |
-> |---|---|---|---|---|
-> | 0 | 132.889 | — | 133.000 | — |
-> | 1 (11%) | 146.000 | **+13.1** | 133.000 | **+0.0** |
-> | 2 (22%) | 159.222 | **+26.3** | 133.000 | **+0.0** |
-> | **4 (44%)** | **186.000** | **+53.1** | **133.000** | **+0.0** |
-> | 5 (56%) | 199.556 | +66.7 | **255.000** | **+122.0** ⚠️ |
->
-> **A single outlier moves the mean by 13.1. Four move it by 53.1 and the median by nothing at all — until 5 of 9, when the median breaks completely.**
->
-> ⇒ **that discontinuity is what "breakdown point" means: the median is perfect up to 50% contamination and useless past it.**
+*"The noise model determines the right filter."*
 
-> [!warning] ⚠️ And the two filters fail in *different ways*, not by different amounts
-> A single impulse $[0,0,0,0,255,0,0,0,0]$:
->
-> | | result | contaminated pixels |
-> |---|---|---|
-> | 3-tap Gaussian $\frac14[1,2,1]$ | $[0,0,0,63.8,\mathbf{127.5},63.8,0,0,0]$ | **1 → 3** |
-> | 3-tap median | $[0,0,0,0,\mathbf 0,0,0,0,0]$ | **1 → 0** |
->
-> ⇒ ***a Gaussian SPREADS each impulse over the kernel; the median DELETES it.*** Salt-and-pepper noise is impulsive, so the median wins; Gaussian sensor noise is not, so the Gaussian wins. **Choose by the noise model, not by reputation.**
->
-> **The cost the slide states, checked at 1920×1080:** naive $O(HWk^2\log k)$ vs histogram-based $O(HWk)$ — **4.8× at $k=3$, 58.6× at $k=15$.** *The naive implementation is what makes people think the median is slow.*
+**Box filter.** Average over a $(2k+1)\times(2k+1)$ window: every weight is $1/(2k+1)^2$. Averaging $N$ independent pixels with noise variance $\sigma^2$ gives variance $\sigma^2/N$, so a 3×3 box cuts noise variance by 9 (standard deviation by 3). But the box has hard edges:
+- Its frequency response is a sinc function, which causes **ringing** artefacts.
+- It creates horizontal and vertical streaks.
+- It is **not isotropic** (direction-independent): diagonal edges are treated differently from vertical ones.
 
-**The bilateral filter** weights neighbours by **both** spatial distance and intensity difference:
-$$J(p)=\frac1{W_p}\sum_{q\in N(p)}\underbrace{G_{\sigma_s}(\|p-q\|)}_{\text{spatial}}\underbrace{G_{\sigma_r}(|I(p)-I(q)|)}_{\text{range}}I(q)$$
+**Gaussian filter:**
 
-> [!note] ⚠️ It is **not shift-invariant and not a convolution**, and the lecture says so
-> **Across an edge $|I(p)-I(q)|$ is large ⇒ weight ≈ 0 ⇒ the edge survives.** Within a flat region it behaves like a Gaussian.
->
-> **Because the weights depend on the image, §3's theorem does not apply** — that is precisely the price of edge preservation. *"Overdone, it produces the 'plastic skin' look of phone beauty filters."*
+$$G_\sigma(x,y) = \frac{1}{2\pi\sigma^2} \exp\!\left(-\frac{x^2 + y^2}{2\sigma^2}\right)$$
 
-### 7. ⚠️ Gradients and edges
+- **Isotropic**: depends only on the distance from the centre.
+- Smooth in frequency, so no ringing.
+- Weights fall off with distance, so nearby pixels count more.
+- $\sigma$ sets the scale. Truncate the kernel at about $\pm 3\sigma$ (for $\sigma = 2$, a 13×13 kernel).
+- **Normalise so the weights sum to 1**, otherwise the image gets brighter or darker.
+- *"$\sigma$, not the kernel size, is the meaningful parameter."*
 
-**An edge is a rapid change in intensity, and four different physical causes produce identical pixels:**
+**Separability (slide 21).** The 2D Gaussian is a product of two 1D Gaussians, $G_\sigma(x,y) = g_\sigma(x)\, g_\sigma(y)$. So you can filter rows with $g_\sigma$, then columns with $g_\sigma$. Cost per pixel drops from $k^2$ to $2k$ multiplications:
 
-| cause | |
-|---|---|
-| **depth discontinuity** | an object boundary |
-| **surface orientation** | a fold |
-| **reflectance** | paint, texture |
-| **illumination** | a shadow |
-
-> [!warning] ⚠️ **"A shadow edge and an object edge look identical locally — a permanent limitation of purely local methods."**
-> ⇒ *no edge detector can be fixed to solve this*, because the information is not in the neighbourhood. **It needs global reasoning or learning** — which is one concrete answer to "why deep learning": [[07 - Object Detection I|later chapters]] resolve shadow-vs-object using context an operator cannot see.
-
-**Discrete derivatives.** Forward difference $I(x+1)-I(x)$; **central difference** $\frac{I(x+1)-I(x-1)}{2}$ — symmetric and second-order accurate, and a convolution with $h_x=\frac12[-1,0,1]$.
-
-> [!warning] ⚠️ Differentiation amplifies noise, and the fix is one identity
-> **Noise is high-frequency; differentiation multiplies each frequency by $\omega$**, so noise is amplified more than signal. The solution:
-> $$\frac{d}{dx}(g_\sigma*I)=\left(\frac{dg_\sigma}{dx}\right)*I$$
-> **One convolution with the derivative-of-Gaussian kernel** instead of two passes.
-> $$\frac{\partial G_\sigma}{\partial x}=-\frac{x}{\sigma^2}G_\sigma$$
-> **Antisymmetric — it sums to zero, so flat regions give no response** — and **separable**: $\partial_xG_\sigma=g'_\sigma(x)g_\sigma(y)$.
->
-> ⇒ **$\sigma$ selects *which* edges**: small $\sigma$ finds texture, large $\sigma$ finds only major boundaries. **"There is no single correct $\sigma$ — 'edge' is scale-dependent."** *That observation leads directly to scale space (§8).*
-
-**Sobel and Prewitt** smooth along one axis and difference along the other, in one $3\times3$:
-
-$$S_x=\begin{pmatrix}-1&0&1\\-2&0&2\\-1&0&1\end{pmatrix}=\begin{pmatrix}1\\2\\1\end{pmatrix}\begin{pmatrix}-1&0&1\end{pmatrix},\qquad S_y=S_x^\top$$
-
-**Verified exactly as an outer product.** ⚠️ **And separability is a real and growing saving:**
-
-| $k$ | 2-D mults/px | separable | speedup |
+| Kernel size $k$ | $k^2$ | $2k$ | Speed-up |
 |---|---|---|---|
-| 3 | 9 | 6 | **1.5×** |
+| 3 | 9 | 6 | 1.5× |
 | 7 | 49 | 14 | 3.5× |
-| 15 | 225 | 30 | **7.5×** |
+| 15 | 225 | 30 | 7.5× |
 
-**Gaussian, box, Sobel, Prewitt and derivative-of-Gaussian are all separable; the bilateral filter is not.**
+**Two more Gaussian facts (slide 22):**
+- **Semigroup property:** $G_{\sigma_1} * G_{\sigma_2} = G_{\sqrt{\sigma_1^2 + \sigma_2^2}}$. Blurring twice equals blurring once with a larger $\sigma$; the *variances* add (e.g. $\sigma = 3$ then $\sigma = 4$ gives $\sigma = 5$). This makes scale-space pyramids cheap: keep blurring the previous level instead of starting from the original.
+- **Derivative theorem:** $\frac{\partial}{\partial x}(G_\sigma * I) = \left(\frac{\partial G_\sigma}{\partial x}\right) * I$. Smoothing then differentiating is the same as one convolution with the derivative of the Gaussian. This is the foundation of edge detection (§5).
 
-**The smoothing row is the only difference between the operators:**
+**Median filter (slide 23).** Replace each pixel with the median of its window:
 
-| | smoothing weights | centre weight |
+$$J(m,n) = \operatorname{median}\{ I(m+u,\, n+v) \}$$
+
+- **Nonlinear**: not a convolution, no kernel.
+- An outlier pulls the mean a lot but barely moves the median. For the window $\{12, 10, 11, 255, 13, 9, 10, 0, 11\}$ the mean is 36.8 but the median is 11.
+- Removes salt-and-pepper noise almost perfectly; a Gaussian just smears each bad pixel into a grey blob.
+- Preserves step edges: the median of a half-dark, half-bright window is one of the two values, not their average.
+- Cost: sorting each window is $O(HWk^2 \log k)$ naively; histogram-based versions are $O(HWk)$.
+
+**Bilateral filter (slide 24).** Weight each neighbour by *both* its distance and its intensity difference:
+
+$$J(p) = \frac{1}{W_p} \sum_{q \in \mathcal N(p)} \underbrace{G_{\sigma_s}(\|p - q\|)}_{\text{spatial}}\; \underbrace{G_{\sigma_r}(|I(p) - I(q)|)}_{\text{range}}\; I(q)$$
+
+where $W_p$ is the sum of the weights.
+- Across an edge, $|I(p) - I(q)|$ is large, so the weight is near 0 and the edge survives.
+- In a flat region it behaves like a Gaussian.
+- The weights depend on the image, so it is **not shift-invariant and not a convolution**.
+- Overdone, it gives the "plastic skin" look of phone beauty filters.
+
+### 5. Image gradients and edge detection (slides 25–39)
+
+**An edge** is a rapid change in intensity. It can come from:
+- a **depth discontinuity** (object boundary),
+- a **surface orientation** change (a fold),
+- a **reflectance** change (paint, texture),
+- an **illumination** change (shadow).
+
+The pixels can't tell you which. *"A shadow edge and an object edge look identical locally — a permanent limitation of purely local methods."*
+
+**Discrete derivatives (slide 27):**
+- Forward difference: $\partial I/\partial x \approx I(x+1) - I(x)$.
+- Central difference: $\partial I/\partial x \approx \frac{I(x+1) - I(x-1)}{2}$ (symmetric, more accurate). As a kernel: $h_x = \tfrac12[-1,\ 0,\ 1]$, and $h_y$ is the same as a column.
+
+**Differentiation amplifies noise (slide 28).** Noise is high-frequency, and differentiation multiplies each frequency component by its frequency $\omega$, so noise is boosted more than the signal. **Smooth first.** By the derivative theorem, that's a single convolution with the **derivative-of-Gaussian** kernel:
+
+$$\frac{\partial G_\sigma}{\partial x}(x,y) = -\frac{x}{\sigma^2}\, G_\sigma(x,y)$$
+
+- Antisymmetric, so it **sums to zero**: flat regions give no response.
+- $\sigma$ picks *which* edges you find: small $\sigma$ finds texture and fine detail, large $\sigma$ only major boundaries. There's no single correct $\sigma$; "edge" depends on scale.
+- Also separable: $\partial_x G_\sigma = g'_\sigma(x)\, g_\sigma(y)$.
+
+**Sobel and Prewitt (slide 30).** Smooth along one axis and difference along the other, in one 3×3 kernel:
+
+$$S_x = \begin{bmatrix} -1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ 1 \end{bmatrix} \begin{bmatrix} -1 & 0 & 1 \end{bmatrix}, \qquad S_y = S_x^\top$$
+
+- $S_x$ measures horizontal change, so it detects **vertical** edges.
+- Separable, integer-valued, cheap.
+- **Prewitt** uses $[1,1,1]$ for the smoothing part (box smoothing, slightly noisier).
+- **Scharr** uses $[3,10,3]$, a better approximation of rotation invariance.
+
+**Gradient magnitude and orientation (slide 31):**
+
+$$\nabla I = \left(\frac{\partial I}{\partial x},\ \frac{\partial I}{\partial y}\right)^\top, \qquad \|\nabla I\| = \sqrt{I_x^2 + I_y^2}, \qquad \theta = \operatorname{atan2}(I_y, I_x)$$
+
+- $\nabla I$ points in the direction of steepest intensity increase, which is **perpendicular to the edge**.
+- The magnitude is the edge strength.
+- If brightness is scaled ($I \to aI$), the magnitude scales by $a$ too. That's why HOG and SIFT normalise their descriptors.
+
+**The Laplacian (slide 32)** uses second derivatives:
+
+$$\nabla^2 I = \frac{\partial^2 I}{\partial x^2} + \frac{\partial^2 I}{\partial y^2} \approx \begin{bmatrix} 0 & 1 & 0 \\ 1 & -4 & 1 \\ 0 & 1 & 0 \end{bmatrix} * I$$
+
+- Edges become **zero crossings** instead of peaks, which can be located to sub-pixel precision.
+- Rotationally symmetric: one filter, no orientation. But it **loses the edge direction**.
+- Very noise-sensitive: second derivatives amplify each frequency by $\omega^2$.
+
+**Laplacian of Gaussian (LoG) and Difference of Gaussians (DoG) (slide 33):**
+- **LoG** smooths and takes the Laplacian in one kernel (the "Mexican hat"), used for edge and blob detection:
+$$\nabla^2 G_\sigma(x,y) = \frac{x^2 + y^2 - 2\sigma^2}{\sigma^4}\, G_\sigma(x,y)$$
+- **DoG** approximates it by subtracting two Gaussian blurs at nearby scales, which is much faster because each Gaussian is separable:
+$$G_{k\sigma} - G_\sigma \approx (k-1)\,\sigma^2\, \nabla^2 G_\sigma$$
+- The approximation is good when $k$ is close to 1. DoG is the operator SIFT uses to find keypoints.
+
+**The Canny edge detector (1986) (slides 35–39).** Canny defined what an optimal edge detector should achieve:
+1. **Good detection**: find real edges, few false ones.
+2. **Good localisation**: report the edge where it actually is.
+3. **Single response**: one detection per edge, not a thick band.
+
+The four stages:
+1. **Smooth** with $G_\sigma$.
+2. **Compute** gradient magnitude $\|\nabla I\|$ and direction $\theta$.
+3. **Non-maximum suppression (NMS) along $\theta$.** The gradient magnitude forms a ridge several pixels wide; we want a 1-pixel line. Round $\theta$ to 0°, 45°, 90° or 135°, compare each pixel with its two neighbours along the gradient direction (across the edge), and keep it only if it's the largest.
+4. **Hysteresis thresholding** with two thresholds $\tau_{low} < \tau_{high}$:
+   - $\|\nabla I\| > \tau_{high}$: strong edge, keep;
+   - $\|\nabla I\| < \tau_{low}$: discard;
+   - in between: keep **only if connected** to a strong edge pixel.
+
+   A single threshold forces a bad choice: too high and edges break into pieces, too low and noise floods in. Hysteresis removes isolated weak responses and joins broken edges.
+
+**Canny in practice (slide 39):** $\sigma$ controls *which* edges appear; the thresholds control *how many*. No setting works everywhere, because contrast depends on the scene. This parameter sensitivity is a big reason hand-designed pipelines gave way to learned ones; modern boundary detectors are CNNs trained on human-drawn boundaries. In OpenCV: `cv2.Canny(img, 100, 200)`, which expects an 8-bit single-channel image.
+
+### 6. Morphological operations (slides 40–45)
+
+Morphology works on **shape**, not intensity. A binary image is treated as a **set** of foreground pixels: $A = \{(m,n) : I(m,n) = 1\}$.
+
+Notation:
+- $B$ is the **structuring element**: a small set of offsets (square, cross, disk) with a chosen origin.
+- $B_z = \{b + z\}$ is $B$ moved to pixel $z$; $\hat B = \{-b\}$ is $B$ reflected (equal to $B$ if symmetric); $A^c$ is the background.
+
+**Dilation** grows the foreground:
+$$A \oplus B = \{ z : (\hat B)_z \cap A \neq \emptyset \}$$
+"Does $B$, placed at $z$, touch the object at all?"
+
+**Erosion** shrinks the foreground:
+$$A \ominus B = \{ z : B_z \subseteq A \}$$
+"Does $B$, placed at $z$, fit entirely inside the object?"
+
+**Duality:** $(A \ominus B)^c = A^c \oplus \hat B$. Eroding the object is dilating the background.
+
+| | Erosion | Dilation |
 |---|---|---|
-| **Prewitt** $[1,1,1]$ | $[0.333,0.333,0.333]$ | 33.3% — box, noisier |
-| **Sobel** $[1,2,1]$ | $[0.25,0.5,0.25]$ | 50.0% |
-| **Scharr** $[3,10,3]$ | $[0.1875,0.625,0.1875]$ | **62.5%** — better rotation invariance |
+| Effect | removes small specks, breaks thin connections, shrinks objects by about the radius of $B$ | fills small holes and gaps, joins nearby components, grows objects by the radius of $B$ |
 
-**Gradient magnitude and orientation:**
-$$\|\nabla I\|=\sqrt{I_x^2+I_y^2},\qquad\theta=\operatorname{atan2}(I_y,I_x)$$
-$\nabla I$ **points in the direction of steepest intensity increase — perpendicular to the edge.**
+Neither is invertible: what erosion removes, dilation can't bring back.
 
-> [!note] ⚠️ Magnitude is **not** illumination-invariant
-> **Under $I\to aI$ the magnitude scales by $a$** — *"hence the normalization steps in HOG and SIFT."* **That single sentence explains a design choice in both descriptors (§10), and it is the reason raw gradient magnitude is never used as a feature directly.**
+**Opening and closing (slide 43):**
+- **Opening** = erode, then dilate: $A \circ B = (A \ominus B) \oplus B$. Removes small objects and thin protrusions, then restores the size of what's left.
+- **Closing** = dilate, then erode: $A \bullet B = (A \oplus B) \ominus B$. Fills small holes and gaps, then restores the outer boundary.
+- Both are **idempotent**: applying them a second time changes nothing.
 
-**The Laplacian** $\nabla^2I=\partial_{xx}I+\partial_{yy}I\approx\begin{pmatrix}0&1&0\\1&-4&1\\0&1&0\end{pmatrix}*I$: **edges become zero crossings, not peaks**, so they localize to sub-pixel precision; **rotationally symmetric** (one filter, no orientation) but it **loses direction**, and it is **extremely noise-sensitive because second derivatives amplify $\omega^2$.**
+**Derived operators (slide 44):**
+- **Morphological gradient** $(A \oplus B) - (A \ominus B)$: an edge map without derivatives.
+- **Top-hat** $A - (A \circ B)$: bright details smaller than $B$; used to correct uneven illumination.
+- **Black-hat** $(A \bullet B) - A$: dark details.
+- Skeletonisation and hit-or-miss for shape analysis.
 
-> [!note] ⚠️ A kernel sanity check worth internalizing
-> | kernel | sum | meaning |
-> |---|---|---|
-> | central difference, Sobel, Laplacian | **0** | no response on flat regions |
-> | box, Gaussian (normalized) | **1** | preserves brightness |
->
-> **Verified on a constant image**: the Laplacian returns max $|{\cdot}|=0$; the Gaussian returns the input value exactly. ⇒ ***a derivative kernel must sum to 0 and a smoothing kernel to 1 — an instant check on any kernel you write.***
+**Grayscale morphology:** replace set intersection and inclusion with max and min over the window. **Dilation is a max filter, erosion is a min filter, and max-pooling in a CNN is grayscale dilation.**
 
-### 8. ⚠️ LoG, DoG, and scale
+**A complete classical pipeline: counting coins (slide 45):**
+1. Grayscale.
+2. Gaussian blur ($\sigma = 2$).
+3. Otsu threshold → binary image.
+4. Opening to remove specks.
+5. Closing to fill holes.
+6. Connected components → count.
 
-$$\nabla^2G_\sigma(x,y)=\frac{x^2+y^2-2\sigma^2}{\sigma^4}G_\sigma(x,y)\quad\text{(the "Mexican hat")}$$
+No training data, no GPU, milliseconds. For a controlled scene (factory conveyor, scanned document) this still beats a neural network on cost and reliability.
 
-**Verified symbolically: $\nabla^2G_\sigma$ minus the claimed form simplifies to exactly 0.**
+### 7. Corners, keypoints and descriptors (slides 46–60)
 
-$$G_{k\sigma}-G_\sigma\approx(k-1)\sigma^2\nabla^2G_\sigma$$
+**Why corners (slide 47).** To match two images you need points you can find again. Look at a small window and imagine shifting it:
 
-> [!warning] ⚠️ The DoG approximation is good only near $k=1$, and the numbers say by how much
-> | $k$ | $\max\|\mathrm{DoG}\|\ /\ \max\|(k-1)\sigma^2\mathrm{LoG}\|$ |
-> |---|---|
-> | 1.1 | **0.868** |
-> | 1.2 | 0.764 |
-> | 1.6 | 0.508 |
-> | 2.0 | **0.375** |
->
-> **At $k=2$ the approximation is off by a factor of 2.7.** ⇒ **SIFT uses $k=2^{1/s}$ per octave — deliberately close to 1** — and this is why.
->
-> **And the reason to bother**: DoG is **two separable Gaussian blurs** instead of one non-separable LoG convolution — **2.2× fewer multiplications at $9\times9$, 6.2× at $25\times25$.**
-
-### 9. Canny (1986) — still the default, 40 years on
-
-**Canny asked what an *optimal* edge detector should satisfy:**
-1. **good detection** — find real edges, few false positives
-2. **good localization** — report the edge where it actually is
-3. **single response** — one detection per edge, not a thick band
-
-**Four stages:** smooth with $G_\sigma$ → compute $\|\nabla I\|$ and $\theta$ → **non-maximum suppression along $\theta$** → **hysteresis thresholding** with $\tau_{\text{low}},\tau_{\text{high}}$.
-
-> [!note] ⚠️ Stages 3 and 4 each solve one of the three criteria
-> **Non-maximum suppression** delivers criterion 3: the gradient magnitude is a **ridge several pixels wide**, so round $\theta$ to one of $0°,45°,90°,135°$, compare with the two neighbours **across** the edge, and keep only local maxima.
->
-> **Hysteresis** solves the detection/false-positive trade-off in criterion 1: *"A single threshold forces a bad trade-off — too high and edges break into fragments; too low and noise floods in."* **Two thresholds: keep strong pixels, discard weak ones, and keep in-between pixels *only if connected to a strong one*.**
->
-> ⇒ ***hysteresis is the only step in the whole pipeline that is not local*** — connectivity is a global property, and it is exactly what makes Canny work where a plain threshold does not.
-
-### 10. ⚠️ Corners, and the descriptors that made matching work
-
-**Edges are not enough to match two images**, and the lecture's three-case argument is the cleanest statement of why:
-
-| region | shift the window | |
+| Region | Shifting the window… | Information |
 |---|---|---|
-| **flat** | nothing changes in any direction | no information |
-| **edge** | nothing changes *along* the edge | **the aperture problem** — position along the edge is unknown |
-| **corner** | changes in **every** direction | **uniquely localizable** |
+| Flat | changes nothing in any direction | none |
+| Edge | changes nothing *along* the edge | position along the edge is unknown (the **aperture problem**) |
+| Corner | changes the content in *every* direction | uniquely locatable |
 
-**Harris** measures it: $E(u,v)=\sum_{x,y}w(x,y)\big[I(x+u,y+v)-I(x,y)\big]^2$, and a first-order Taylor expansion gives
+**Harris corner detector (slides 48–51).** Measure how much a window changes when shifted by $(u,v)$:
 
-$$E(u,v)\approx\begin{pmatrix}u&v\end{pmatrix}\mathbf M\begin{pmatrix}u\\v\end{pmatrix},\qquad \mathbf M=\sum_{x,y}w(x,y)\begin{pmatrix}I_x^2&I_xI_y\\I_xI_y&I_y^2\end{pmatrix}$$
+$$E(u,v) = \sum_{x,y} w(x,y)\, \big[ I(x+u,\, y+v) - I(x,y) \big]^2$$
 
-**$\mathbf M$ is the structure tensor** — symmetric positive semi-definite, so its eigenvalues are real and non-negative, and **both large means a corner.** *(The weight $w$ is normally a Gaussian, making each entry a blurred product of derivatives; a box window is simpler but not isotropic.)*
+$w$ is a window function centred on the pixel being tested: a box (simple, not isotropic) or, usually, a Gaussian. With a first-order Taylor expansion $I(x+u, y+v) \approx I(x,y) + u I_x + v I_y$:
 
-**SIFT (1999)** — four stages, each solving one invariance:
+$$E(u,v) \approx \begin{bmatrix} u & v \end{bmatrix} M \begin{bmatrix} u \\ v \end{bmatrix}, \qquad M = \sum_{x,y} w(x,y) \begin{bmatrix} I_x^2 & I_x I_y \\ I_x I_y & I_y^2 \end{bmatrix}$$
 
-| stage | what it buys |
+$M$ is the **structure tensor**. Each entry is a blurred product of derivatives. $M$ is symmetric positive semi-definite, so it has real eigenvalues $\lambda_1 \ge \lambda_2 \ge 0$. The curves $E(u,v) = \text{const}$ are ellipses with axes proportional to $1/\sqrt{\lambda_i}$.
+
+| Eigenvalues | Structure |
 |---|---|
-| 1. DoG extrema across scales | **scale** invariance |
-| 2. sub-pixel refinement, reject low contrast and edges | localization |
-| 3. **36-bin orientation histogram** (10° per bin), dominant peak = canonical orientation; peaks within **80%** spawn extra keypoints | **rotation** invariance |
-| 4. $16\times16$ patch → $4\times4$ cells → 8-bin histogram each → **$4\times4\times8=128$ dims**, then normalize, **clip at 0.2**, renormalize | **illumination** invariance |
+| $\lambda_1 \approx \lambda_2 \approx 0$ | flat |
+| $\lambda_1 \gg \lambda_2 \approx 0$ | edge |
+| $\lambda_1 \approx \lambda_2 \gg 0$ | corner |
 
-> [!note] ⚠️ The clip at 0.2 is a bounded-influence estimator
-> A specular highlight produces one enormous gradient that would dominate the unit vector. **Clipping caps any single bin at 20% of the norm; renormalizing restores unit length.** ⇒ *the same idea as gradient clipping in [[Deep Learning/contents/07 - Recurrent Neural Network|DL ch. 07]] §8 — bound one component's influence, accept the bias.*
+**Harris response.** Computing eigenvalues at every pixel is expensive, so Harris and Stephens used the determinant and trace, which come straight from $M$'s entries:
 
-**Lowe's ratio test**: accept a match only if $d_1/d_2<0.8$.
+$$R = \det M - k\,(\operatorname{tr} M)^2 = \lambda_1 \lambda_2 - k(\lambda_1 + \lambda_2)^2, \qquad k \in [0.04, 0.06]$$
 
-> [!warning] ⚠️ Why a ratio and not a distance — *"a nearest neighbour always exists, even for a wrong match"*
-> **A distinctive feature has $d_1\ll d_2$; an ambiguous one (repeated texture — brick, windows, foliage) does not.** ⇒ ***the test measures distinctiveness, not similarity***, which is the only thing that can distinguish "this is the match" from "this is the least-bad of many equally poor candidates." **Then RANSAC fits a geometric model and discards the rest.**
+- $R \gg 0$: corner. $R < 0$: edge. $|R|$ small: flat.
+- Then threshold $R$ and apply non-maximum suppression.
+- **Shi–Tomasi** uses $R = \min(\lambda_1, \lambda_2)$ instead (OpenCV's `goodFeaturesToTrack`).
 
-**The family:** SIFT (1999, 128-D float, patent expired 2020), SURF (2006, 64-D, box filters + integral images), **ORB (2011, 256-bit binary, FAST + rotated BRIEF, free, real-time, used in ORB-SLAM)**, BRISK/FREAK, **SuperPoint (2018, 256-D learned, CNN, self-supervised)**.
+Example with $k = 0.04$: eigenvalues $(100, 80)$ give $R = 8000 - 1296 = 6704$ (corner); $(100, 1)$ give $R = 100 - 408 = -308$ (edge).
 
-> [!note] ⚠️ **"Structure-from-motion, SLAM, panorama stitching and image registration are dominated by these methods — geometry is a domain where hand-designed features remain competitive."**
-> **A genuine exception to the deep-learning sweep, and the lecture is right to flag it.** *Geometry has exact constraints (epipolar, projective) that a learned feature cannot improve on; what it can improve is repeatability, which is what SuperPoint targets.*
+**What Harris is and isn't invariant to (slide 51):**
+- Invariant to **rotation** (eigenvalues don't change when the ellipse rotates) and **intensity shift** $I + b$ (derivatives unchanged).
+- Partly invariant to **intensity scaling** $aI$, if the threshold is adjusted.
+- **Not invariant to scale**: zoom in and a corner becomes a smooth curve that the same window no longer sees as a corner. Also not invariant to large viewpoint changes.
 
-**HOG (2005)** — **dense**, for whole objects rather than sparse keypoints. Dalal & Triggs, for pedestrian detection:
-1. compute $I_x,I_y$ with plain $[-1,0,1]$, **no smoothing**
-2. divide into **$8\times8$ pixel cells**
-3. per cell, a **9-bin histogram of *unsigned* orientation (0°–180°)**, votes weighted by magnitude
-4. group cells into **$2\times2$ blocks** and **L2-normalize each block — blocks overlap, so each cell is normalized several times**
-5. concatenate: a $64\times128$ window → **3,780-D**
+**Scale space (slide 52).** If you don't know an object's size, search all sizes. Build a stack of increasingly blurred images $L(x,y,\sigma) = G_\sigma * I$. A blob of radius $r$ gives the strongest (scale-normalised) LoG response at $\sigma = r/\sqrt2$. Finding an extremum in $\sigma$ as well as in $(x,y)$ recovers the object's **characteristic scale**. The response must be multiplied by $\sigma^2$, otherwise it always shrinks as $\sigma$ grows.
 
-> [!warning] ⚠️ THE 3,780 DERIVES EXACTLY, AND THE OVERLAP IS WHERE IT COMES FROM
-> | | |
-> |---|---|
-> | cells across the window | $8\times16=128$ |
-> | blocks, stride 1 cell, overlapping | $(8-2+1)\times(16-2+1)=7\times15=\mathbf{105}$ |
-> | values per block | $2\times2\times9=36$ |
-> | **total** | $105\times36=\mathbf{3{,}780}$ ✓ |
->
-> **The raw cell histograms are only $128\times9=1{,}152$ numbers.** ⇒ **the descriptor is 3.28× larger than the data it summarizes**, and *without* overlap it would be $4\times8=32$ blocks $=1{,}152$ dims — exactly the raw count.
->
-> **How many times is each cell normalized?** corner **1**, edge **2**, **interior 4**.
->
-> ⇒ ***the redundancy IS the illumination invariance*** — an interior cell appears four times, each normalized against a different local contrast, so no single lighting estimate has to be right. **That is what the 3.28× buys, and it is why HOG uses unsigned orientation too: a dark-on-light and light-on-dark edge are the same structure.**
+**SIFT (Scale-Invariant Feature Transform, Lowe 1999/2004) (slides 53–56).** Four stages:
 
-**HOG + linear SVM was the pre-deep-learning detector:** slide a fixed window, repeat over an **image pyramid** for scale, score each window, **non-maximum suppression on the boxes.**
+| Stage | What it does | Gives |
+|---|---|---|
+| 1. Detect | find extrema in a DoG scale space | scale invariance |
+| 2. Localise | refine position, reject weak points | stability |
+| 3. Orient | find the dominant gradient direction | rotation invariance |
+| 4. Describe | build a 128-D vector | robustness to illumination |
 
-> [!note] ⚠️ That pipeline is [[Deep Learning/contents/06 - Object Detection|DL ch. 06]]'s, with the learned parts removed
-> **Sliding window → anchors. Image pyramid → the feature pyramid. SVM score → the classification head. NMS → still NMS, unchanged.** ⇒ ***modern detection kept the scaffolding and replaced the features*** — exactly the "delete a hand-designed stage" pattern recorded in DL ch. 06 §9. **NMS is the one component that survived both eras intact.**
+- **Stage 1:** build a DoG pyramid $D = L_{k\sigma} - L_\sigma$. Keep points that are larger or smaller than all **26 neighbours** (8 in the same image, 9 in the scale above, 9 below). Each keypoint comes with its scale.
+- **Stage 2:** fit a 3D quadratic to $D(x,y,\sigma)$ for sub-pixel, sub-scale position. Drop low-contrast points (they won't survive noise). Drop edge responses using the ratio $\operatorname{tr}^2/\det$ of the Hessian (second-derivative matrix), which is the same eigenvalue test as Harris.
+- **Stage 3:** histogram gradient orientations around the keypoint into 36 bins, weighted by magnitude. The highest peak is the keypoint's orientation; any other peak above 80% of it creates an extra keypoint.
+- **Stage 4:** at the keypoint's own scale and rotated to its own orientation, take a 16×16 patch and split it into 4×4 cells. Each cell gets an 8-bin orientation histogram. Concatenate: $4 \times 4 \times 8 = 128$ numbers. Normalise, clip values at 0.2, normalise again (limits the effect of strong lighting changes).
+
+Because the descriptor is measured relative to the keypoint's scale and orientation, two descriptors of the same point in differently scaled or rotated images can be compared directly.
+
+**Matching (slide 56).** Find the nearest neighbour in 128-D Euclidean space. But a nearest neighbour always exists, even for a wrong match. **Lowe's ratio test:** accept only if
+
+$$\frac{d_1}{d_2} < 0.8$$
+
+where $d_1, d_2$ are the distances to the best and second-best match. A distinctive feature has $d_1 \ll d_2$; an ambiguous one (repeated texture, e.g. windows on a building) doesn't, and gets rejected. Then **RANSAC** fits a geometric model and throws out the remaining wrong matches.
+
+**The SIFT family (slide 57):**
+
+| Method | Year | Descriptor | Note |
+|---|---|---|---|
+| SIFT | 1999 | 128-D float | the reference; patent expired 2020, now in main OpenCV |
+| SURF | 2006 | 64-D float | box filters + integral images; faster |
+| ORB | 2011 | 256-bit binary | FAST corners + rotated BRIEF; free, real-time, used in ORB-SLAM |
+| BRISK / FREAK | 2011–12 | binary | hand-designed sampling patterns |
+| SuperPoint | 2018 | 256-D learned | self-supervised CNN, the learned successor |
+
+Structure-from-motion, SLAM, panorama stitching and image registration still mostly use these. Geometry is an area where hand-designed features remain competitive.
+
+**HOG: Histogram of Oriented Gradients (Dalal & Triggs, 2005) (slides 58–60).** A *dense* descriptor for a whole object window (not sparse keypoints), designed for pedestrian detection:
+1. Compute $I_x, I_y$ with plain $[-1, 0, 1]$, no smoothing.
+2. Divide the window into 8×8-pixel **cells**.
+3. In each cell, make a 9-bin histogram of **unsigned** orientation (0°–180°), votes weighted by gradient magnitude.
+4. Group cells into overlapping 2×2 **blocks** and L2-normalise each block. Blocks overlap, so each cell gets normalised several times.
+5. Concatenate everything.
+
+Counting the dimensions for a 64×128 window:
+- cells: $64/8 \times 128/8 = 8 \times 16$;
+- 2×2 blocks sliding one cell at a time: $7 \times 15 = 105$ blocks;
+- each block: $2 \times 2$ cells × 9 bins = 36 numbers;
+- total: $105 \times 36 = 3{,}780$.
+
+Without overlap it would be just $8 \times 16 \times 9 = 1{,}152$ numbers. The overlap triples the size but means each cell is normalised against several different neighbourhoods.
+
+**HOG + SVM detector (slide 60):**
+1. Slide a fixed-size window over the image.
+2. Repeat over an image pyramid to handle scale.
+3. Score each window with a linear SVM on its HOG vector.
+4. Apply non-maximum suppression to the boxes.
+
+The **Deformable Parts Model** (Felzenszwalb, 2008) added part filters and won PASCAL VOC repeatedly until 2012.
+
+**Why local normalisation matters:** dividing by the block norm cancels any local multiplicative lighting change, so a pedestrian in shade and in sun gets nearly the same descriptor. Modern networks do the same with BatchNorm and LayerNorm, for the same reason.
+
+> [!note] This pipeline returns in object detection
+> Sliding window, image pyramid, per-window classifier and NMS are the skeleton of modern detectors too ([[07 - Object Detection I|ch. 07]]). Deep learning replaced the features and the classifier; NMS survived largely unchanged.
+
+### 8. From hand-designed to learned (slides 61–63)
+
+**Every choice in this lecture was a design decision (slide 62):**
+
+| Choice | Who made it | On what basis |
+|---|---|---|
+| Gaussian kernel, $\sigma$ | you | guess, then look at the output |
+| Sobel weights $[1,2,1]$ | Sobel, 1968 | analytic approximation |
+| Canny's two thresholds | you | trial and error, per image set |
+| Structuring element shape | you | knowledge of the objects |
+| SIFT's 4×4×8 layout | Lowe | tuning on a matching benchmark |
+| HOG's 8×8 cells, 9 bins | Dalal & Triggs | grid search on pedestrian data |
+
+> [!quote] Slide 62
+> "The best hand-designed pipelines were already fitting their parameters to data — just slowly, by hand, a few numbers at a time. Deep learning does the same thing with millions of parameters and gradient descent."
+
+**What carries over to CNNs exactly (slide 63):**
+- A conv layer computes the correlation from §3, with a learned kernel $h$.
+- Padding, stride and the output-size formula are identical.
+- Max-pooling is grayscale dilation.
+- 1×1 convolutions are point operations (applied across channels).
+- Stacking layers composes filters: $(h_1 * h_2) * I$.
+
+**What changes:**
+- Kernels are optimised against a loss, not designed.
+- Many kernels per layer and many layers, so small filters build up large receptive fields.
+- Nonlinearities between layers, so the stack is not just one big filter.
+- Trained first-layer filters look strikingly like oriented edge and blob detectors (Gabor filters). The network rediscovers them.
+
+**Hands-on (slide 67):** implement 2D correlation with loops and check against `cv2.filter2D`; time the separability speed-up; check the semigroup property; Sobel by hand; Canny stage by stage vs `cv2.Canny`; morphology and coin counting; Harris from the structure tensor; SIFT matching with the ratio test; run a 3×3 kernel through `torch.nn.Conv2d` and confirm it matches.
 
 ## ✏️ Exercises
 
-> [!example]- Exercise 1 — derive HOG's dimension
-> A $64\times128$ window, $8\times8$ cells, 9 bins, $2\times2$ blocks with stride 1 cell.
-> **(a)** How many cells, blocks, and dimensions? **(b)** What would it be without overlap? **(c)** How many times is an interior cell normalized, and why does that matter?
+> [!example]- Exercise 1 — Output sizes and padding
+> **(a)** A 256×256 image is filtered with a 5×5 kernel, padding 2, stride 2. What is the output size?
+> **(b)** You want a 4×4 kernel to keep a 32×32 input at 32×32 with stride 1. What padding does the "same" formula ask for, and what's the problem?
+> **(c)** A 224×224 input, 3×3 kernel, no padding, stride 2. Output size?
 >
 > ---
-> **(a)** Cells: $\frac{64}{8}\times\frac{128}{8}=8\times16=\mathbf{128}$. Blocks: $(8-2+1)\times(16-2+1)=7\times15=\mathbf{105}$. Each block holds $2\times2\times9=36$ values, so $105\times36=\mathbf{3{,}780}$ ✓ — the slide's figure exactly.
+> **(a)** $\lfloor (256 + 4 - 5)/2 \rfloor + 1 = \lfloor 127.5 \rfloor + 1 = 128$. Stride 2 roughly halves the size.
 >
-> **(b)** Non-overlapping: $4\times8=32$ blocks $\times36=\mathbf{1{,}152}$ — **identical to the raw cell histogram count** ($128\times9$), because without overlap each cell appears once. **The overlap costs 3.28×.**
+> **(b)** $p = (4-1)/2 = 1.5$. You can't pad half a pixel, so you'd have to pad unevenly (1 on one side, 2 on the other), which shifts the output by half a pixel. Odd kernel sizes avoid this, which is why 3×3, 5×5, 7×7 are standard.
 >
-> **(c)** **Corner cells once, edge cells twice, interior cells four times.** ⚠️ **Each appearance is normalized against a different $2\times2$ neighbourhood, so the descriptor never has to commit to one estimate of local illumination.** ⇒ *the redundancy is the invariance* — and it is why HOG survived until CNNs learned the same trick with overlapping receptive fields.
+> **(c)** $\lfloor (224 - 3)/2 \rfloor + 1 = 110 + 1 = 111$. The floor drops the last column/row that doesn't fit.
 
-> [!example]- Exercise 2 — check a kernel before you use it
-> **(a)** What must a derivative kernel sum to? A smoothing kernel? **(b)** Check $[-1,0,1]/2$, Sobel $S_x$, the Laplacian, and a normalized $3\times3$ Gaussian. **(c)** Show Sobel is separable and cost the saving at $k=3$ and $k=15$.
+> [!example]- Exercise 2 — Pick the filter
+> For each case, choose a filter and say why.
+> **(a)** A scanned document with 5% of pixels randomly set to pure black or white.
+> **(b)** A low-light photo with fine grainy noise everywhere, where you don't care about sharp edges.
+> **(c)** A portrait with sensor noise where skin should look smooth but the outline of the face must stay sharp.
+> **(d)** A 3×3 window contains $\{12, 10, 11, 255, 13, 9, 10, 0, 11\}$. What does a 3×3 box filter output at the centre, and what does a median filter output?
 >
 > ---
-> **(a)** A **derivative** kernel must sum to **0** — otherwise a constant image produces a non-zero response, which is a derivative that is not zero on a flat region. A **smoothing** kernel must sum to **1** — otherwise it rescales brightness.
+> **(a)** **Median filter.** This is salt-and-pepper noise: a few extreme outliers. The median ignores them; a Gaussian would smear each one into a grey blob.
 >
-> **(b)** $[-1,0,1]/2\to\mathbf 0$; $S_x\to\mathbf 0$; Laplacian $\to\mathbf 0$; Gaussian $\frac1{16}\begin{psmallmatrix}1&2&1\\2&4&2\\1&2&1\end{psmallmatrix}\to\mathbf 1$. **Verified on a constant image of 100: the Laplacian returns 0 to machine precision, the Gaussian returns 100.0000.**
+> **(b)** **Gaussian filter.** The noise is roughly Gaussian and spread everywhere. Averaging reduces its variance (by $1/N$ for $N$ independent pixels), and the Gaussian does it without the box filter's ringing and streaks.
 >
-> **(c)** $\begin{pmatrix}1\\2\\1\end{pmatrix}\begin{pmatrix}-1&0&1\end{pmatrix}=\begin{pmatrix}-1&0&1\\-2&0&2\\-1&0&1\end{pmatrix}=S_x$ ✓. Cost $k^2\to2k$: **9 → 6 (1.5×) at $k=3$; 225 → 30 (7.5×) at $k=15$.** ⚠️ *The saving is negligible for tiny kernels and decisive for large ones — which is why a $15\times15$ Gaussian blur is cheap and a $15\times15$ bilateral filter is not.*
+> **(c)** **Bilateral filter.** It weights neighbours by intensity similarity as well as distance, so it smooths within regions of similar colour but doesn't average across the face outline.
+>
+> **(d)** Box: the mean, $331/9 \approx 36.8$. The single 255 pulled it far above the typical value of ~11. Median: sorted values are $0, 9, 10, 10, 11, 11, 12, 13, 255$, so the median is **11**. Both outliers (0 and 255) are ignored.
 
-> [!example]- Exercise 3 — median versus Gaussian
-> **(a)** On $[128,130,131,132,133,134,135,136,137]$, corrupt 1, 2, 4 and 5 values to 255. Track mean and median. **(b)** What is the breakdown point? **(c)** Filter a single impulse with each. **(d)** When should you *not* use a median?
+> [!example]- Exercise 3 — Corner, edge or flat?
+> Three structure tensors $M$ are measured. Using the Harris response with $k = 0.04$, classify each.
+> $$M_A = \begin{bmatrix} 50 & 0 \\ 0 & 48 \end{bmatrix}, \quad M_B = \begin{bmatrix} 90 & 30 \\ 30 & 10 \end{bmatrix}, \quad M_C = \begin{bmatrix} 0.2 & 0.1 \\ 0.1 & 0.3 \end{bmatrix}$$
+> Then: if the image is zoomed in 4×, will a corner found in $A$ still be found with the same window size?
 >
 > ---
-> **(a)**
+> $R = \det M - 0.04 (\operatorname{tr} M)^2$:
+> - $A$: $\det = 2400$, $\operatorname{tr} = 98$, $R = 2400 - 384.2 = 2015.8 \gg 0$. **Corner** (both eigenvalues large: 50 and 48).
+> - $B$: $\det = 900 - 900 = 0$, $\operatorname{tr} = 100$, $R = -400 < 0$. **Edge.** Its eigenvalues are 100 and 0: lots of gradient, but all in one direction. Large gradient energy alone doesn't make a corner.
+> - $C$: $R = 0.05 - 0.04 = 0.04$, tiny. **Flat.**
 >
-> | corrupted | mean | median |
-> |---|---|---|
-> | 0 | 132.889 | 133.000 |
-> | 1 | 146.000 (**+13.1**) | 133.000 (**+0.0**) |
-> | 2 | 159.222 (+26.3) | 133.000 (+0.0) |
-> | **4 (44%)** | 186.000 (**+53.1**) | 133.000 (**+0.0**) |
-> | 5 (56%) | 199.556 (+66.7) | **255.000 (+122.0)** |
->
-> **(b)** **Mean 0%, median 50%.** The median is *exactly* unaffected up to 4 of 9 and then fails completely at 5 — **breakdown is a cliff, not a slope.**
->
-> **(c)** Impulse $[0,0,0,0,255,0,0,0,0]$: the $\frac14[1,2,1]$ Gaussian gives $[0,0,0,63.8,127.5,63.8,0,0,0]$ — **1 contaminated pixel becomes 3**; the median gives **all zeros — the impulse is deleted.**
->
-> **(d)** ⚠️ **When the noise is not impulsive.** For Gaussian sensor noise the mean is the maximum-likelihood estimate and the median is less efficient. **The median also destroys fine texture and rounds corners**, because it is a rank operation with no notion of structure. ⇒ *match the filter to the noise model.*
+> **Zoom:** probably not. Harris isn't scale-invariant. After a 4× zoom, the corner's curvature is spread over 4× more pixels, so the same small window sees an almost straight edge. You need to search over scales (scale space) or use a scale-invariant detector like SIFT.
 
-> [!example]- Exercise 4 — output sizes and odd kernels
-> **(a)** $H=224$: give $H_\text{out}$ for $(f,p,s)=(3,1,1),(5,2,1),(3,1,2),(7,3,2)$. **(b)** Which preserve size? **(c)** Why are CNN kernels odd?
+> [!example]- Exercise 4 — Canny's hysteresis
+> After non-maximum suppression, a chain of connected edge pixels has gradient magnitudes $[120, 60, 70, 40, 130]$ (in order along the chain). Elsewhere there is an isolated pixel with magnitude 80. Thresholds: $\tau_{low} = 50$, $\tau_{high} = 100$.
+> **(a)** Which pixels survive?
+> **(b)** What would a single threshold of 100 keep? A single threshold of 50?
 >
 > ---
-> **(a)** $\lfloor(H+2p-f)/s\rfloor+1$: **224, 224, 112, 112.**
+> **(a)** Strong (> 100): 120 and 130. Weak (50–100): 60, 70 and the isolated 80. Discarded (< 50): 40.
+> - 60 is connected to 120 (strong), so keep. 70 is connected to 60, which is connected to 120, so keep.
+> - 40 is discarded, so the chain breaks there; 130 survives on its own as a strong pixel.
+> - The isolated 80 isn't connected to any strong pixel, so it's discarded.
 >
-> **(b)** The first two. **"Same" padding is $p=(f-1)/2$** — $p=1$ for $f=3$, $p=2$ for $f=5$ — and any stride $>1$ downsamples regardless of padding.
+> Result: 120, 60, 70 and 130 survive.
 >
-> **(c)** $p=(f-1)/2$ is an integer **only for odd $f$**: $f=4$ needs $p=1.5$. With even $f$ you must pad asymmetrically, so the output at $[i,j]$ is **no longer the window centred on the input at $[i,j]$**. ⚠️ **This is the same conclusion as [[Deep Learning/contents/05 - Convolutional Neural Network|DL ch. 05]] §3, reached from classical filtering instead of from CNN design** — and the fact that both routes agree is the point.
+> **(b)** Threshold 100: only 120 and 130. The edge is broken into fragments. Threshold 50: 120, 60, 70, 130 *and* the isolated 80, which is probably noise. Hysteresis gets the connected edge without the isolated noise, which is what neither single threshold can do.
 
-> [!example]- Exercise 5 — LoG, DoG and the cost of scale
-> **(a)** Verify $\nabla^2G_\sigma=\frac{x^2+y^2-2\sigma^2}{\sigma^4}G_\sigma$. **(b)** How good is $G_{k\sigma}-G_\sigma\approx(k-1)\sigma^2\nabla^2G_\sigma$ at $k=1.1$ and $k=2$? **(c)** Why use DoG at all? **(d)** What does $\sigma$ control?
+> [!example]- Exercise 5 — HOG size and lighting
+> **(a)** Compute the HOG descriptor length for a 128×128 window with standard settings (8×8 cells, 2×2 blocks with one-cell stride, 9 bins).
+> **(b)** A pedestrian walks from sunlight into shade, so every pixel in their window is multiplied by 0.4. What happens to the gradient magnitudes, and to the final HOG descriptor?
+> **(c)** Why can't HOG + SVM tell a shadow edge from an object edge, and how did the field eventually deal with that?
 >
 > ---
-> **(a)** Symbolic differentiation of $G_\sigma=\frac{1}{2\pi\sigma^2}e^{-(x^2+y^2)/2\sigma^2}$ gives $\partial_{xx}G+\partial_{yy}G$ **minus the claimed form $=0$ identically.** ✓
+> **(a)** Cells: $16 \times 16$. Blocks: $15 \times 15 = 225$. Each block: $4 \times 9 = 36$. Total $225 \times 36 = 8{,}100$.
 >
-> **(b)** Ratio of maxima: **0.868 at $k=1.1$**, 0.764 at 1.2, 0.508 at 1.6, **0.375 at $k=2$.** ⚠️ **At $k=2$ the approximation is off by a factor of 2.7** — SIFT uses $k=2^{1/s}$ per octave precisely to stay near 1.
+> **(b)** Gradients are linear in intensity, so every gradient magnitude is multiplied by 0.4. The histograms shrink by 0.4, but each block is L2-normalised, which divides out the factor. The descriptor is (almost) unchanged. That's exactly why HOG normalises locally. (The same lighting change would break a raw-gradient descriptor.)
 >
-> **(c)** **DoG is two separable Gaussian blurs; LoG is one non-separable convolution.** At $9\times9$: 81 mults/px vs $4\times9=36$ — **2.2×**; at $25\times25$, **6.2×**. And the Gaussians are needed for the scale pyramid anyway, so the DoG is nearly free.
->
-> **(d)** ⚠️ **$\sigma$ selects which edges exist.** Small $\sigma$ responds to texture and fine detail; large $\sigma$ only to major boundaries. **"There is no single correct $\sigma$ — 'edge' is scale-dependent."** ⇒ *this is why detectors search across scales rather than picking one, and it is the same argument that produces the feature pyramid in [[Deep Learning/contents/06 - Object Detection|DL ch. 06]] §6.*
+> **(c)** HOG only looks at gradients inside small cells, and a shadow edge and an object edge produce the same local gradient. The information to separate them (what's around, what the object is) isn't in the neighbourhood. Learned features with large receptive fields can use context; CNNs replaced hand-designed descriptors for this reason.
 
 ## 📝 Summary
 
-- **Classical methods earn their place in a deep-learning course for three reasons the lecture states**: a CNN *is* a stack of learned convolutions; these operators still run in production; they are cheap, interpretable and need no data.
-- **Point operations have no spatial information**; histograms discard **all** spatial layout, so **two very different images can share one**. **Histogram equalization works by the probability integral transform** — $c(V)\sim\mathrm{Uniform}$ — and **amplifies noise in flat regions**, which CLAHE fixes by tiling and clipping.
-- **⚠️ Linear + shift-invariant ⇒ convolution. There is no other choice** — a theorem, and the justification for convolutional layers. **[[Deep Learning/contents/05 - Convolutional Neural Network|DL ch. 05]] derived the same operator by imposing invariance on an MLP; two independent routes to one object.**
-- **⚠️ $H_\text{out}=\lfloor(H+2p-f)/s\rfloor+1$ and "same" padding $p=(f-1)/2$ is an integer only for odd $f$** — DL ch. 05's odd-kernel argument, from the classical side.
-- **⚠️ The mean's breakdown point is 0% and the median's is 50%**: with 4 of 9 pixels corrupted the mean moves **+53.1** and the median **+0.0**, then the median fails completely at 5 of 9. **And a Gaussian spreads one impulse to 3 pixels where the median deletes it** — different failure modes, so choose by the noise model.
-- **The bilateral filter preserves edges by weighting on intensity as well as distance — and is therefore not shift-invariant and not a convolution.** That is the price, not a bug.
-- **Four physically different causes produce identical edge pixels** (depth, orientation, reflectance, illumination) — **"a shadow edge and an object edge look identical locally, a permanent limitation of purely local methods."**
-- **⚠️ Differentiation amplifies noise by $\omega$ (and the Laplacian by $\omega^2$), so smooth first** — and $\frac{d}{dx}(g_\sigma*I)=g'_\sigma*I$ makes it one convolution. **Derivative kernels sum to 0, smoothing kernels to 1 — an instant sanity check.**
-- **⚠️ Sobel is the outer product $[1,2,1]^\top[-1,0,1]$**, and separability saves $k^2\to2k$: **1.5× at $k=3$, 7.5× at $k=15$.** Prewitt/Sobel/Scharr differ only in the smoothing row (33.3% / 50% / **62.5%** centre weight).
-- **⚠️ $\nabla^2G_\sigma=\frac{x^2+y^2-2\sigma^2}{\sigma^4}G_\sigma$ verified symbolically; the DoG approximation is 0.868 accurate at $k=1.1$ and only 0.375 at $k=2$** — which is why SIFT keeps $k$ near 1. **DoG is 2.2–6.2× cheaper than LoG.**
-- **Canny's three criteria map onto its stages**: non-maximum suppression gives single response, **hysteresis is the only non-local step** and is what beats a single threshold.
-- **Flat / edge / corner**: only a corner is uniquely localizable; an edge suffers the **aperture problem**. **Harris's structure tensor $\mathbf M$ is symmetric PSD and both eigenvalues large means corner.**
-- **⚠️ HOG's 3,780 dimensions derive exactly** ($105\times36$), and **the raw histograms are only 1,152** — the 3.28× is overlap, with **interior cells normalized four times**. ***The redundancy is the illumination invariance.***
-- **SIFT's 128 = $4\times4\times8$**, with 36 orientation bins, an 80% peak rule, and a **clip at 0.2** that is a bounded-influence estimator. **Lowe's ratio test $d_1/d_2<0.8$ measures distinctiveness, not similarity**, because "a nearest neighbour always exists, even for a wrong match."
-- **HOG + SVM + pyramid + NMS is [[Deep Learning/contents/06 - Object Detection|DL ch. 06]]'s pipeline with the learned parts removed** — and **NMS is the one component that survived both eras unchanged.**
+- **Point operations** change each pixel independently (brightness, contrast, gamma, negative, threshold). The **histogram** shows the intensity distribution but no layout; **equalisation** maps through the CDF to spread intensities; **CLAHE** does it per tile with clipping.
+- **Linear filtering** is a weighted sum over a neighbourhood with the same kernel everywhere. Convolution = correlation with a flipped kernel. Linear + shift-invariant ⇒ convolution. Output size: $\lfloor (H + 2p - f)/s \rfloor + 1$; "same" padding $p = (f-1)/2$ needs odd $f$.
+- **Noise and filters:** Gaussian noise → Gaussian filter; salt & pepper → median; keep edges → bilateral. The box filter rings and isn't isotropic. The Gaussian is isotropic and **separable** ($k^2 \to 2k$), and its variances add when blurring twice.
+- **Edges:** derivatives amplify noise, so smooth first (derivative of Gaussian, Sobel, Prewitt, Scharr). The gradient points across the edge; magnitude = strength. The Laplacian gives zero crossings; LoG ≈ DoG.
+- **Canny:** smooth → gradient → non-maximum suppression → hysteresis (two thresholds, keep weak pixels only if connected to strong ones).
+- **Morphology:** dilation grows, erosion shrinks; opening (erode → dilate) removes specks, closing (dilate → erode) fills holes. Max-pooling = grayscale dilation.
+- **Features:** Harris uses the structure tensor $M$, $R = \det M - k(\operatorname{tr} M)^2$ (rotation-invariant, not scale-invariant). SIFT adds scale space (DoG extrema), orientation and a 128-D descriptor; match with the ratio test $d_1/d_2 < 0.8$, then RANSAC. HOG: 8×8 cells, 9 bins, overlapping 2×2 blocks, 3,780-D for 64×128; + linear SVM + NMS was the pre-2012 detector.
+- **Hand-designed → learned:** CNNs use the same operations (correlation, padding, stride, pooling) but learn the kernels from data.
 
 ## ⚠️ Important Notes
 
-1. **⚠️ Check every kernel's sum before using it.** Derivative → 0, smoothing → 1. A kernel that fails this produces a plausible-looking image with the wrong brightness or a non-zero response on flat regions — **the vault's recurring silent failure.**
-2. **⚠️ Border handling changes your results and is easy to forget.** Zero-padding puts a dark rim on every filtered image and teaches CNNs where the image boundary is. **Reflect is the safe classical default.**
-3. **⚠️ The median is not a convolution and the bilateral filter is not either.** Neither can be folded into a linear pipeline, neither commutes with other filters, and neither has a frequency response. **Only linear shift-invariant operations get §3's guarantees.**
-4. **⚠️ "Denoising" with a median destroys texture.** It removes impulses *and* fine structure, and rounds corners. On Gaussian noise it is strictly worse than a Gaussian.
-5. **⚠️ There is no correct $\sigma$.** Edge detection at one scale answers one question. **If a detector misses large boundaries or drowns in texture, the fix is usually $\sigma$, not the operator.**
-6. **⚠️ Gradient magnitude scales with illumination** ($I\to aI$ gives $\|\nabla I\|\to a\|\nabla I\|$). **Never use it as a feature without normalization** — the reason both HOG and SIFT normalize.
-7. **⚠️ A shadow edge and an object edge are locally identical.** No local operator can separate them; if your pipeline confuses them, the answer is context or learning, not a better filter.
-8. **⚠️ Canny's two thresholds are not independent.** A common ratio is $\tau_{\text{high}}/\tau_{\text{low}}\approx2$–3. Setting them equal throws away hysteresis and reduces Canny to a thresholded gradient.
-9. **⚠️ Lowe's ratio test rejects, it does not rank.** Matches surviving it are still wrong sometimes — **RANSAC is not optional**, it is the second half of the method.
-10. **⚠️ Descriptor invariances are earned stage by stage, and each can be broken.** SIFT is invariant to scale, rotation and affine illumination — **not to perspective, non-rigid deformation, or large viewpoint change.** Know which invariance you actually need.
-11. **⚠️ Overlapping normalization is why HOG is 3.28× its own data.** If you implement it and get 1,152 dimensions, you forgot the overlap; if you get 3,780, you did not.
-12. **Hand-designed features are still competitive in geometry** — SfM, SLAM, stitching, registration — because those problems have exact constraints that learning cannot improve. **"Deep learning won" is a claim about recognition, not about all of vision.**
-13. **The classical pipeline is the modern one with the learned parts removed.** Sliding window → anchors; pyramid → feature pyramid; SVM → classification head; **NMS → NMS.** Recognizing that makes [[07 - Object Detection I|ch. 07]] much shorter.
+1. **Normalise smoothing kernels to sum to 1** or the image changes brightness. **Derivative kernels must sum to 0** so flat regions give zero response. Quick check: apply the kernel to a constant image.
+2. **$\sigma$ is the real parameter of a Gaussian**, not the kernel size. Choose the size from $\sigma$ (about $\pm 3\sigma$).
+3. **Blurring twice adds variances, not $\sigma$s.** $\sigma = 3$ then $\sigma = 4$ gives $\sigma = 5$, not 7.
+4. **Never differentiate a noisy image without smoothing.** Differentiation amplifies high frequencies; second derivatives (Laplacian) even more.
+5. **Sobel $S_x$ responds to vertical edges** (it measures change along $x$). A common exam mix-up.
+6. **The bilateral and median filters are not convolutions**, so they don't have separability, the convolution theorem, or shift-invariance.
+7. **Gradient magnitude is not lighting-invariant**: it scales with brightness. Descriptors (HOG, SIFT) normalise for that reason.
+8. **Local methods can't tell shadow edges from object edges.** No better edge detector can fix that; it needs context.
+9. **Harris is rotation-invariant but not scale-invariant.** SIFT adds scale invariance by searching scale space.
+10. **The nearest neighbour always exists.** Without the ratio test, every descriptor gets matched to something, including features that don't appear in the other image at all.
+11. **Opening ≠ closing.** Opening removes small foreground specks; closing fills small background holes. The order of erode and dilate matters.
+12. **`cv2.Canny` needs an 8-bit single-channel image**, and its thresholds depend on image contrast. Values that work on one dataset may fail on another.
+13. **CNN "convolution" is really correlation.** For learned kernels it doesn't matter, but if a question asks you to apply a given kernel "as a convolution", flip it first (for non-symmetric kernels like Sobel the sign of the result changes).
 
 > [!warning] Gaps in the source material
-> **This is the second and last chapter with the lecturer's own slides** (67 of them). **[[03 - Image Classification and Linear Models|Ch. 03]] onward has none** — see [[00-Index]].
->
-> **All slide figures are images and never extract.** **Recovered because the captions state their content**: the negative example (slide 8), the histogram and its image (9), the low-contrast → equalized → CLAHE comparison (10), the padding comparison (16), salt-and-pepper vs Gaussian vs median (23), noisy/Gaussian/bilateral (24), the intensity profile with its first and second derivatives (26), the raw-derivative vs derivative-of-Gaussian comparison (28), $g_\sigma,g'_\sigma,g''_\sigma$ (29), $I_x$/$I_y$/$\|\nabla I\|$ (30), the LoG and DoG profiles (33), thick ridge → thin edge (36), the flat/edge/corner triptych (47), matched features after the ratio test (56), and HOG cells (58). **Genuinely lost**: the history timeline's graphics (6), the convolution animations (13–14), the morphology examples (38–45), the orientation-as-hue visualization (31), and the Laplacian-vs-LoG comparison (34).
->
-> **Beamer extraction quirks** (recorded in this subject's `CLAUDE.md`): **formulas lose their spaces and fractions flatten** — the output-size formula, the bilateral filter, the LoG and the structure tensor all had to be reconstructed and were then **verified numerically or symbolically**. Matrices extract as flowing text and were rebuilt from the mathematics. **Every slide carries a footer** to filter out.
->
-> **Added beyond the slides, and labelled as mine throughout:**
-> - **The full derivation of HOG's 3,780** (§10, exercise 1) including the 1,152 raw count, the 3.28× overlap factor, and the corner/edge/interior normalization counts of 1/2/4. **The slide states 3,780 and nothing else.**
-> - **The median breakdown-point experiment** (§6, exercise 3) and the impulse-response comparison. **The slide says the median handles salt-and-pepper; the 0%-vs-50% breakdown and the +53.1-vs-+0.0 numbers are mine.**
-> - **The separability cost table** (§7, exercise 2) and the Prewitt/Sobel/Scharr smoothing-weight comparison (33.3%/50%/62.5%).
-> - **The symbolic verification of the LoG formula and the numerical DoG accuracy table** (§8, exercise 5), including the 0.868→0.375 degradation and the 2.2–6.2× cost saving. **The slide states both formulas and evaluates neither.**
-> - **The kernel-sum sanity check** (§7) verified on a constant image.
-> - **The output-size table and the odd-kernel argument** (§4, exercise 4), and its identification with DL ch. 05 §3.
-> - **The observation that the classical detection pipeline is DL ch. 06's with the learned parts removed** (§10), and that **NMS is the only unchanged component.**
-> - **The probability-integral-transform framing** of histogram equalization (§2) and its link to Probability Theory ch. 05.
-> - **All thirteen Important Notes.**
->
-> **No discrepancies found.** Every stated number that could be checked was checked and every one was correct — **3,780, 128, 105, the Sobel factorization, the LoG formula, the output-size formula and the median cost bounds all verify.**
->
-> **Deliberately deferred, not omitted:** **the morphology section (slides 38–45)** — erosion, dilation, opening, closing, and the blur→threshold→morphology→components pipeline — is summarized only in §1's timeline, because its content is almost entirely figures and its operators (min/max over a structuring element) are order statistics of the kind §6 already treats. *It would repay a short section if the mid-term covers it.* **The convolution animations (13–14)** carry no text. **Scale space and the image pyramid** are named in §7–§8 and developed properly in [[Deep Learning/contents/06 - Object Detection|DL ch. 06]] §6 and, for this subject, in [[07 - Object Detection I|ch. 07]].
->
-> **Left as the source states it:** the history timeline's dates and attributions (Bartlane 1920, Kirsch 1957, Roberts 1963, Ranger 7 1964, Sobel 1968, Hounsfield 1971, JPEG 1992, SIFT 1999, HOG 2005, AlexNet 2012); the claim that Canny is "still the default edge detector, 40 years on"; the SIFT-family table's years, descriptor sizes and patent status; and the assertion that Scharr is "a better rotation-invariant approximation," which is stated without a criterion.
+> - **Figures lost in extraction:** slides 13–14 (the convolution animation, image-only), 34 (Laplacian vs LoG comparison), 38 (Canny stages), 59 (HOG visualisation), and every example image. Each slide's caption is used where it exists.
+> - **Formulas rebuilt from flattened text** and checked numerically: the histogram-equalisation mapping, the output-size formula, separability counts, the semigroup property, the Harris example values, the HOG dimension count.
+> - **Added beyond the slides:** the explicit correlation vs convolution formulas (slides 13–14 are images; the summary slide states the flip); the histogram-equalisation worked example; the 13×13 kernel size for $\sigma = 2$; the Harris numerical examples; the HOG dimension derivation (the slide states only "3780-D"); the 128×128 HOG size; all exercises and Important Notes.
+> - **RANSAC** is named on slide 56 but not explained in this lecture. It's needed for 3D vision ([[14 - 3D Vision and Emerging Topics|ch. 14]]).
 
 **Previous:** [[01 - Introduction and Image Formation]] · **Next:** [[03 - Image Classification and Linear Models]]

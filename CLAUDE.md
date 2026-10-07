@@ -13,7 +13,9 @@ Not a software project — an Obsidian vault used as a personal "second brain" f
 
 ## Resume state — read this, then stop reading
 
-**Last updated: 2026-08-25.**
+**Last updated: 2026-10-07.**
+
+- **Computer Vision is NOT complete — the course is still running and slides arrive weekly** (lectures 1–8 in `slides/` as of 2026-10-07). Notes 01–08 were rewritten from those slides on 2026-10-07 (the old ones were built before the slides existed and missed much of the lectures). Notes 09–14 are pre-lecture drafts: **rewrite each from its slides when they appear.** `Computer Vision/CLAUDE.md` was also rewritten and is the source of truth for this subject; the CV bullets below this one are from August and are out of date.
 
 - **⭐ THE VAULT IS COMPLETE AGAIN — both new subjects are finished. VERIFIED AGAINST THE FILESYSTEM, NOT AGAINST THE TABLE BELOW: 26 subject folders, 22 complete, 237 chapter notes, 4 permanently blocked.** *(`data/` is the agentmemory plugin, not a subject.)*
   - **Deep Learning** — ✅ `00-Index` + ch. 01–08, the user's full eight-topic syllabus. No errata; 9 discrepancies declined.
@@ -232,7 +234,7 @@ Extract to a file in the scratchpad, then Read it in chunks — never print a wh
 | Principles of Marketing | ✅ `00-Index` + ch. 01–12 (no erratum; 6 discrepancies declined) |
 | Business Management | ✅ `00-Index` + ch. 01–09 (no erratum; 6 discrepancies declined) |
 | **Deep Learning** | ✅ `00-Index` + ch. 01–08 (scope given by user's `note/Index.md`; no erratum; 9 discrepancies declined) |
-| **Computer Vision** | ✅ `00-Index` + ch. 01–14 (scope set by the lecturer's slide 8; **slides for weeks 1–2 only**; no erratum, no discrepancy) |
+| **Computer Vision** | 🔄 Course still running. ch. 01–08 rewritten from lectures 1–8 (2026-10-07); ch. 09–14 are pre-lecture drafts to redo as slides arrive. See `Computer Vision/CLAUDE.md` |
 | Big Data Analytics | 🚫 Blocked — `documents/` is empty |
 | Natural Language Processing | 🚫 Blocked — `documents/` is empty |
 | PowerBI | 🚫 Blocked — `documents/` is empty |
