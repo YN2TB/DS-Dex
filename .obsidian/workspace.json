@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Business Management/contents/06 - Management and Leadership.md",
+                "file": "Computer Vision/contents/09 - Segmentation.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "06 - Management and Leadership"
+              "title": "09 - Segmentation"
             }
           }
         ],
@@ -215,8 +215,11 @@
   },
   "active": "d6208fc1e7e452c9",
   "lastOpenFiles": [
-    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
+    "Computer Vision/contents/06 - Vision Transformers.md",
+    "Computer Vision/contents/07 - Object Detection I.md",
+    "Computer Vision/contents/08 - Object Detection II.md",
     "Business Management/contents/06 - Management and Leadership.md",
+    "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "Natural Language Processing/note/Untitled.md",
     "Untitled.base",
     "Deep Learning/slides/Chapter 5.1 - Convolutional Neural Network ‐ CNN.pdf",
@@ -227,7 +230,6 @@
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/legend_handler.cpython-311.pyc",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/container.cpython-311.pyc",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/legend.cpython-311.pyc",
-    "Deep Learning/note/venv/Lib/site-packages/matplotlib/__pycache__/inset.cpython-311.pyc",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/Minduka_Present_Blue_Pack.png",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/logo2.png",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/grace_hopper.jpg",
@@ -259,8 +261,6 @@
     "Excalidraw/Drawing 2026-09-17 16.14.50.excalidraw.md",
     "Computer Vision/contents/04 - From Neural Networks to CNNs.md",
     "Computer Vision/contents/05 - CNN Architectures.md",
-    "Computer Vision/contents/06 - Vision Transformers.md",
-    "Business Management/contents/03 - Doing Business in Global Markets.md",
     "Big Data Analytics/note/Untitled.canvas"
   ]
 }
