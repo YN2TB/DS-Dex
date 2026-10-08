@@ -34,6 +34,18 @@
             }
           },
           {
+            "id": "1ca50ce8532d04b0",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.14.4"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.14.4"
+            }
+          },
+          {
             "id": "d6208fc1e7e452c9",
             "type": "leaf",
             "state": {
@@ -48,7 +60,7 @@
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -211,7 +223,7 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "329f6beea61ddc43",
+  "active": "1ca50ce8532d04b0",
   "lastOpenFiles": [
     "Big Data Analytics/note/Project explaination.md",
     "Computer Vision/contents/08 - Object Detection II.md",
