@@ -1,128 +1,42 @@
 # CLAUDE.md
 
-Guidance for Claude Code working in this repository.
+Guidance for Claude Code in this repository.
 
 ## What this is
 
-Not a software project — an Obsidian vault used as a personal "second brain" for a Data Science major at NEU (National Economics University, Vietnam). No build, lint, or test tooling. Claude's job is **personal knowledge architect**: turning raw course material (slides, textbooks, papers) into permanent, well-structured Obsidian notes.
+An Obsidian vault used as a "second brain" by a Data Science student at NEU (National Economics University, Vietnam). Not a software project: no build, lint or tests. Claude's job is to turn course material (slides, textbooks, papers) into well-structured Obsidian notes.
 
-## Warning
+- `data/` is the agentmemory plugin's folder and `Excalidraw/` holds drawings; neither is a subject.
+- Each subject's `note/` folder belongs to the user (their own notes, code, venvs). Don't edit it, but check it: Deep Learning's syllabus came from `note/Index.md`.
 
-- It is unnecessary to re-read the conversation, this file contains everything you need to know
-- `data` folder is for agentmemory plugin, not a subject folder
+## Current state (2026-10-09)
 
-## Resume state — read this, then stop reading
+- **22 subjects complete, 237 chapter notes** (counted from `contents/[0-9][0-9] - *.md`, including Computer Vision's 14).
+- **Computer Vision is in progress.** The course is running and slides arrive weekly. Notes 01–08 were rewritten from lectures 1–8; notes 09–14 are drafts to redo when their slides appear. `Computer Vision/CLAUDE.md` is the source of truth.
+- **Big Data Analytics now has sources** (added 2026-10-09): *Learning Spark* and *Spark: The Definitive Guide* in `documents/`. Not started; it has no `CLAUDE.md` yet. Check `note/` for a user syllabus before choosing a scope.
+- **Blocked** (empty `documents/`): Natural Language Processing, PowerBI, Programming for Data Science (Python).
+- **Deep Learning was rewritten 2026-10-09** in a shorter style at the user's request.
+- Open question for the user (not blocking): textbook-only scopes are my choices, and optimal control is missing because `Optimization/documents/Léonard & Long` has no text layer.
 
-**Last updated: 2026-10-07.**
+**To resume:** read this file and the one subject's `CLAUDE.md`, then start. Don't re-read finished subjects or old transcripts.
 
-- **Computer Vision is NOT complete — the course is still running and slides arrive weekly** (lectures 1–8 in `slides/` as of 2026-10-07). Notes 01–08 were rewritten from those slides on 2026-10-07 (the old ones were built before the slides existed and missed much of the lectures). Notes 09–14 are pre-lecture drafts: **rewrite each from its slides when they appear.** `Computer Vision/CLAUDE.md` was also rewritten and is the source of truth for this subject; the CV bullets below this one are from August and are out of date.
-
-- **⭐ THE VAULT IS COMPLETE AGAIN — both new subjects are finished. VERIFIED AGAINST THE FILESYSTEM, NOT AGAINST THE TABLE BELOW: 26 subject folders, 22 complete, 237 chapter notes, 4 permanently blocked.** *(`data/` is the agentmemory plugin, not a subject.)*
-  - **Deep Learning** — ✅ `00-Index` + ch. 01–08, the user's full eight-topic syllabus. No errata; 9 discrepancies declined.
-  - **Computer Vision** — ✅ `00-Index` + ch. 01–14, the lecturer's full fourteen-week syllabus. **No erratum filed against any source; NO DISCREPANCY FOUND IN ANY CHAPTER.** Week 15 is project presentations — no note.
-  - **Everything worth keeping from each is in its own `<Subject>/CLAUDE.md`. Do NOT re-read either subject.**
-- **⚠️ COMPUTER VISION'S CLOSING RESULT IS THE BEST KIND THIS VAULT PRODUCES: A FOURTEEN-WEEK SUBJECT THAT ANSWERS ONE LINE FROM WEEK 1.** ch. 01 §3 stated $x=fX/Z$ maps every point on a ray to the same pixel, **so $Z$ is destroyed**. ch. 14 tabulates every method that recovers it — stereo, SfM, MVS, monocular, LiDAR, NeRF — and finds ***exactly ONE of them (LiDAR) MEASURES depth; every other one INFERS it***, **with failure modes that do not overlap** (stereo on texture and range, SfM on scale, monocular on unusual objects, LiDAR on reflective surfaces). ⇒ **the first question about any reported depth is WHICH ROW PRODUCED IT — a depth map does not record its provenance.** ***General lesson: when a subject opens with an impossibility, check at the end whether every technique in it is a response to that one impossibility. Twice now this has produced the subject's unifying result*** (Deep Learning ch. 08's product of Jacobians was the first).
-- **⚠️ AND A REPORTING RULE THAT SURFACED IN THREE CONSECUTIVE CV CHAPTERS — WHEN A PER-UNIT ERROR RATE IS APPLIED REPEATEDLY, QUOTE THE COMPOUNDED NUMBER, NEVER THE PER-UNIT ONE.** ch. 10: a **0.1% face-recognition FAR gives a 99.995% chance of a false match in a 10,000-person gallery**, and city-scale identification needs a FAR **four orders of magnitude** better than verification. ch. 11: **99% per-frame tracking association keeps a track intact for one minute with probability $1.4\times10^{-6}\%$** — 351× stricter to hold it. ch. 14: **stereo depth error is quadratic in depth**, 0.16% at 1 m and **±15.6 m at 100 m**. ***Three different fields, one arithmetic: the headline per-unit figure is the one that flatters.***
-- **⚠️ CV ALSO FOUND THE THIRD AND FOURTH SETTINGS OF THE 'DEGENERATE SOLUTION THE OBJECTIVE DOES NOT FORBID' PATTERN, AND THE FIX IS ALWAYS THE SAME.** ch. 12: **a constant output is the GLOBAL optimum of BYOL's loss** (cosine exactly 1.000000) ⇒ *the loss alone cannot prevent collapse; only stop-gradient/predictor/EMA can.* ch. 13: **mode collapse is a SPECIFICATION failure — no term in the GAN objective mentions coverage.** ⇒ ***when a degenerate solution is a global optimum, no amount of training, tuning or data fixes it; the objective or the architecture must change — and monitor the degenerate quantity DIRECTLY, because the loss will not show it.***
-- **⚠️ AND THE SHARPEST METRIC FINDING IN THE VAULT: A MODEL THAT MEMORISES ITS TRAINING SET SCORES FID = 0.000000 — PERFECT, AND BETTER THAN A MODEL THAT GENERALISES (1.0689).** The generative field's standard metric measures distributional match and is **structurally blind to novelty**. ⇒ **it must be reported with a nearest-neighbour memorisation check — and this is not a benchmarking nicety, it is exactly where the copyright and privacy disputes about image generators live.** **THIRD time in CV alone that the headline metric hid the failure that mattered** (after ch. 08's 3.1% AP-convention spread and ch. 09's 80.0% pixel accuracy against 37.7% mIoU). ***Ask what a degenerate model scores on your metric.***
-- **⚠️ DEEP LEARNING'S SCOPE IS NOT AN EDITORIAL GUESS — the user wrote the syllabus.** `Deep Learning/note/Index.md` lists **8 topics**; the eight chapter notes are built to that list and D2L's 20 chapters are quarried to fill them. Mapping table is in `Deep Learning/CLAUDE.md`. **Check every new subject's `note/` folder for a user-written index before choosing a scope.** *(Computer Vision's scope was settled by its LECTURE SLIDES, not by a `note/` index — see above.)*
-- **⚠️ COMPUTER VISION ch. 02 KEEPS CONFIRMING DEEP LEARNING'S RESULTS FROM THE OTHER DIRECTION, WHICH IS WORTH MORE THAN EITHER ALONE.** The lecture's output-size formula and its ‘same padding $p=(f-1)/2$ is an integer only for odd $f$’ are **DL ch. 05 §3's odd-kernel argument**, reached from classical filtering; and its theorem **‘linear + shift-invariant ⇒ the operation IS a convolution, there is no other choice’** is the converse of **DL ch. 05 §1**, which imposed translation invariance on an MLP and measured the payoff at $10^{10}$ parameters. **Two independent routes to one operator.** *Likewise HOG+SVM+pyramid+NMS is DL ch. 06's pipeline with the learned parts removed, and NMS is the only component that survived both eras unchanged.* ⇒ ***when a second subject reaches the vault's existing conclusion by a different road, record the ROAD, not just the conclusion.***
-- **⚠️ DEEP LEARNING IS COMPLETE (8 chapters), AND ITS ch. 08 PRODUCED THE SUBJECT'S UNIFYING RESULT — A SYNTHESIS ACROSS FOUR CHAPTERS THAT NO SINGLE CHAPTER OF THE SOURCE STATES: EVERY ARCHITECTURE AFTER THE MLP IS A DIFFERENT WAY OF SHORTENING OR NEUTRALISING A PRODUCT OF JACOBIANS.** ch. 04 (sigmoid factor **bounded by 0.25** → dies at ~11 layers) → ch. 05 (**ResNet: one path is the identity**, gain exactly 1) → ch. 07 (**LSTM: one path is $\prod F_j$**, gain 1 at $F{=}1$) → ch. 08 (**self-attention: path length 1, so the product has ONE term**). Quantified: the admissible Jacobian band is **±0.693% at path length 1000 and ±99,900% at path length 1**. ⇒ ***attention did not win on speed — it is asymptotically WORSE than an RNN past $n{=}d$ ($O(n^2d)$ vs $O(nd^2)$, crossover at $n{=}d{=}512$). It won because it deletes the product.*** **The general lesson: when four chapters keep solving the same problem differently, name the problem.**
-- **⚠️ DEEP LEARNING ch. 07 GAVE THE SHARPEST STATEMENT YET OF THE VAULT'S ‘PRODUCT OF FACTORS’ FAMILY, AND IT IS A STRICTLY HARDER CASE THAN ch. 04's.** BPTT's gradient is $\gamma^T$ over a **reused** matrix: **at $T{=}1000$, $\gamma$ must lie within ±0.693% of 1** or the gradient spans six orders of magnitude. **ch. 04 §8's sigmoid MLP was bounded above by 0.25 (so it could only VANISH) and had independent weights per layer (so errors averaged). An RNN has neither.** ⇒ ***vanishing and exploding are one mechanism, which is why RNNs needed TWO fixes — clipping for the top half, gating for the bottom.*** **And the LSTM's fix is one partial derivative ($\partial C_t/\partial C_{t-1}=F_t$, exactly 1 when $F{=}1$) that the sigmoid can never reach: at zero-bias init the memory half-life is ONE STEP.**
-- **⚠️ AND ch. 07 ADDED A REPORTING RULE WORTH APPLYING EVERYWHERE: A RATIO'S SCALE CAN FLATTER PROGRESS.** Perplexity 28 → 10 sounds like a 64% improvement and is **40% of the available bits** (4.81 → 3.32 against a floor of ≈1.1). ⇒ ***when a metric is an exponential of the thing you actually care about, convert back before judging progress*** — and **always report it with its bound**, since perplexity 25 is useless on a 28-token vocabulary and superb on a 50,000-token one.
-- **⚠️ DEEP LEARNING ch. 06 PRODUCED THE VAULT'S SHARPEST ‘WHAT THE SOURCE LEAVES OUT’ RESULT, AND IT TOOK REGENERATING THE SOURCE'S OWN DATA STRUCTURE TO FIND IT.** Rebuilt SSD's full **5,444-anchor set** and labelled it: the foreground/background imbalance is **123:1 at best, 453:1 on D2L's own example, 5,443:1 for a small object** — and **D2L's loss masks only the OFFSET half, leaving the class loss summed over all 5,444 anchors.** A “background everywhere” predictor scores 99.8%. ⇒ ***when a source hands you a config, BUILD THE OBJECT IT DESCRIBES AND MEASURE IT*** — the omission was invisible in the prose and obvious in the array. **And the IoU threshold turned out to be the dial: 0.6→0.3 multiplies positives 16.9×.**
-- **⚠️ AND ch. 06 WAS THE FIRST SOURCE RANGE IN THIS SUBJECT WITH NOTHING TO DECLINE.** All three printed labelling tensors (classes, mask, **all twenty offsets**) regenerated from five anchor boxes and two ground-truth boxes alone; NMS, both RoI-pooling outputs, both anchor counts and all five geometric-mean scales verified. **Zero discrepancies.** *Worth recording that a clean range exists — it calibrates how much weight the errata count carries elsewhere.*
-- **⚠️ DEEP LEARNING ch. 05 FOUND THE PATTERN THAT ORGANISES AN ENTIRE FIELD, AND THE SOURCE NEVER TABULATES IT: PARAMETERS AND COMPUTATION LIVE IN OPPOSITE HALVES OF EVERY PRE-2013 CNN.** LeNet **4.2% of parameters / 85.9% of FLOPs** in its convolutions; AlexNet **8.0% / 95.4%**; VGG-11 **7.2% / 98.4%** — so the fully connected head holds **>92% of the weights and <15% of the arithmetic**. Cause: a conv weight is reused at all $h\times w$ positions, so **an fc layer's FLOPs-per-parameter is EXACTLY 1.0** (verified for every fc layer in all three nets). ⇒ ***to shrink a network you attack the head; to speed it up you attack the convolutions — different problems, different layers, and confusing them is how people optimise the wrong thing.*** **NiN deletes the head and is 64.7× smaller than VGG-11 with no accuracy loss; a controlled test cut a net 210.4× for a 15.8% computation change.**
-- **⚠️ AND ch. 05 SHARPENED THE CIPHER RULE INTO SOMETHING BETTER: THE ARITHMETIC CAN DECODE THE TYPOGRAPHY.** D2L's VGG argument extracts as `(39c2)`, which is **$3\times 9c^2 = 27c^2$, not $39c^2$** — multiplication sign deleted. **Proved, not guessed: the surrounding words are “approximately as many” as $25c^2$, and $27/25 = 1.08$ while $39/25 = 1.56$.** ⇒ *when a mangled formula has two readings, compute both and let the prose adjudicate.*
-- **⚠️ DEEP LEARNING ch. 04 PRODUCED THE VAULT'S STRONGEST VERIFICATION YET: SEVEN PRINTED TRACES REPRODUCED FROM INPUTS THE SOURCE NEVER STATES.** Gradient descent on a quadratic is exactly $x_t=(1-\eta\lambda)^t x_0$ per eigendirection; requiring that to match D2L's printout **back-solves the unstated start point $\mathbf x_0=(-5,-2)$**, and it then reproduces both GD traces, both momentum traces, both Adagrad traces and the RMSProp trace **to all six printed decimals**. D2L prints `x2: -1673.365109` and never says it is $1.4^{20}\times2$. ⇒ ***the standing "recompute the whole worked example" template, upgraded: when the inputs are missing, BACK-SOLVE them from the outputs and the match becomes the proof.***
-- **⚠️ AND A NEW GENERAL RULE, from putting a source's scattered benchmark runs in one table: ASK WHAT RESULT WOULD HAVE LOOKED DIFFERENT.** D2L ch. 12's **thirteen printed runs across five sections and thirty book-pages all land in a 4.96% loss band while wall-clock varies 68%.** The honest reading is not that the optimizers are equivalent — **it is that the benchmark (a dense, convex, five-feature regression) cannot tell them apart**, and §12.7 argues Adagrad's case from *sparse features* then demonstrates it on exactly that. **A demonstration that could not have failed is not evidence.**
-- **⚠️ Deep Learning ch. 04's most usable finding, and the source contradicts itself two paragraphs apart: η AND β ARE ONE KNOB.** D2L derives the effective step $\eta/(1-\beta)$, then calls 0.02/0.5 → 0.01/0.1 “a **slight reduction**” when it is **0.0400 → 0.1000, a 2.5× INCREASE** — **and its own printed loss rises 0.246 → 0.254.** Raising β from 0.9 to 0.99 is a 10× learning-rate increase in disguise. *(Also there: **Adam's uncorrected step is never too small — 3.16× too large at t=1, peaking at 6.5685× at t=12** — while D2L describes the bias as “towards smaller values”.)*
-- **⚠️ D2L HAS A NON-FIXED MATH CIPHER, the Mankiw hazard again: `1` means BOTH `∞` and literal `1` in adjacent sentences** (verified by codepoint). It also deletes `−`, `←`, `×`, `η`, `λ` and fraction bars outright, `:` is a decimal point, and `!` is `→`. **Never transcribe a formula; reconstruct and verify numerically.** Full table in `Deep Learning/CLAUDE.md`.
-- **⚠️ The four long-blocked subjects are STILL blocked** — `Big Data Analytics`, `Natural Language Processing`, `PowerBI`, `Programming for Data Science (Python)` all have genuinely empty `documents/`. *(Commercial Banking's `documents/` is now empty too, but that subject is finished — do not re-open it.)*
-- **22 subjects are complete: 237 chapter notes** (verified against the filesystem 2026-08-25 by counting `contents/[0-9][0-9] - *.md` per folder). Everything worth keeping from each is in its own `<Subject>/CLAUDE.md`. **Do NOT re-read finished subjects.**
-- *(Historical, 2026-08-08:)* **Business Management was the last of the original 20:** `00-Index` + **ch. 01–09** (nine notes from Nickels's curated nine chapters), **no erratum filed, 6 discrepancies investigated and declined.**
-- **⚠️ VERIFIED AGAINST THE FILESYSTEM, NOT AGAINST THE TABLE BELOW: 223 chapter notes across 21 subjects.** The remaining four — **Big Data Analytics, Natural Language Processing, PowerBI, Programming for Data Science (Python)** — are **permanently blocked, `documents/` genuinely empty.** *(The 2026-08-08 audit that found three subjects missing from the progress table is why this check is now done directly.)*
-- **⚠️ Everything worth keeping from Business Management is in `Business Management/CLAUDE.md`** — the five findings, the errata table, the piecewise-offset note. **Do NOT re-read the subject.** *(Same for every other subject: each has its own `CLAUDE.md`.)*
-- **⚠️ THE SUBJECT PRODUCED A NEW KIND OF RESULT FOR THE VAULT: A FINDING CONFIRMED BY THREE INDEPENDENT SOURCES.** Marketing ch. 08 computed that the Four Seasons' retention perk breaks even at a **\$2,500** replacement cost. Nickels ch. 04's *"6–213% of salary"* cleared it only **1.2×** at the floor; ch. 07's *"75% entry-level, over 200% for a top manager"* clears it **15× and 40×**. ⇒ ***a finding confirmed by an unrelated source is qualitatively stronger than one derived twice — hunt for more of these.***
-- **⚠️ AND A SECOND KIND: A STRUCTURAL FIND NEEDING NO ARITHMETIC.** **Nickels's performance-appraisal steps (his ch. 11) ARE his control process (his ch. 7) with a person as the object** — step for step, step 1 almost verbatim, printed 100 book-pages apart as unrelated topics. ⇒ **everything the vault knows about variance decomposition applies to appraising a person.** *That subject's ch. 06 had no worked example, no table, nothing checkable — and was still worth writing.*
-- **⚠️ THE THIRD REUSABLE MOVE, and it worked in four chapters of one book: TAKE THE SOURCE'S ADJACENT FIGURES AND DIVIDE THEM.** Farm labour share and farm size in consecutive sentences ⇒ **output per farmer rose ≥33×, of which consolidation is only 2.87×.** Piketty's r = 5% and g = 1.5% ⇒ **capital's share doubles every 20.5 years.** Market size and export participation three pages apart ⇒ **95.61% of customers are abroad and 99% of US small businesses sell to none of them.** 20%-of-firms and 81%-of-receipts ⇒ **17.05×.**
-- **⚠️ AND A RULE THAT NOW SPANS TWO SUBJECTS: THE EQUITY SHARE OF ASSETS *IS* THE WIPEOUT THRESHOLD.** Dell's LBO was **77.6% debt ⇒ a 22.4% fall in enterprise value destroys the equity**; a textbook restaurant's balance sheet has **equity at 25.79% of assets ⇒ a 25.8% fall does the same.** *Compute it on any balance sheet or debt-financed deal.*
-- **Nothing is mid-chapter.** No half-written file, no pending verification, no unanswered question, no undischarged cross-subject obligation anywhere in the vault.
-- **⚠️ LESSON WORTH KEEPING: THE PROGRESS TABLE WAS NOT A RELIABLE INVENTORY.** It listed 21 subjects; the filesystem has 24. **Before declaring any future milestone, list `D:\NEU` directly and check `documents/` for each folder rather than trusting this file.**
-- **⚠️ Everything worth keeping from Marketing is in `Principles of Marketing/CLAUDE.md`** — the five findings, the errata table, the chapter list, and the final form of the figure rule. **Do NOT re-read the subject.** *(Same for every other subject: each has its own `CLAUDE.md`.)*
-- **⚠️ THE MARKETING SUBJECT'S UNIFYING LESSON, and it generalises to the whole vault: A HEADLINE NUMBER WAS ACCURATE AND MEANT SOMETHING OTHER THAN WHAT IT APPEARED TO MEAN — in all twelve chapters.** A \$50,000 customer lifetime value that was undiscounted *revenue* (\$3,571 properly computed, **a factor of 14**); a 98% quality standard that was an **error count** compounding to 83.37% over nine stages; a launch that hit every volume target and **lost \$50,000**; a cost-plus price **33% below optimal**; a **higher** margin that earned **less**; a Super Bowl CPM **below a banner's**. ***The habit that catches all of them is one move: take the source's own scattered figures and divide them by each other.***
-- **⚠️ Three templates from Marketing worth reusing on any source.** (i) **WHEN A SOURCE STATES A MULTI-PERIOD PLAN, SOLVE IT** — Kotler's illustrative marketing-strategy statement was over-determined and back-solved to **\$1,125 contribution/car with both years checking to the cent**, exposing a break-even of 63,333 against a plan of 50,000. (ii) **GENERALISE THE TOY EXAMPLE BEFORE BELIEVING ITS MAGNITUDE** — his 9-vs-6 contacts diagram generalises to **saving = (M−1)(C−1) − 1**, which is zero at 2×2 and 98.90% at 100×1,000: the theory of disintermediation in one line. (iii) **WHEN A BREAK-EVEN RETURNS AN ABSURD NUMBER, INSPECT THE DENOMINATOR** — Appendix 2's "\$3.36 billion" had a denominator of **exactly \$1.00**, 0.80% above a vertical asymptote, and at his own markup price the required volume was **exactly 1,000,000 units**, the figure that price was defined from.
-- **⚠️ THE FIGURE RULE, IN ITS FINAL FORM (settled across Kotler ch. 08–12).** **Label-schematics survive intact; SHAPE figures whose content is the geometry of a curve are lost.** Ch. 08 recovered 6/6 because all six were label-schematics; ch. 09 split cleanly. ⇒ ***both classes live inside one book — the test is not "which book" but "what is this figure's content"*** — and in Kotler the prose stated every plotted point, so even the lost ones were reconstructable.
-- **⚠️ The vault's single most reusable extraction finding, now confirmed across four subjects: BEFORE RECORDING A FIGURE AS LOST, CHECK WHETHER THE PROSE NAMES ITS DATA POINTS.** It worked four times in Mishkin alone. **Figures split three ways: data series are always lost; shift diagrams' content is the direction, which the prose states; and SCHEMATICS WHOSE CONTENT IS THEIR LABELS SURVIVE INTACT, because labels are text.** **⚠️ But axis labels are unreliable — usable only when the prose independently confirms them, in which case the prose was sufficient anyway.**
-- **⚠️ NUMERIC TABLES SET AS TEXT SURVIVE WHOLE — now confirmed NINE times in Mishkin alone, and in every subject before it. Always test a table, and verify its internal subtotals before trusting it.**
-- **⚠️ SIX DROPPED CROSS TERMS IN ONE SUBJECT** (Fisher $r\pi^e$; duration/convexity; arithmetic-vs-geometric average; debt deflation; interest parity; the quantity theory of inflation) ⇒ ***always ask what the neglected term is proportional to.*** **The sharpest case: Mishkin's debt-deflation error was 1.1% of the debt and 100% of the remaining equity** — *a term negligible against one quantity need not be negligible against the one that decides the outcome.*
-- **⚠️ THE PATTERN WORTH HUNTING IN EVERY SUBJECT: two chapters of one book contradicting each other, unflagged.** Mishkin ch. 05's arbitrage makes prices informative; ch. 06's free-rider problem shows the same arbitrage destroys the incentive to produce the information (Grossman–Stiglitz). **An internal tension is worth more than either chapter alone.**
-- **⚠️ FOUR TEMPLATES THAT PRODUCED THE BEST MATERIAL, worth trying everywhere:** (i) **take a table the source prints without explaining, and explain it** (Mishkin's Table 2 → duration); (ii) **take a worked example and ask how sensitive it is** (three investors agreeing on every cash flow value a stock **71.4% apart**); (iii) **back out the unobservable from the observable** (a 53% crash ⇒ $(k_e-g)$ rose ×2.1485); (iv) **score a source's own criteria using results computed in earlier chapters** (all three monetary-targeting criteria shown to have failed).
-- **⚠️ Obligation ch. 07 left for the macro half: when two effects oppose, SAY SO.** Higher wages → hours worked and higher interest rates → saving are **both genuinely ambiguous** (substitution vs income), and **ch. 10's loanable-funds model ASSUMES an upward-sloping saving curve — flag it as an assumption, not a result.** *A model identifying two opposing forces has done its job; demanding a sign from it anyway is how confident wrong answers get made.*
-- **⚠️ MACRO/MICRO'S BEST CROSS-CHAPTER RESULT (ch. 06): Cournot oligopoly with N firms IS ch. 04's tragedy of the commons** — identical formula $q_i=(a-c)/(N+1)$ and **identical percentages at every matching N** (100.0%, 88.9%, 33.1%, 7.7%, 0.4%). **Mankiw presents the two two chapters apart and never notices.** The chapters tell **opposite** stories about one piece of mathematics because the externality lands on different people. ⇒ ***an equilibrium is not good or bad by itself; the welfare verdict comes from outside the model — ask whose surplus the externality hits.***
-- **⚠️ MACRO/MICRO'S ORGANISING RESULT, found in ch. 04 and now to be named in every remaining micro chapter: efficiency is fixed by FUNDAMENTALS, distribution by INSTITUTIONAL DETAIL, and the two are INDEPENDENT.** Three appearances: ch. 01 (comparative advantage fixes the allocation, **the price fixes only the split** — total gain constant at 10 oz across the whole feasible range), ch. 03 (the tax wedge fixes quantity and both prices, **the statute is irrelevant**, elasticities fix the split), ch. 04 (**the efficient allocation is reached whoever holds the property right** — verified across four cases). ⇒ **many policy arguments conducted in the language of efficiency are really about distribution.** *Mankiw never connects the three.*
-- **⚠️ MACRO/MICRO'S DOMINANT HAZARD — Mankiw's PDFs encipher every arithmetic operator as a digit:** `5`→`=`, `1`→`+`, `2`→`−`, `3`→`×`. **`Y 5 C 1 I 1 G 1 NX` is $Y = C + I + G + NX$.** **It is NOT a fixed substitution — the same digit means different things in one line** (`(Q2 2 Q1) / [(Q2 1 Q1) / 2]` is the midpoint elasticity formula: subscript, minus, subscript, plus, subscript, literal 2). **There is no mechanical decoder — you must know the economics.** **RULE: never transcribe a formula; reconstruct it from the prose and verify numerically against the book's own worked figures.** *Verified in both spines during setup. Parkin & Bade does NOT share the cipher.* **Full table + worked decodings in the subject's `CLAUDE.md` and `00-Index.md`.**
-- **⚠️ Also for Macro/Micro: every figure is lost, and this is the worst-case subject for it** — Mankiw teaches almost entirely through shifting curves and shaded surplus areas. **Method that works (ch. 01 proved it): recompute the whole worked example from the stated inputs, then check the reconstruction reproduces every figure the prose states.** That makes it verified rather than assumed. **All three Mankiw outlines are excellent — locate by outline, extract the range.**
-- **⚠️ THE VAULT'S DEEPEST RESULT, now found in FIVE independent settings (four in finance, one in Deep Learning) — the average is always fine and the joint behaviour is everything.** Commercial Banking ch. 02 (bank mergers: $\sigma_{comb}=\sigma\sqrt{(1+\rho)/2}$ — **29.3% risk reduction at ρ=0 but 2.5% at 0.9**), ch. 06 (tranching: **mean pool loss 5.00% at every ρ** while senior-tranche loss goes 0.0000% → 1.8044% — *nothing about the loans had to change for the AAA to be wrong*), ch. 11 (a loan book: **mean loss 2.00% at every ρ** while the 99th percentile goes 3.60% → **17.60%**), ch. 12 (a mortgage book: every loan is a bet on one house-price index). **Same mathematics each time ⇒ any risk measure built on EXPECTED VALUES is blind to correlation, and correlation is what turns many small independent risks into one large one.** **⚠️ THE FIFTH SETTING IS NOW FOUND, and it is outside finance entirely: Deep Learning ch. 04.** **Xavier initialization preserves $\mathbb E\|W\mathbf x\|^2=\|\mathbf x\|^2$ EXACTLY at every layer width — and the MEDIAN ratio is 0.842 at n=4, so after 50 layers the typical squared norm is ×1.58e-6 while the mean is still exactly 1.00.** The mean is held up by rare large draws. ⇒ ***the pattern is not about correlation specifically — it is that ANY lognormal-shaped quantity is not summarised by its mean.*** *Hunt for a sixth.*
-- **⚠️ Four verification rules the whole vault now runs on, all earned the hard way:**
-  1. **A self-consistent calculation is not a verified one.** Testing a duration hedge with the duration formula gave a perfect ±1 residual; **exact repricing showed the "fully hedged" bank losing 1.46% of equity at +2% and 7.81% at +5%, in BOTH directions.** *A first-order formula reports success precisely when the exposure it leaves is second-order — verify against something independent of the model that produced the number.*
-  2. **State an approximation, then compute its error at several magnitudes.** Duration's error runs **0.0000% at 1 bp → 0.1122% at 1% → 2.5823% at 5%**, turning "it's an approximation" into an actionable rule.
-  3. **Use a tolerance on every equality check against a source's number** — two correct figures were once flagged MISMATCH because `(0.12-0.11)*100e6 != 1e6` in binary floating point.
-  4. **Before filing an erratum, rule out your own extraction, your own arithmetic, an abridged table, AND alternative conventions.** Commercial Banking filed 3 errata and *declined* to file 3 more on exactly these grounds. **Filing a false erratum against a correct source is the worse failure.**
-- **⚠️ Three repeatable moves that produced the best chapters, worth trying in every subject:**
-  1. **Take a claim an earlier chapter ASSERTED and compute the case that proves it.** CB ch. 01 asserted "solvency is a balance-sheet fact, liquidity is a timing fact"; ch. 08 ran a bank with **9.82% equity, every asset performing, zero defaults** through a withdrawal cascade and found **insolvency at 48.5% of liabilities** — *the run does not reveal insolvency, it CREATES it.* The source never computes it.
-  2. **Read the footnotes — the qualitative aside is often the computable result.** R&H's footnote 6 says charging the full risk premium "may increase the chances a borrower will default"; modelling it gives a **humped** return curve peaking at $r^*=18\%$, so past it the lender earns less by charging more.
-  3. **Hold the first-order term fixed to isolate the second.** Three portfolios at duration **exactly 5.0000** have convexities 26.70/32.63/40.94, and the barbell beats the bullet at every shock in both directions. *Sources routinely vary two things at once and cannot separate them.*
-- **⚠️ When an invented illustration contradicts the finding it illustrates, DELETE it — do not tune its parameters until it agrees.** A fabricated chart that matches the claim looks like evidence and is none. **Label assumed figures as mine and the formulas as the source's.**
-- **⚠️ EXTRACTION RULE SETTLED (two chapters of one book, ten pages apart): graphical exhibits are lost; numeric tables set as text survive whole.** One chapter's strategy diagrams were destroyed while another's four data tables came through complete with all 22 internal checks passing. **Always test a table before assuming either way, and verify its internal subtotals before trusting it.**
-- **⚠️ Boundary DECIDED and recorded:** Commercial Banking owns the bank's balance sheet (spread, gap/duration, capital, credit risk); **Mishkin owns the monetary system** (why rates are what they are, term-structure theory, central-bank operations, money multiplier). **When Monetary & Financial Theories is written, its index must record the same split.**
-- **⚠️ The remaining four subjects are all business/finance texts, not technical ones** — so the "run it" verification rule does not transfer directly. **The analogue is: recompute every worked number** (ratios, spreads, capital requirements, NPVs) with `sympy`/`numpy` before quoting it, exactly as Optimization and Econometrics did. **Expect the sources to be long on process and short on theory** (Coronel & Morris was, and enrichment was labelled in the gaps callout each time).
-- **⚠️ The pattern worth hunting for: one subject *resolving* a question another left open.** C++ ch. 06 did it — DSA ch. 06 measured cache locality at only ~15% in Python and *conjectured* referential lists were masking it; the same traversal in C++ gave **2.5×**, confirming the diagnosis. **Two subjects measuring the same principle in different settings is worth more than either alone.**
-- **If C++ is ever revisited, everything is in `Basic Programming (C++)/CLAUDE.md`** — MSVC 14.50, the `/W4` `cpprun.bat` helper, `/Zc:__cplusplus`, the six-case warning-coverage table (**coverage is uneven — never infer it from one example**), and the rule to patch `.cpp` with **Edit, never a bash heredoc**.
-- **The three technical subjects converged on one finding, worth carrying everywhere:** the expensive bugs are the ones that **produce a plausible wrong answer with no error**. DSA logged five misleading measurements; DBMS logged the fan trap, `NOT IN`, the `RANGE` frame default, the lost update and the business-key join; C++ logged integer overflow, out-of-bounds reads, dangling references and object slicing. **In every case the system did exactly what it was told.**
-- **Running DBMS finding worth carrying:** **SQLite enforces neither integrity rule by default** — `PRAGMA foreign_keys` is OFF per connection (ch. 01), and `PRIMARY KEY` does not imply `NOT NULL`; `TEXT PRIMARY KEY` took two NULLs and `INTEGER PRIMARY KEY` auto-assigned one, fabricating a row (ch. 02). **Test constraints by inserting rows that should fail; never trust the DDL.**
-- **Nothing is mid-chapter.** No half-written file, no pending verification, no unanswered question.
-- **⚠️ If any subject uses SQLite again, note the five permissivenesses + two limitations found by testing** (all recorded in `Database Management Systems/CLAUDE.md`): FKs off by default; `PRIMARY KEY` accepts NULLs; alias in `WHERE` accepted; bare column with aggregate accepted; **declared column types not enforced** (a `REAL NOT NULL CHECK` column took the string `'twenty five'`). Limitations: whole-database write lock, and no `ROLLUP`/`CUBE`/`GROUPING SETS`. **SQLite is an excellent teaching database and a poor oracle for correctness.**
-- **What DSA established, worth carrying to every later subject:** derive the claim, then **measure it by doubling $n$ and reading the ratio** (2/4/8 for linear/quadratic/cubic; the constant cancels, so quote **ratios**, not seconds). **The first measurement misled five times** — ch. 08 (needed a *constructed* worst case, not random input), ch. 10 (recursive-vs-iterative → count node visits), ch. 11 (Python-vs-C → count operations), ch. 12 (twice: asserted a conclusion the printed table contradicted; used random strings whose counts weren't monotonic). **When a measurement contradicts a sound proof, suspect the measurement.**
-- **Extraction facts, if either book is revisited.** **Goodrich's Python is destroyed** — indentation lost and **double underscores render as spaces** (`__init__`→`init`), so listings look plausible and are wrong; his *prose* extracts fine. Goodrich page $n$ = PDF page $n+22$. **Lambert's code extracts perfectly** but covers only ch. 01–08. **Johnsonbaugh (Discrete Maths)** extracts unusually well but **silently deletes overlines**, so complements and De Morgan arrive looking false; book page $n$ = PDF page $n+21$. **All figures and statistical tables in every book are images and never extract.**
-- **Environment note:** a Bash call once failed with `claude-sonnet-5[1m] is temporarily unavailable` (tool-classifier outage, not a task problem). **Just re-run it** — it has succeeded immediately on retry both times.
-- **Standing authorisation in force:** write chapter notes directly, no per-file confirmation. **⚠️ THE QUEUE IS EMPTY — every subject with source material is finished.** The only remaining work would come from the user adding documents to one of the four blocked folders, or asking for a revision. *(The original eight-subject queue, then Deep Learning, then Computer Vision, are all fully discharged.)*
-- **Open question for the user, not blocking:** every textbook-only scope is an unconfirmed editorial choice. The one real gap is **optimal control** — `Optimization/documents/Léonard & Long` has no text layer at all, so that topic is absent from the vault. Worth raising with the lecturer.
-
-**To resume: read this section + the one subject's `CLAUDE.md`, then start.** That is ~6 KB and it is sufficient. Do **not** re-read finished subjects, other subjects' files, or the previous transcript — the whole point of the per-subject split is that you don't have to.
-
-### Keeping this current
-
-**When the user says "checkpoint"** (or you are told the session is near its limit): rewrite the bullets above in one `Edit` call — what just finished, what is next, and anything genuinely mid-flight (a half-written chapter, an unverified number, a decision waiting on the user). Nothing else. Keep it under ~15 lines; it is a pointer, not a summary.
-
-**Claude cannot see the session/usage limit** — it is not exposed to the model. So this section only stays fresh if it is updated at natural boundaries. Do it **after finishing each chapter**, not just at session end: one `Edit`, a few seconds, and it makes an abrupt stop costless.
-
-**If a session does end mid-chapter**, the next one should trust this section over its own instinct to re-derive context. Re-reading a finished subject to "get oriented" is the main way tokens get wasted here.
-
-## Read this file, then read the subject's own CLAUDE.md
-
-**Every subject folder has its own `CLAUDE.md`** holding everything specific to that subject: source inventory, scope decision, extraction quirks, errata found, chapter list, and what remains. This root file holds only what is true of *all* subjects.
-
-**So: check the progress table below, open `<Subject>/CLAUDE.md`, and start there.** Do not read other subjects' files — they are irrelevant and expensive.
+**Keeping this current:** after each chapter (and when the user says "checkpoint"), update this section in one edit: what finished, what is next, anything mid-flight. Keep it short. Claude cannot see the session limit, so update at natural boundaries.
 
 ## Vault structure
 
 ```
 [Subject Name]/
-  CLAUDE.md               ← subject-specific context (read this)
+  CLAUDE.md               ← subject context: sources, scope, extraction quirks, errata, chapter list
   contents/
-    00-Index.md           ← Map of Content: links every chapter, one-line description each
+    00-Index.md           ← map of content, scope decision, errata table, cross-subject links
     01 - [Chapter Topic].md
-    ...
-  documents/              ← source PDFs/textbooks
-  documents/slides/       ← lecture slides, if provided (only 6 subjects have these)
+  documents/              ← source PDFs (documents/slides/ if the course has slides)
+  note/                   ← the user's own material
 ```
 
-One subject = one folder. One chapter = one file, numbered so files sort in learning order.
+One subject per folder, one chapter per file, numbered in learning order.
 
 ## Chapter note template
-
-Every chapter file in `contents/` follows this structure exactly:
 
 ```markdown
 ---
@@ -135,62 +49,48 @@ source:
 # Chapter Title
 
 ## 📘 Main Knowledge
-Core concepts, definitions, and formulas explained in plain language — not copy-pasted
-from the source. $$LaTeX$$ for math. [[Wikilinks]] for related concepts, including
-cross-subject links.
+Concepts, definitions and formulas in plain language. $$LaTeX$$ for maths, [[wikilinks]] for related notes.
 
 ## ✏️ Exercises
-5 practice problems, easy → hard. Solutions in collapsed callouts:
+5 problems, easy → hard, solutions in collapsed callouts:
 > [!example]- Solution
-> ...
 
 ## 📝 Summary
-5–8 bullet TL;DR — dense enough that reviewing just this section refreshes memory
-before an exam.
+5–8 bullets for quick exam review.
 
 ## ⚠️ Important Notes
-Common mistakes, edge cases, exam gotchas. Can be as long as needed (8–15 items).
+Common mistakes and exam traps (8–15 items).
 
 > [!warning] Gaps in the source material
-> Everything unrecoverable, reconstructed, or added beyond the source.
+> What was lost, reconstructed, or added beyond the source.
 
 **Previous:** … · **Next:** …
 ```
 
-## Conventions (approved by the user, 2026-07-27)
+## Conventions
 
-- **Depth over brevity.** Long Main Knowledge; long teaching solutions; heavily populated Important Notes. The user reviews these notes for exams.
-- **`00-Index.md` is written first**, before any chapter, so the scope decision survives an early session end. It holds the Map of Content, course framing, the scope decision, an errata table, and cross-subject links.
-- **Gaps are flagged, never invented.** Image-only figures, missing datasets, unanswered prompts, and anything reconstructed rather than extracted go in the closing `> [!warning]` callout.
-- **Enrichment beyond the source is allowed** — standard results the source only gestures at, modern practice the book predates — but must be labelled as an addition in the gaps callout.
-- **Verify every number.** No numeric claim from any source is quoted without recomputing it (`sympy`/`numpy`/`scipy`/`fractions`), and every exercise's arithmetic is verified *before* the exercise is written down. This is why no arithmetic error has reached a note; keep it.
-- Forward wikilinks to unwritten chapters are fine and expected. Cross-subject links are encouraged.
-- Formatting: `[[Wikilinks]]`, `#tags`, Obsidian callouts (`> [!note]`, `> [!warning]`, `> [!example]-`), LaTeX for all math.
+- **Write plainly and concisely.** The user found the long, emphatic style of earlier notes hard to read (2026-10-09). Short sentences, bold only for key terms, callouts only where they help, no "⚠️" on every line, no commentary about the vault itself or about what the source "never says". Depth comes from content (derivations, tables, worked examples), not from length.
+- Write `00-Index.md` first so the scope decision survives an early stop.
+- Flag gaps, never invent. Label additions beyond the source in the gaps callout.
+- **Verify every number** with `sympy`/`numpy`/`fractions` before writing it, including every exercise answer.
+- Wikilinks (including cross-subject and forward links), tags, callouts, LaTeX.
+- Standing authorisation: write notes directly without asking per file.
 
-## Workflow for a new subject
+## Workflow for a subject
 
-1. Read `<Subject>/CLAUDE.md`.
-2. Extract the table of contents; **choose a scope** (see below) and write `00-Index.md` first.
-3. Per chapter: extract → read → verify every numeric claim → design and verify 5 exercises → write → flip the `00-Index.md` status row.
-4. **After each chapter, update all three of these — every time, no exceptions:**
-   1. flip that chapter's status row in `<Subject>/contents/00-Index.md`;
-   2. refresh the **Resume state** section above — what just finished, what is next;
-   3. **update the in-progress subject's own `<Subject>/CLAUDE.md`** — its status line, its chapter-plan table, and anything newly learned about the source (a new extraction quirk, an erratum, a scope adjustment).
+1. Read `<Subject>/CLAUDE.md` (create it for a new subject).
+2. Extract the table of contents, choose the scope, write `00-Index.md`.
+3. Per chapter: extract → read → verify numbers → design and verify 5 exercises → write.
+4. After each chapter, update all three: the status row in `00-Index.md`, the "Current state" section above, and the subject's own `CLAUDE.md`. The third is the one that gets skipped.
+5. When a subject is done, mark its `CLAUDE.md` complete and update the progress table.
 
-   **(iii) is the one that gets skipped**, and skipping it is how a subject file drifts into claiming "not started" while eight chapters already exist on disk. One `Edit` each, a few seconds total — and it is what makes an abrupt session end cost nothing.
-5. On finishing a subject: mark `<Subject>/CLAUDE.md` ✅ complete with the full chapter list and the findings worth keeping, update the progress table here, and refresh the Resume state section.
+## Choosing a scope
 
-**Write access:** the user has authorized writing directly to the vault without per-file confirmation ("no need for confirmation, proceed"). State paths as they are written, don't stop to ask.
+Use, in order: lecture slides; a user-written syllabus in `note/`; otherwise the standard scope for the course level. For textbook-only subjects, state the choice at the top of `00-Index.md` with a "not covered, and why" table and tell the user it needs confirming (`Econometrics/contents/00-Index.md` is the model).
 
-## Scope decisions for textbook-only subjects
+## Extracting sources
 
-**⚠️ SEVEN subjects have lecture slides** — Data Prep & Visualization, Mathematical Statistics, MLOps, Machine Learning, Time-series Analysis, Principle of Accounting, and **Computer Vision** (found 2026-08-23; weeks 1–2 only). **All seven are done.**
-
-For the rest there is **a textbook and nothing else**, so nothing signals which chapters the course covers (Stewart has 17, Mankiw 36, Wooldridge 19). Writing all of them is wrong; picking arbitrarily is also wrong. **The adopted approach:** choose the standard scope for that course level, state the choice prominently at the top of `00-Index.md`, add a "**what is not covered, and why**" section with a one-line reason per omitted chapter, and tell the user it needs confirming against the real syllabus. `Econometrics/contents/00-Index.md` is the template.
-
-## Extracting source material
-
-`pypdf` and `python-pptx` are installed. `PYTHONIOENCODING=utf-8` is **required** — Vietnamese text raises `UnicodeEncodeError` under cp1252. The Read tool cannot render these PDFs (no poppler), so text extraction is the only route.
+`pypdf` and `python-pptx` are installed. Set `PYTHONIOENCODING=utf-8` (Vietnamese text breaks cp1252). The Read tool cannot render these PDFs, so extract text to a scratchpad file and read it in chunks:
 
 ```bash
 PYTHONIOENCODING=utf-8 python -c "
@@ -205,47 +105,55 @@ io.open('out.txt','w',encoding='utf-8').write('\n'.join(out))
 "
 ```
 
-Extract to a file in the scratchpad, then Read it in chunks — never print a whole book to stdout.
+- Every book mangles maths differently; each subject's `CLAUDE.md` has its substitution table. Some ciphers are not fixed (Mankiw, D2L), so **never transcribe a formula**: rebuild it from the prose and check it against the book's printed numbers.
+- Figures are images and never extract. Numeric tables set as text usually survive (check their subtotals). Before marking a figure lost, check whether the prose states its data.
+- Some books destroy code (Goodrich: indentation and double underscores lost); details are in the subject files.
 
-**Every textbook PDF mangles maths differently.** Each subject's `CLAUDE.md` records its own substitution table; Stewart's is a full glyph cipher and Nicholson destroys every matrix. **All figures and statistical tables in every book are images and never extract.**
+## Lessons that apply to every subject
+
+- A self-consistent check is not verification; test against something independent of the model that produced the number.
+- When you state an approximation, compute its error at a few magnitudes.
+- Compare floats with a tolerance.
+- Before filing an erratum, rule out your extraction, your arithmetic, an abridged table and alternative conventions. A false erratum is worse than a missed one.
+- Recompute worked examples in full; if inputs are missing, back-solve them from the printed outputs.
+- Put the source's scattered figures side by side and divide them; ask what a headline number actually measures and what a trivial model would score on the metric.
+- Report conditioning rather than rank, compounded rates rather than per-unit rates, and typical values as well as means.
+- If an invented illustration contradicts the finding it illustrates, delete it rather than tuning it.
+- If a Bash call fails with a model-unavailable error, retry it.
 
 ## Progress
 
 | Subject | Status |
 |---|---|
-| Data Preparation and Visualization | ✅ `00-Index` + ch. 01–11 |
-| Mathematical Statistics | ✅ `00-Index` + ch. 01–09 |
-| MLOps | ✅ `00-Index` + ch. 01–11 |
-| Machine Learning | ✅ `00-Index` + ch. 01–10 (RL only — see subject file) |
-| Time-series Analysis | ✅ `00-Index` + ch. 01–10 |
-| Principle of Accounting | ✅ `00-Index` + ch. 01–09 |
-| Econometrics | ✅ `00-Index` + ch. 01–12 |
-| Probability Theory | ✅ `00-Index` + ch. 01–10 |
-| Linear Algebra | ✅ `00-Index` + ch. 01–08 |
-| Calculus | ✅ `00-Index` + ch. 01–09 |
-| Optimization | ✅ `00-Index` + ch. 01–12 |
-| Discrete Mathematics | ✅ `00-Index` + ch. 01–10 |
-| Data Structures and Algorithms | ✅ `00-Index` + ch. 01–13 |
-| Database Management Systems | ✅ `00-Index` + ch. 01–11 |
-| Basic Programming (C++) | ✅ `00-Index` + ch. 01–11 |
-| Commercial Banking | ✅ `00-Index` + ch. 01–12 (3 errata found) |
-| Macroeconomics & Microeconomics | ✅ `00-Index` + ch. 01–14 (7 micro + 7 macro) |
-| Monetary and Financial Theories | ✅ `00-Index` + ch. 01–12 (1 erratum found) |
-| Principles of Marketing | ✅ `00-Index` + ch. 01–12 (no erratum; 6 discrepancies declined) |
-| Business Management | ✅ `00-Index` + ch. 01–09 (no erratum; 6 discrepancies declined) |
-| **Deep Learning** | ✅ `00-Index` + ch. 01–08 (scope given by user's `note/Index.md`; no erratum; 9 discrepancies declined) |
-| **Computer Vision** | 🔄 Course still running. ch. 01–08 rewritten from lectures 1–8 (2026-10-07); ch. 09–14 are pre-lecture drafts to redo as slides arrive. See `Computer Vision/CLAUDE.md` |
-| Big Data Analytics | 🚫 Blocked — `documents/` is empty |
-| Natural Language Processing | 🚫 Blocked — `documents/` is empty |
-| PowerBI | 🚫 Blocked — `documents/` is empty |
-| Programming for Data Science (Python) | 🚫 Blocked — `documents/` is empty |
+| Data Preparation and Visualization | ✅ ch. 01–11 |
+| Mathematical Statistics | ✅ ch. 01–09 |
+| MLOps | ✅ ch. 01–11 |
+| Machine Learning | ✅ ch. 01–10 (RL only) |
+| Time-series Analysis | ✅ ch. 01–10 |
+| Principle of Accounting | ✅ ch. 01–09 |
+| Econometrics | ✅ ch. 01–12 |
+| Probability Theory | ✅ ch. 01–10 |
+| Linear Algebra | ✅ ch. 01–08 |
+| Calculus | ✅ ch. 01–09 |
+| Optimization | ✅ ch. 01–12 |
+| Discrete Mathematics | ✅ ch. 01–10 |
+| Data Structures and Algorithms | ✅ ch. 01–13 |
+| Database Management Systems | ✅ ch. 01–11 |
+| Basic Programming (C++) | ✅ ch. 01–11 |
+| Commercial Banking | ✅ ch. 01–12 (3 errata) |
+| Macroeconomics & Microeconomics | ✅ ch. 01–14 |
+| Monetary and Financial Theories | ✅ ch. 01–12 (1 erratum) |
+| Principles of Marketing | ✅ ch. 01–12 |
+| Business Management | ✅ ch. 01–09 |
+| Deep Learning | ✅ ch. 01–08 (rewritten concisely 2026-10-09) |
+| Computer Vision | 🔄 01–08 from lectures; 09–14 drafts awaiting slides |
+| Big Data Analytics | 🆕 sources added 2026-10-09, not started |
+| Natural Language Processing | 🚫 `documents/` empty |
+| PowerBI | 🚫 `documents/` empty |
+| Programming for Data Science (Python) | 🚫 `documents/` empty |
 
-*(This table was incomplete until 2026-08-08 — `Big Data Analytics`, `Business Management` and `Natural Language Processing` were absent. **Verify against the filesystem, not against this table.**)*
+Verify against the filesystem rather than trusting this table.
 
-## Available skills
+## Skills
 
-- `obsidian-markdown` — wikilinks, callouts, properties, Obsidian-specific syntax
-- `obsidian-cli` — read/create/search notes and manage tasks/properties from the vault
-- `obsidian-bases` — database-like table/card views over notes
-- `json-canvas` — visual canvases / mind maps
-- `defuddle` — clean markdown from web pages when source material is a URL
+`obsidian-markdown`, `obsidian-cli`, `obsidian-bases`, `json-canvas`, `defuddle` (for URL sources).

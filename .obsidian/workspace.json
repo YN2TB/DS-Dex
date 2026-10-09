@@ -37,12 +37,12 @@
             "id": "1ca50ce8532d04b0",
             "type": "leaf",
             "state": {
-              "type": "release-notes",
+              "type": "pdf",
               "state": {
-                "currentVersion": "1.14.4"
+                "file": "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf"
               },
-              "icon": "lucide-book-up",
-              "title": "Release Notes 1.14.4"
+              "icon": "lucide-file-text",
+              "title": "Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0"
             }
           },
           {
@@ -225,6 +225,9 @@
   },
   "active": "1ca50ce8532d04b0",
   "lastOpenFiles": [
+    "Business Management/contents/06 - Management and Leadership.md",
+    "Business Management/contents/07 - Human Resource Management.md",
+    "Business Management/contents/09 - Accounting and Financial Information.md",
     "Big Data Analytics/note/Project explaination.md",
     "Computer Vision/contents/08 - Object Detection II.md",
     "Computer Vision/contents/07 - Object Detection I.md",
@@ -241,7 +244,6 @@
     "Computer Vision/contents/09 - Segmentation.md",
     "Computer Vision/slides/Lecture08_Object_Detection2.pdf.crdownload",
     "Computer Vision/contents/06 - Vision Transformers.md",
-    "Business Management/contents/06 - Management and Leadership.md",
     "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf",
     "Natural Language Processing/note/Untitled.md",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/Minduka_Present_Blue_Pack.png",
@@ -269,8 +271,6 @@
     "Deep Learning/contents/04 - Neural Network.md",
     "Big Data Analytics/note/Overview.md",
     "Computer Vision/contents/14 - 3D Vision and Emerging Topics.md",
-    "Business Management/note/slides draft.md",
-    "Business Management/note/Riot Games Ethics - presentation script.md",
     "Big Data Analytics/note/Untitled.canvas"
   ]
 }
