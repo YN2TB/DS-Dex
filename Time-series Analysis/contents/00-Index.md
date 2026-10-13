@@ -5,194 +5,85 @@ tags: [ds, time-series, index, moc]
 source: "documents/slides/ (11 Colab notebooks, Dr. Tran Thi Ha, Faculty of Mathematical Economics, NEU)"
 ---
 
-# Time-series Analysis — Map of Content
+# Time-series Analysis: Index
 
-> [!info] Course information
-> **Instructor:** Dr. Tran Thi Ha (`tranha@neu.edu.vn`), Faculty of Mathematical Economics, NEU
-> **Assessment:** 10% attendance · 20% individual · 20% group · 50% final exam
-> **Textbooks in `documents/`:** Hamilton, *Time Series Analysis* (the theoretical backbone of Lectures 6–10); Peixeiro, *Time Series Forecasting in Python*; Auffarth, *Machine Learning for Time-Series with Python*
-
----
+Lecturer: Dr. Tran Thi Ha, Faculty of Mathematical Economics, NEU. Assessment (Lecture 1): attendance 10%, computer test (Python) 20%, assignment 20%, final exam 50%. Textbooks in `documents/`: Hamilton, *Time Series Analysis* (the theory behind Lectures 6–10); Peixeiro, *Time Series Forecasting in Python*; Auffarth, *Machine Learning for Time-Series with Python*.
 
 ## Chapters
 
-| # | Chapter | One-line description |
-|---|---|---|
-| 01 | [[01 - What is a Time Series]] | What makes time-ordered data different: stock vs flow, lags and differences, the four components, and why cross-sectional intuition fails |
-| 02 | [[02 - Trend, Seasonality and Decomposition]] | Estimating the components — moving averages, exponential smoothing, additive vs multiplicative decomposition, Holt–Winters and the ETS state-space family |
-| 03 | [[03 - Stationarity and Difference Equations]] | The algebraic foundation: stationarity, white noise, the Wold decomposition, the lag operator, and how characteristic roots govern dynamic multipliers |
-| 04 | [[04 - AR, MA and ARMA Processes]] | The three model families — their moments, Yule–Walker equations, invertibility, and the Wiener–Kolmogorov forecasting formula |
-| 05 | [[05 - ACF, PACF and the Box-Jenkins Methodology]] | Going from data to model: ACF/PACF identification, Ljung–Box, unit-root testing (ADF/PP/KPSS), ARIMA, and AIC/BIC selection |
-| 06 | [[06 - The Kalman Filter and State-Space Models]] | The machinery behind "estimate by MLE": prediction–update recursions, latent states, and the prediction-error likelihood |
-| 07 | [[07 - SARIMA and Vector Autoregression]] | Two extensions — seasonal ARIMA for one variable at two frequencies, and VAR for many variables at once, with IRFs and Granger causality |
-| 08 | [[08 - VECM and Cointegration]] | When $I(1)$ variables share a long-run equilibrium: the error-correction mechanism, the rank of $\Pi$, and Johansen's reduced-rank regression |
-| 09 | [[09 - ARCH, GARCH and Extensions]] | Modelling the *variance*: volatility clustering, fat tails, persistence, and the leverage effect |
-| 10 | [[10 - Structural Vector Autoregression]] | The identification problem — why the data cannot tell you causation, and what economic theory must supply |
+| # | Chapter | Topics | Status |
+|---|---|---|---|
+| 01 | [[01 - What is a Time Series]] | stocks and flows, lags, growth rates, components, dates in Python | ✅ |
+| 02 | [[02 - Trend, Seasonality and Decomposition]] | moving averages, exponential smoothing, decomposition, Holt–Winters, ETS | ✅ |
+| 03 | [[03 - Stationarity and Difference Equations]] | stationarity, Wold, lag operator, roots and dynamic multipliers | ✅ |
+| 04 | [[04 - AR, MA and ARMA Processes]] | moments, Yule–Walker, invertibility, forecasting | ✅ |
+| 05 | [[05 - ACF, PACF and the Box-Jenkins Methodology]] | ACF/PACF, Ljung–Box, ADF/PP/KPSS, ARIMA, AIC/BIC | ✅ |
+| 06 | [[06 - The Kalman Filter and State-Space Models]] | state space, filter recursions, likelihood | ✅ |
+| 07 | [[07 - SARIMA and Vector Autoregression]] | seasonal ARIMA; VAR, Granger causality, IRF, FEVD | ✅ |
+| 08 | [[08 - VECM and Cointegration]] | error correction, rank of Π, Johansen | ✅ |
+| 09 | [[09 - ARCH, GARCH and Extensions]] | volatility clustering, GARCH, leverage | ✅ |
+| 10 | [[10 - Structural Vector Autoregression]] | identification, short- and long-run SVAR, Blanchard–Quah | ✅ |
 
----
+Three threads: the univariate mean (01–05, SARIMA), several variables (VAR → VECM → SVAR), and the variance (09). The Kalman filter (06) is the estimation engine under all of them.
 
-## How the subject fits together
+Recurring ideas:
+1. Any order-$p$ system is order 1 in a bigger space (the companion matrix: multipliers, forecasts, state transitions, VAR stability).
+2. Stability: roots $z$ outside, or eigenvalues λ = 1/z inside, the unit circle.
+3. Every model filters white noise (Wold); the ψ weights are the impulse responses.
+4. Forecasting replaces unknowns by their expectations (Wiener–Kolmogorov, Kalman, GARCH).
+5. Statistics gives dynamics; identifying assumptions give causation.
 
-```mermaid
-flowchart TD
-    A["01 · What is a Time Series"] --> B["02 · Trend, Seasonality<br/>Decomposition"]
-    B --> C["03 · Stationarity &<br/>Difference Equations"]
-    C --> D["04 · AR, MA, ARMA"]
-    D --> E["05 · ACF/PACF &<br/>Box–Jenkins"]
-    E --> F["06 · Kalman Filter &<br/>State Space"]
-    E --> G["07 · SARIMA"]
-    F -.->|"how MLE actually works"| G
-    G --> H["07 · VAR"]
-    H --> I["08 · VECM &<br/>Cointegration"]
-    H --> J["10 · Structural VAR"]
-    I -.-> J
-    D --> K["09 · ARCH / GARCH"]
-    E -.->|"fat-tailed residuals"| K
-```
+## Choosing a model
 
-**Three threads run through the whole subject:**
-
-1. **Univariate mean** — 01 → 02 → 03 → 04 → 05 → 07 (SARIMA). *Given one series, what will it do next?*
-2. **Multivariate** — 07 (VAR) → 08 (VECM) → 10 (SVAR). *Given several series, how do they move together, and what causes what?*
-3. **Variance** — 09. *Given a series, how uncertain is the next value?*
-
-[[06 - The Kalman Filter and State-Space Models|Chapter 06]] sits underneath all three: it is the estimation engine, and the state-space framework subsumes ARMA, ETS, VAR and structural models alike.
-
----
-
-## The five ideas that recur everywhere
-
-> [!important] If you internalise these, the rest is bookkeeping
-> **1. Any order-$p$ system is an order-1 system in a bigger space.** The **companion matrix** appears in [[03 - Stationarity and Difference Equations|ch. 03]] (dynamic multipliers), [[04 - AR, MA and ARMA Processes|ch. 04]] (forecast weights), [[06 - The Kalman Filter and State-Space Models|ch. 06]] (state transition), and [[07 - SARIMA and Vector Autoregression|ch. 07]] (VAR stability). Same matrix, four uses.
->
-> **2. Stability is always "roots outside / eigenvalues inside the unit circle."** Scalar AR, VAR, VECM — one condition, stated two equivalent ways. Confusing $z$ with $\lambda = 1/z$ is the most common error in the subject.
->
-> **3. Every model is a filter applied to white noise.** The **Wold decomposition** ([[03 - Stationarity and Difference Equations|ch. 03]]) guarantees it; the $\psi_j$ weights *are* the impulse response ([[04 - AR, MA and ARMA Processes|ch. 04]], [[07 - SARIMA and Vector Autoregression|ch. 07]], [[10 - Structural Vector Autoregression|ch. 10]]).
->
-> **4. Forecasting = replace what you don't know with its expectation.** Wiener–Kolmogorov ([[04 - AR, MA and ARMA Processes|ch. 04]]), the Kalman update ([[06 - The Kalman Filter and State-Space Models|ch. 06]]), GARCH recursion ([[09 - ARCH, GARCH and Extensions|ch. 09]]) — the same principle three times.
->
-> **5. Statistics gives dynamics; economics gives causation.** [[10 - Structural Vector Autoregression|Chapter 10]] is the explicit statement, but it is implicit from [[01 - What is a Time Series|ch. 01]]'s warning about spurious regression onward.
-
----
-
-## Model selection quick reference
-
-**One variable:**
-
-| Situation | Model |
+| One variable | Model |
 |---|---|
-| Stationary, no seasonality | ARMA($p,q$) — [[04 - AR, MA and ARMA Processes\|04]] |
-| Unit root | ARIMA($p,d,q$) — [[05 - ACF, PACF and the Box-Jenkins Methodology\|05]] |
-| Seasonal | SARIMA($p,d,q$)($P,D,Q$)$_s$ — [[07 - SARIMA and Vector Autoregression\|07]] |
-| Latent state / missing data / time-varying parameters | State space + Kalman — [[06 - The Kalman Filter and State-Space Models\|06]] |
-| Volatility clustering | GARCH family — [[09 - ARCH, GARCH and Extensions\|09]] |
+| stationary, no seasonality | ARMA |
+| unit root | ARIMA |
+| seasonal | SARIMA |
+| latent states, missing data | state space + Kalman |
+| volatility clustering | GARCH family |
 
-**Several variables** (test integration order first):
-
-| Situation | Model |
+| Several variables (test integration first) | Model |
 |---|---|
-| All $I(0)$ | VAR in levels — [[07 - SARIMA and Vector Autoregression\|07]] |
-| All $I(1)$, **not** cointegrated | VAR in differences |
-| All $I(1)$, **cointegrated** | VECM — [[08 - VECM and Cointegration\|08]] |
-| Any of the above + causal interpretation needed | SVAR — [[10 - Structural Vector Autoregression\|10]] |
+| all $I(0)$ | VAR in levels |
+| $I(1)$, not cointegrated | VAR in differences |
+| $I(1)$, cointegrated | VECM |
+| causal interpretation needed | SVAR |
 
----
+## Key formulas
 
-## Exam-critical formulas
-
-$$
-\text{ACF: } \rho_k = \frac{\gamma_k}{\gamma_0}
-\qquad
-\text{AR(1): } \rho_k = \phi^k,\;\; \gamma_0 = \frac{\sigma^2}{1-\phi^2}
-$$
-$$
-\text{AR(2): } \rho_1 = \frac{\phi_1}{1-\phi_2},\quad \rho_2 = \phi_1\rho_1+\phi_2
-\qquad
-\text{MA($q$): } \rho_k = 0 \text{ for } k>q
-$$
-$$
-\text{Stability (AR(2)): } \phi_2<1\pm\phi_1,\;\; |\phi_2|<1
-\qquad
-\text{complex roots: } R=\sqrt{-\phi_2},\;\; T = \frac{2\pi}{\theta}
-$$
-$$
-\text{Ljung–Box: } Q^* = n(n+2)\sum_{k=1}^m\frac{\hat\rho_k^2}{n-k}\sim\chi^2(m-p-q)
-\qquad
-\text{bands: } \pm\frac{2}{\sqrt n}
-$$
-$$
-\text{Kalman: } K_t = P_{t|t-1}HS_t^{-1},\quad \hat\xi_{t|t} = \hat\xi_{t|t-1}+K_tv_t
-\qquad
-\ell = -\tfrac12\sum_t\big(\log2\pi+\log S_t+\tfrac{v_t^2}{S_t}\big)
-$$
-$$
-\text{VECM: } \Delta Y_t = \alpha\beta'Y_{t-1}+\sum_{i=1}^{p-1}\Gamma_i\Delta Y_{t-i}+\varepsilon_t,
-\qquad
-\Pi = \sum_iA_i-I,\;\; \mathrm{rank}(\Pi)=r
-$$
-$$
-\text{GARCH(1,1): } \sigma_t^2 = \alpha_0+\alpha_1\varepsilon_{t-1}^2+\beta_1\sigma_{t-1}^2,
-\qquad
-\bar\sigma^2 = \frac{\alpha_0}{1-\alpha_1-\beta_1}
-$$
-$$
-\text{SVAR: } \Sigma = P_{sr}P_{sr}',\quad P_{sr}=A^{-1}B,
-\qquad
-\text{restrictions needed} = \frac{n(n-1)}{2}
-$$
-
----
-
-## ⚠️ Source-material issues — read before relying on these notes
-
-> [!warning] Systematic extraction artefact affecting **every** chapter
-> The slides are HTML embedded in Colab notebooks. The extraction pipeline strips HTML tags, and **`<` inside inline LaTeX is parsed as the start of a tag**, silently truncating the rest of the line. So conditions written `\(|\phi| < 1\)` came through as `|\phi|` with the bound missing.
->
-> **Every inequality in these notes of the form $|\phi|<1$, $|\lambda_i|<1$, $R<1$, $\sum(\alpha_i+\beta_i)<1$, $\varepsilon_{t-1}<0$, $\gamma<0$ is a reconstruction.** The mathematics is standard and unambiguous, so I am confident in the content — but the exact slide wording is unrecoverable. Each chapter's gap note lists its specific cases.
-
-> [!warning] Missing data files — no applied result can be reproduced
-> | Chapter | Missing file(s) |
-> |---|---|
-> | 02 | `GDP_Trade_Quarterly_Clean.xlsx` |
-> | 05 | `CPI_PACF.xlsx`, `gdp_Pacf.xlsx` |
-> | 07 | `GDP_week1.xlsx`, the 15-obs VAR data, the Drive-hosted `INDVN`/`Interest_rate` file |
-> | 08 | all VECM estimation data |
-> | 09 | `returns5.csv`, `byd.csv` (Google Drive paths) |
-> | 10 | `lutkepohl2.dta`, `m1gdp.dta` — **these two are fetched from stata-press.com at runtime, so they are reproducible** |
->
-> Where slides report numerical estimates, I have **verified their internal consistency** wherever possible (the AR(3) Yule–Walker values, the CPI PACF arithmetic, the Example 7.1 IRFs, the VECM $\Pi=\alpha\beta'$ decompositions, the SVAR structural shocks) and flagged the errors found. **No figures survive anywhere** — every notebook was saved without cell outputs.
-
-> [!warning] Errors found in the slides
-> - **Ch. 03** — the stability-triangle figure's colour regions contradict its caption; slides s17/s18 write $\partial y_{t+2}/\sigma_t$ for $\partial y_{t+2}/\partial w_t$ and are exact duplicates.
-> - **Ch. 04** — the MA(2) example prints $\gamma_0 = \tfrac{31}{19}$ (correct: $\tfrac{31}{18}$) and roots $z=-2,-3$ (correct: $+2,+3$).
-> - **Ch. 05** — Bartlett's variance formula is missing its leading $1$ and factor $2$; the Ljung–Box degrees-of-freedom adjustment for fitted models is never mentioned.
-> - **Ch. 06** — $v_t$ denotes both the state disturbance and the innovation; $H$ vs $H'$ used inconsistently.
-> - **Ch. 08** — the reported Johansen critical values do not match standard tables.
-> - **Ch. 09** — the deck titles itself "Lecture 10", clashing with the SVAR deck.
-> - **Ch. 10** — $P_{sr}$ is defined in both directions ($u=P\varepsilon$ and $\varepsilon=Pu$) without warning.
-
-> [!warning] Topics named but never taught
-> Worth raising with the lecturer if they may be examinable:
-> - **IGARCH and FIGARCH** — on the ch. 09 title slide, never covered.
-> - **Structural FEVD** — on the ch. 10 title slide, never derived.
-> - **Sign restrictions** — one bullet in ch. 10, no elaboration.
-> - **The Kalman smoother** — absent from ch. 06 entirely, despite being the right tool for estimating historical latent series.
-> - **Weak exogeneity testing** — absent from ch. 08, despite the worked example displaying a textbook case of it.
-> - **Seasonal unit-root tests** (HEGY, OCSB) — absent from ch. 07 despite $D$ being chosen.
-> - **Confidence bands for IRFs** — never mentioned in ch. 07, 08 or 10.
-
-> [!note] Syllabus vs. filenames
-> From Lecture 6 onward the syllabus titles and the notebook filenames diverge (syllabus: ARIMA/ARCH/ML; files: KalmanFilter/SARIMA-VAR/VECM/ARCH/SVAR). **These notes follow the notebook filenames**, which is what actually exists. There are also **two VECM notebooks** — `lecture08_VECM_DSEB.ipynb` (57 cells, full derivation) and `VECM_lecture_slides.ipynb` (16 cells, overview covering VECM IRFs and the model-choice rule); they are **complementary, not duplicates**, and ch. 08 uses both.
->
-> **No exercises are provided in any deck except Lecture 3** (Questions 1–3) **and Lecture 4** (Exercises 3.1–3.2), and none of those come with solutions. Every other exercise in these notes is my own construction, with arithmetic independently verified.
-
----
+$$\rho_k=\gamma_k/\gamma_0;\quad\text{AR(1): }\rho_k=\phi^k,\ \gamma_0=\frac{\sigma^2}{1-\phi^2};\quad\text{AR(2): }\rho_1=\frac{\phi_1}{1-\phi_2},\ \rho_2=\phi_1\rho_1+\phi_2;\quad\text{MA}(q)\text{: }\rho_k=0,\ k>q$$
+$$\text{AR(2) stable: }\phi_2<1\pm\phi_1,\ |\phi_2|<1;\quad\text{complex roots: }R=\sqrt{-\phi_2},\ T=2\pi/\theta$$
+$$Q^*=n(n+2)\sum_{k\le m}\frac{\hat\rho_k^2}{n-k}\sim\chi^2(m-p-q);\quad\text{bands }\pm2/\sqrt n$$
+$$K_t=P_{t\mid t-1}HS_t^{-1};\quad\ell=-\tfrac12\sum(\log2\pi+\log S_t+v_t^2/S_t)$$
+$$\Delta Y_t=\alpha\beta'Y_{t-1}+\sum\Gamma_i\Delta Y_{t-i}+\varepsilon_t,\quad\Pi=\sum A_i-I$$
+$$\sigma_t^2=\alpha_0+\alpha_1\varepsilon^2_{t-1}+\beta_1\sigma^2_{t-1},\quad\bar\sigma^2=\frac{\alpha_0}{1-\alpha_1-\beta_1}$$
+$$\Sigma=P_{sr}P_{sr}',\ P_{sr}=A^{-1}B,\ n(n-1)/2\text{ restrictions}$$
 
 ## Cross-subject links
 
-- [[Mathematical Statistics/contents/00-Index|Mathematical Statistics]] — estimation, hypothesis testing, and the sampling distributions underlying every test here
-- [[Data Preparation and Visualization/contents/00-Index|Data Preparation & Visualization]] — pandas datetime handling, resampling, and the leakage rules that apply doubly to time-ordered data
-- [[Machine Learning/contents/00-Index|Machine Learning]] — the bias–variance decomposition that reappears as the MSE decomposition in forecasting
-- [[Linear Algebra/contents/00-Index|Linear Algebra]] — eigenvalues, companion and Toeplitz matrices, Cholesky decomposition
+[[Mathematical Statistics/contents/00-Index|Mathematical Statistics]] (tests, estimation) · [[Econometrics/contents/00-Index|Econometrics]] (ch. 10–12: stationarity, unit roots, serial correlation from the regression side) · [[Data Preparation and Visualization/contents/00-Index|Data Preparation and Visualization]] (pandas dates, resampling, leakage) · [[Machine Learning/contents/00-Index|Machine Learning]] · [[Linear Algebra/contents/00-Index|Linear Algebra]] (eigenvalues, companion, Toeplitz, Cholesky)
 
-#time-series #index #moc
+## Source issues
+
+> [!warning] Extraction
+> The slides are HTML in Colab cells. Stripping tags removed every `<` inside inline LaTeX, so conditions like $|\phi|<1$, $|\lambda_i|<1$, $R<1$, $\sum(\alpha_i+\beta_i)<1$, $\varepsilon_{t-1}<0$, $\gamma<0$ are reconstructions (standard results). No notebook saved outputs, so no figures survive.
+
+Missing data: `GDP_Trade_Quarterly_Clean.xlsx` (ch. 01), `CPI_PACF.xlsx`, `gdp_Pacf.xlsx` (05), `GDP_week1.xlsx`, the VAR datasets (07), the VECM data (08), `returns5.csv`, `byd.csv` (09). Ch. 10's `lutkepohl2.dta` and `m1gdp.dta` are fetched from stata-press.com and are reproducible. Reported estimates were checked for internal consistency where possible.
+
+**Slide errors** (verified by recomputation):
+
+| Ch. | Error |
+|---|---|
+| 02 | ETS(A,A,M) level and trend updates omit the division of $e_t$ by $s_{t-m}$ |
+| 03 | stability-triangle colours contradict the caption; $\partial y/\sigma_t$ for $\partial y/\partial w_t$ |
+| 04 | MA(2) example: $\gamma_0=31/19$ (correct 31/18), roots −2, −3 (correct +2, +3) |
+| 05 | Bartlett's variance formula missing the leading 1 and factor 2; no Ljung–Box df adjustment |
+| 06 | $v_t$ used for both state noise and innovation; $H$ vs $H'$ inconsistent |
+| 10 | $P$ defined in both directions ($u=P\varepsilon$, $\varepsilon=Pu$) |
+
+Verified correct: the AR(3) Yule–Walker values (ch. 04), the CPI PACF (ch. 05), Example 7.1's IRF/FEVD (ch. 07), the VECM Π = αβ′ decompositions and the Johansen critical values (ch. 08: standard values without deterministic terms; an earlier version of these notes wrongly called them non-standard).
+
+**Named but not taught**: IGARCH/FIGARCH, structural FEVD, sign restrictions (one bullet), the Kalman smoother, weak-exogeneity tests, seasonal unit-root tests, IRF confidence bands.
+
+**Syllabus vs files**: from Lecture 6 the syllabus titles differ from the notebooks; the notes follow the notebooks. Two VECM notebooks are complementary. The ARCH deck calls itself Lecture 10, like the SVAR deck. Only Lectures 3 and 4 include exercises (without solutions); other exercises are constructed and checked.

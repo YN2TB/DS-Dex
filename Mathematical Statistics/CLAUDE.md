@@ -1,29 +1,28 @@
-# Mathematical Statistics — subject context
+# Mathematical Statistics: subject context
 
-**Status: ✅ complete** (2026-07-27). `contents/00-Index.md` plus chapters 01–09.
+**Status: ✅ complete** (2026-07-27), rewritten concisely 2026-10-09. `contents/00-Index.md` plus chapters 01–09.
 
 ## Sources
 
-**9 `.pptx` decks in `documents/slides/`**, plus four reference textbooks in `documents/` (Devore 2e; Miller & Freund 8e; Hogg 7e; Larsen 6e) that back up the reconstructions. Lecturer: **Bui Duong Hai**, Actuary Bachelor Degree.
+9 `.pptx` decks in `documents/slides/` by Bui Duong Hai (Actuary Bachelor Degree). Reference textbooks in `documents/`: Devore 2e, Miller & Freund 8e, Hogg 7e, Larsen 6e.
 
 ## Chapters
 
-01 Introduction to Statistics · 02 Tables and Charts · 03 Descriptive Statistics · 04 Sampling Distributions · 05 Point Estimation · 06 Confidence Interval · 07 Hypothesis Testing — One Sample · 08 Inferences on Two Samples · 09 Non-parametric Testing
+01 Introduction to Statistics · 02 Tables and Charts · 03 Descriptive Statistics · 04 Sampling Distributions · 05 Point Estimation · 06 Confidence Interval · 07 Hypothesis Testing - One Sample · 08 Inferences on Two Samples · 09 Non-parametric Testing
 
-## The defining limitation — formulas are images
+## Extraction
 
-The decks were authored with **every equation as an embedded image**, so **none survive `python-pptx` extraction**. Worst cases: Lecture 04 (Sampling) has **22 of 31 slides title-only**; Lecture 05 (Estimation) has **24 of 29**.
+Every equation is an embedded image, so none survive `python-pptx`. Lecture 04 has 22 of 31 slides title-only, Lecture 05 24 of 29. Formulas in ch. 03–09 are standard textbook forms reconstructed from slide titles; the lecturer's notation may differ. If the user supplies clearer slides or photos, correct the note.
 
-**Every formula in chapters 03–09 is therefore the standard textbook form, reconstructed from slide titles** — mathematically correct, but possibly differing from the lecturer's notation, which matters in an exam. Each chapter says so in its gaps callout.
+Reliable: data tables, Excel output, R code and output, example statements in Lectures 6–9, exercise-set references.
 
-**If the user questions notation in these notes, check the reconstruction caveat before assuming the note is wrong.** If they supply clearer slides or a photo of a formula slide, correct the note rather than defending it.
+Missing: Lecture 1's probability revision, the CLT statement, Fisher information and Cramér–Rao, Examples 5.1–5.9, 7.1, 7.2, 7.7, 7.8, 8.2, and the Wilcoxon test (promised on Lecture 9's contents slide).
 
-## What did survive and is trustworthy
+## Corrections in the 2026-10-09 rewrite
 
-All data tables, Excel outputs, R code and output, the example problem statements in Lectures 6–9 (solved in those chapters' exercises), and every exercise-set page reference.
+- ch03: grouped mean 7.65 → 8.4.
+- ch04 Ex. 5: power at $n=100$ with fixed limits is 0.50, not 99.99%.
+- ch07: `CHISQ.DIST.RT(30.4, 19)` = 0.0469, not 0.0476.
+- ch09 Example 9.3(b): Poisson(2.6) gives χ² = 4.69, df 5, p = 0.46 (not rejected); the old note claimed neither Poisson fits.
 
-## Missing outright
-
-The probability revision (Lec 1), the **CLT statement** (Lec 4), **Fisher information and Cramér–Rao** (Lec 5), all nine of Lecture 5's worked examples, Examples 7.1 / 7.2 / 7.7 / 7.8 / 8.2, and **the Wilcoxon test — promised on Lecture 9's contents slide but absent from the deck**.
-
-Cross-subject: the probability foundations this course assumes are written up in `Probability Theory/contents/`, chapters 04–08.
+Cross-subject: probability foundations are in `Probability Theory/contents/` ch. 04–08.

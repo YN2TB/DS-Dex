@@ -1,6 +1,8 @@
 # Data Preparation and Visualization — subject context
 
-**Status: ✅ complete** (2026-07-27). `contents/00-Index.md` plus chapters 01–11. This was the **first subject written in the vault** — it set the conventions now recorded in the root `../CLAUDE.md`.
+**Status: ✅ complete** (2026-07-27). `contents/00-Index.md` plus chapters 01–11. First subject written in the vault.
+
+Chapters rewritten in the plain style on 2026-10-09. Three numeric slips fixed then: ch. 06 ex. 2 quartiles (pandas gives Q1 26.35, Q3 35.825), ch. 07 ex. 2 scaler outputs (StandardScaler uses population σ 368.36; RobustScaler maps 11 to −0.67), ch. 11 ex. 2 (visual ratio 4×, removed a "factor of 60" claim).
 
 ## Sources
 

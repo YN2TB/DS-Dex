@@ -7,410 +7,164 @@ source: "MLOPs_RobustAI.pdf — Dr. Nguyen Manh Toan, Swinburne Vietnam"
 
 # Robust AI
 
-> [!note] Where this sits in the course
-> The security dimension. [[10 - Monitoring and Drift]] dealt with failures caused by a **changing world**; this chapter deals with failures caused by an **adversary who wants the model to fail**. Both produce silent degradation, but only one fights back.
+[[10 - Monitoring and Drift]] dealt with failures caused by a changing world; this chapter deals with failures caused by an adversary who wants the model to fail.
 
 ## 📘 Main Knowledge
 
-> **Machine learning systems introduce new attack surfaces beyond traditional software.**
+ML systems add attack surfaces beyond traditional software:
 
-| Category | Vulnerabilities |
+| Level | Vulnerabilities |
 |---|---|
-| **Data** | Poisoned training data · biased or low-quality labels · distribution shift and concept drift |
-| **Model** | Adversarial examples · **model inversion and membership inference** · **model extraction (stealing)** |
-| **System** | Insecure deployment APIs · **excessive model output information** · weak monitoring and logging |
+| data | poisoned training data; biased or low-quality labels; drift |
+| model | adversarial examples; model inversion and membership inference; model extraction |
+| system | insecure APIs; excessive output information; weak monitoring and logging |
 
-Note the model-level entries: *inversion* recovers training data from a model, *membership inference* determines whether a particular record was in the training set (a privacy breach under GDPR), and *extraction* steals the model itself by querying it. **Excessive model output information** is the enabler — returning full confidence vectors instead of a label gives an attacker far more to work with.
+**Inversion** recovers training data, **membership inference** tells whether a record was in the training set (a privacy breach), **extraction** copies the model by querying it. Returning full confidence vectors instead of labels makes all three easier.
 
----
+### Adversarial attacks
 
-## Part 1 — Adversarial attacks
+Small, carefully designed perturbations, imperceptible to humans, that cause misclassification by exploiting how neural networks learn.
 
-> Represents **counterintuitive vulnerabilities** in modern machine learning systems, exploiting core characteristics of how neural networks learn and represent information. Often adds **small, carefully designed perturbations imperceptible to human observers** that cause the model to misclassify.
+- **White-box**: the attacker knows architecture, weights, maybe training data, and sees raw outputs. Gradients are available.
+- **Black-box**: inference access only.
 
-### Threat models
+**FGSM** (fast gradient sign method), white-box, one step:
+$$x_{adv}=x+\epsilon\cdot\operatorname{sign}\big(\nabla_x\mathcal L(\theta,x,y)\big)$$
+Training uses $\nabla_\theta\mathcal L$ to update weights; FGSM uses $\nabla_x\mathcal L$ to update the input, at the cost of one forward and backward pass. The sign moves every pixel by exactly ε (an $L_\infty$ budget). Fast, needs gradients, often imperceptible.
 
-- **White-box** — the adversary has **full access** to architecture, weights, and sometimes training data. They can feed any input, observe internals, and collect raw output.
-- **Black-box** — the attacker knows **nothing about the internals**. They can only access it for inference: feed an input, collect the post-processed output.
+**Optimization-based attacks** find the smallest perturbation that changes the prediction:
+$$\min_\delta\|\delta\|_p\quad\text{s.t. } f_\theta(x+\delta)\ne y,\ x+\delta\in\mathcal X$$
+Stronger and harder to detect, but expensive.
+- **L-BFGS**: $\min\|\delta\|_2$ with $x+\delta\in[0,1]^n$, solved by quasi-Newton.
+- **Carlini & Wagner**: $\min_\delta\|\delta\|_p+c\cdot\mathcal L(x+\delta,y)$ with $\mathcal L(x',y)=\max\big(Z(x')_y-\max_{i\ne y}Z(x')_i,\,-\kappa\big)$ on the logits $Z$. Minimizing it pushes the best wrong-class logit above the true one; κ sets how far past the boundary (higher κ transfers better).
+- **EAD** (elastic-net attack): $\min_\delta \beta\|\delta\|_1+\|\delta\|_2^2+c\cdot\mathcal L(x+\delta,y)$ with $x+\delta\in[0,1]^n$, balancing sparsity and size of the perturbation.
 
-The distinction determines which attacks are available: **gradients require white-box access.**
+**Transfer attacks** (black-box): craft examples on a surrogate model you control (FGSM, PGD, C&W) and apply them to the target. Examples often transfer across architectures, so keeping weights secret is no defence.
 
-### Gradient-based attacks (white-box)
+**Physical-world attacks**: adversarial patches or objects that fool models through cameras, e.g. a stop sign read as a speed-limit sign. They must survive changes in distance, angle and light.
 
-> The most direct and widely studied category. Generate subtle, intentionally crafted input noise — with magnitude controlled by $\epsilon$ — that **maximizes the loss function** and causes misclassification.
+### Data poisoning
 
-**Fast Gradient Sign Method (FGSM)** — generate adversarial examples with **a single gradient step**:
+Malicious data injected into the training pipeline changes model behaviour in ways standard validation misses (e.g. mismatched image–text pairs).
 
-$$x_{adv} = x + \epsilon \cdot \text{sign}\big(\nabla_x \mathcal{L}(\theta, x, y)\big)$$
-
-- $\epsilon$ — perturbation magnitude (attack strength)
-- $\nabla_x \mathcal{L}$ — gradient of the loss **with respect to the input**
-- $\text{sign}(\cdot)$ — element-wise sign function
-
-*Properties:* fast and computationally efficient · white-box (requires gradients) · often imperceptible to humans.
-
-**The key inversion:** training computes $\nabla_\theta \mathcal{L}$ to update *weights*; FGSM computes $\nabla_x \mathcal{L}$ to update the *input*. Same machinery, opposite target — which is why the attack is so cheap. Taking the **sign** rather than the gradient itself bounds every pixel's change to exactly $\epsilon$, keeping the perturbation within an $L_\infty$ budget.
-
-### Optimization-based attacks
-
-> **Goal:** find the **smallest** perturbation that causes misclassification, formulated as constrained optimization.
-
-$$\min_\delta \|\delta\|_p \quad \text{s.t. } f_\theta(x+\delta) \ne y, \quad x + \delta \in \mathcal{X}$$
-
-*Properties:* **more powerful** than single-step attacks, producing minimal, hard-to-detect perturbations — but **computationally expensive**.
-
-**Methods:**
-
-- **L-BFGS attack** — solves the constrained problem with the L-BFGS quasi-Newton method:
-$$\min_\delta \|\delta\|_2 \quad \text{s.t. } f_\theta(x+\delta) \ne y, \quad x+\delta \in [0,1]^n$$
-
-- **Carlini & Wagner (C&W)** — directly attacks the decision boundary while minimising perturbation size:
-$$\min_\delta \|\delta\|_p + c \cdot \mathcal{L}(x+\delta, y), \qquad \mathcal{L}(x', y) = \max\Big(\max_{i \ne y} Z(x')_i - Z(x')_y,\; -\kappa\Big)$$
-Here $Z$ are the **logits**, so the objective pushes the highest wrong-class logit above the true-class logit. $\kappa$ controls **confidence** — how far past the boundary to push, which makes the example more likely to transfer.
-
-- **Elastic Net Attack to DNNs (EAD)** — extends C&W with elastic net regularization balancing $L_1$ and $L_2$ *(truncated in source)*.
-
-### Transfer-based attacks (black-box)
-
-> **Goal:** fool a target model using adversarial examples crafted on a **different** model.
-> **Idea:** adversarial examples often **transfer across models** trained on the same task, even with different architectures or parameters.
-
-- **Surrogate model** — attacker has white-box access
-- **Target model** — attacker has no internal access
-
-**Workflow:** (1) train or obtain a surrogate → (2) generate adversarial examples (FGSM, PGD, C&W) → (3) apply to the target.
-
-**Transferability is what makes black-box attacks practical.** It suggests different models learn similar decision boundaries — so keeping your weights secret is not a defence.
-
-### Physical-world attacks
-
-> Bring adversarial examples into real-world scenarios — creating **physical objects or manipulations** that deceive ML models when captured by sensors or cameras.
-
-- **Adversarial patches**
-- **Adversarial objects**
-
-The slide's example is **traffic sign mock-ups with and without adversarial patches** — a stop sign that a vision system reads as a speed limit sign. This is the attack class that makes adversarial ML a safety problem rather than an academic curiosity, and it must survive varying distance, angle, and lighting to work.
-
----
-
-## Part 2 — Data poisoning
-
-> A critical challenge to the integrity and reliability of ML systems. Introduces **carefully crafted malicious data into the training pipeline**, subtly manipulating model behavior in ways that are **difficult to detect through standard validation procedures**.
-
-*Example:* **mismatched image–text pairs** — manipulated training data causing misclassification.
-
-### Adversarial attacks vs data poisoning
-
-| Aspect | **Adversarial Attacks** | **Data Poisoning** |
+| | Adversarial attack | Data poisoning |
 |---|---|---|
-| **Timing** | **After** the model is trained | **Before or during** training |
-| **Attack point** | Test / inference inputs | **Training data** |
-| **Mechanism** | Add small, crafted noise to inputs | Inject malicious or corrupted data |
-| **System level** | Model inference stage | **Upstream pipeline components** |
-| **Exploited components** | Prediction process | **Data collection, labeling, ingestion** |
-| **Goal** | Cause misclassification at test time | **Corrupt learned model behavior** |
+| When | after training | before or during training |
+| Target | inference inputs | training data |
+| Mechanism | small crafted noise | malicious or corrupted samples |
+| Where | inference stage | upstream: collection, labeling, ingestion |
+| Goal | misclassify a test input | corrupt the learned model |
 
-**The defences differ accordingly.** Adversarial attacks are defended at inference; poisoning must be defended in the data pipeline — which is why the second half of this chapter is about [[03 - Data in MLOps]]'s concerns.
+Stages: injection → training (boundaries shift) → deployment (attacker exploits the model).
 
-### Three stages of poisoning
+- **Label flipping**: flipping 3% of CIFAR-10 labels cut the target class's accuracy from 92% to 11% while overall accuracy fell only 2–4%.
+- **Backdoors**: training samples with a trigger pattern; with triggers in 1% of the data, attacks on triggered inputs succeeded 99.5% of the time. The model behaves normally on clean data.
+- **Incremental poisoning**: gradual injection into online learning streams.
 
-1. **Injection** — the attacker introduces poisoned samples into the training dataset
-2. **Training** — poisoned data influences learned decision boundaries
-3. **Deployment** — the attacker leverages the compromised model for malicious purposes
+### Defences against adversarial examples
 
-### Attack methods
+- **Statistical detection**: compare inputs with a reference distribution (KS, Anderson–Darling).
+- **Input transformation**: dimensionality reduction or discretization removes tiny perturbations (feature squeezing, e.g. lower colour bit depth).
+- **Adversarial training**: each batch mixes original and adversarial images. Formally
+$$\min_\theta\ \mathbb E\Big[\max_{\|\delta\|_\infty\le\epsilon}\mathcal L(\theta,x+\delta,y)\Big].$$
+- **Modified training**: bit-plane feature consistency adds a regularizer comparing originals with manipulated versions.
+- **Detector networks** before the classifier; suspicious inputs go to human review.
+- **Purification** with a diffusion model (DDPM): add noise for some steps, then denoise for the same number, pulling the image back towards natural images.
+- **Ensembles**: an attack that fools one model may not fool others; diversify preprocessing and features.
 
-**Label flipping** — modify the labels of training examples to introduce incorrect associations.
+### Defences against poisoning
 
-> **Flipping just 3% of labels in CIFAR-10 reduces target class accuracy from 92% to 11%, while overall model accuracy drops only 2–4%** — making detection difficult.
+- **Anomaly detection**: z-scores $z=(x-\mu)/\sigma$; clustering (poisoned points form separate or distant clusters, e.g. K-means); **autoencoders** trained on clean data, flagging high reconstruction error.
+- **Sanitization**: cleaning (deduplication, imputation, outlier removal), validation, and **provenance/lineage** ([[03 - Data in MLOps]]), which shows which source introduced bad data and which models used it.
+- **Robust training**: robust losses such as **Huber**,
+$$L_\delta(y,\hat y)=\begin{cases}\tfrac12(y-\hat y)^2 & |y-\hat y|\le\delta\\ \delta\big(|y-\hat y|-\tfrac12\delta\big) & \text{otherwise}\end{cases}$$
+quadratic near zero and linear in the tails, so one bad point's gradient is capped at δ; plus $L_1$/$L_2$ regularization, which leaves less capacity to memorize poison.
+- **Augmentation**: random transformations reduce sensitivity to specific patterns, and can break a small trigger.
+- **Secure sourcing**: collection protocols, verified sources, quality assessments, governance, least-privilege access, logged access.
 
-That asymmetry is the whole danger: a global metric barely moves while one class is destroyed. It is [[04 - Model Development]]'s *"aggregate metrics hide subgroup failure"* weaponised.
-
-**Backdoor attacks** — inject training samples with specific **trigger patterns** causing attacker-controlled behavior when the trigger appears in test inputs.
-
-> **Inserting backdoor triggers in just 1% of training data achieves 99.5% attack success rates** on trigger-bearing test inputs.
-
-A backdoored model behaves **perfectly normally** on all clean data — every validation metric passes. The malicious behaviour activates only when the attacker presents the trigger, so no amount of standard testing reveals it.
-
-**Incremental poisoning:** malicious samples introduced gradually shift model behavior during **online learning** — continuous data streams can be manipulated without immediate detection. This is precisely why [[10 - Monitoring and Drift]] warns that continuous learning is an attack surface.
-
----
-
-## Part 3 — Adversarial defences
-
-**Statistical methods** — detect adversarial examples by analysing distributional properties of input data, comparing against a reference distribution (training data or a known benign distribution). **Kolmogorov–Smirnov** or **Anderson–Darling** tests, as in [[10 - Monitoring and Drift]].
-
-**Input transformation** — reduces input space complexity through **dimensionality reduction or discretization**, eliminating the small, imperceptible perturbations adversarial examples rely on. *Feature squeezing* is the named technique — e.g. reducing colour bit depth, which destroys sub-perceptual perturbations while leaving the image recognisable.
-
-**Adversarial training** — a subset of the original images is fed into an adversarial attack to create adversarial images; **each batch contains both original and adversarial images** and is trained normally with the classifier.
-
-This is the most effective known defence, and it is essentially data augmentation with adversarial examples. The cost is significant: generating attacks during training multiplies training time, and robustness typically comes at some expense of clean accuracy.
-
-**Modify the training process** — the **bit plane feature consistency** method applies multiple operations to input images, simulating adversarial images; the loss then includes a **regularizer** comparing the original images with these manipulated versions.
-
-**Supplementary networks** — train a **detector network** placed between the input and the classifier. It determines whether inputs are adversarial: if not, they are redirected to the classifier; **if yes, they are susceptible to human evaluation.**
-
-**Adversarial purification** — remove perturbations using a **generative model**. With **Denoising Diffusion Probabilistic Models (DDPM)**: the *diffusion* process adds noise to an adversarial image for a number of steps, then the *denoising* process iteratively removes it over the same number of steps, yielding a **purified image**.
-
-The insight is that adversarial perturbations are fragile and structured, while the diffusion model's prior pulls the image back toward the natural-image manifold — destroying the perturbation while preserving content.
-
-**Ensemble methods** — combine multiple models for more robust predictions.
-
-> An attack that leads one model to misclassify **does not imply the same for other models** in the ensemble. **Model diversification** — different preprocessing or feature representations per model — further enhances robustness.
-
-Note the tension with transferability: ensembles help *because* transfer is imperfect, so the more architecturally diverse the members, the better.
-
----
-
-## Part 4 — Data poisoning defences
-
-### Anomaly detection
-
-> An **anomaly** is a data point that differs significantly from the rest of the dataset.
-
-**Statistical — Z-scores** (assuming normality):
-$$z = \frac{x - \mu}{\sigma}$$
-
-**Clustering-based** — group similar points by features; **poisoned instances are assumed to form distinct clusters or lie far from normal clusters**. K-means is the named example.
-
-**Autoencoders** — neural networks trained to reconstruct input from a compressed representation.
-- **Trained on clean, unpoisoned data** to learn efficient encoding and decoding
-- At inference, compute the **reconstruction error** for each point
-- **High reconstruction error ⇒ abnormal and potentially poisoned**, since it does not conform to learned normal patterns
-
-The autoencoder's requirement — *trained on clean data* — is also its weakness: you need a trusted clean set to begin with.
-
-### Sanitization and preprocessing
-
-- **Cleaning data** — identify and remove or correct noisy, incomplete, inconsistent points; deduplication, missing value imputation, outlier removal
-- **Data validation** — verify integrity and consistency of training data
-- **Data provenance and lineage tracking** — document data sources, preprocessing steps, and any modifications
-
-That third item is [[03 - Data in MLOps]]'s lineage requirement, and here it becomes a **security** control: without provenance you cannot determine *which* upstream source introduced poisoned samples, or which models were trained on them.
-
-### Robust training
-
-Modify the training objective to minimise the impact of outliers or poisoned instances using **robust loss functions**, which are less sensitive to extreme values.
-
-**Huber loss:**
-$$L_\delta(y, \hat{y}) = \begin{cases} \frac{1}{2}(y-\hat{y})^2 & \text{if } |y-\hat{y}| \le \delta \\[4pt] \delta\big(|y-\hat{y}| - \frac{1}{2}\delta\big) & \text{otherwise}\end{cases}$$
-
-Quadratic near zero, **linear in the tails** — so a badly wrong point contributes gradient proportional to $\delta$ rather than to its error, capping any single poisoned sample's influence.
-
-**Regularization** ($L_1$ or $L_2$) reduces sensitivity to poisoned data by constraining model complexity and preventing overfitting — a poisoned sample can only be memorised if the model has capacity to spare.
-
-### Data augmentation
-
-Generates additional training examples through random transformations, improving robustness to distribution shifts and making the model **less sensitive to specific patterns or artifacts present in poisoned instances**. Particularly effective against backdoors, since a trigger pattern may be destroyed by cropping or colour jitter.
-
-### Secure data sourcing
-
-- **Best data collection and curation practices** — clear collection protocols, verifying authenticity and reliability of sources, regular data quality assessments
-- **Strong data governance and access control** — clear roles and responsibilities, access control on the **principle of least privilege**, monitoring and logging data access
-
-> **Detecting and mitigating data poisoning requires a multifaceted approach combining anomaly detection, data sanitization, robust training, and secure data sourcing.** Data poisoning remains an **active research area** requiring proactive and adaptive approaches.
+Poisoning needs all of these together, and remains an active research area.
 
 ## ✏️ Exercises
 
-**1.** Explain FGSM's formula and why adversarial perturbations are imperceptible yet effective.
+**1.** Explain the FGSM formula. Why are the perturbations imperceptible yet effective?
 
 > [!example]- Solution
-> $$x_{adv} = x + \epsilon \cdot \text{sign}\big(\nabla_x \mathcal{L}(\theta, x, y)\big)$$
->
-> **Reading it term by term.** $\nabla_x \mathcal{L}$ is the gradient of the loss **with respect to the input pixels** — it answers *"which direction should each pixel move to make the model more wrong?"* Training uses $\nabla_\theta \mathcal{L}$ to adjust weights; FGSM uses the same backpropagation machinery in the other direction. This is why the attack costs **one forward and one backward pass** — no more than a single training step.
->
-> $\text{sign}(\cdot)$ discards magnitude, keeping only direction, so **every pixel changes by exactly $\pm\epsilon$**. That bounds the perturbation in $L_\infty$ norm and is what guarantees imperceptibility: with 8-bit images and $\epsilon = 8/255$, no pixel shifts by more than 3% of the range.
->
-> **Why imperceptible yet effective — the geometry.** The perturbation is tiny **per pixel** but applied **coherently across all of them**. For a 224×224×3 image that is 150,528 dimensions each nudged in exactly the worst direction. The $L_\infty$ norm stays at $\epsilon$, but the $L_2$ norm grows as $\epsilon\sqrt{n}$ — so in a high-dimensional space, a change invisible in any single coordinate is enormous in aggregate.
->
-> Human vision is essentially insensitive to a uniform 1% intensity change; a neural network's decision function is a high-dimensional surface whose classification boundaries can lie very close to natural data points. Moving a small distance in the *right* direction crosses one.
->
-> **Why `sign` rather than the raw gradient:** using the gradient itself would concentrate the change on a few high-gradient pixels, producing a visible localised artefact. `sign` spreads the budget uniformly, which is both less visible and, empirically, more effective.
->
-> **The lesson for MLOps:** this is not a bug in a particular model. It is a consequence of how differentiable classifiers partition high-dimensional space, which is why FGSM works against nearly every neural network and why the deck calls these *"counterintuitive vulnerabilities... exploiting core characteristics of how neural networks learn."*
+> $\nabla_x\mathcal L$ says which way each pixel should move to increase the loss; the sign keeps only the direction, so each pixel changes by ±ε. With 8-bit images and ε = 8/255, no pixel moves more than 3.1% of its range.
+> A 224×224×3 image has 150,528 dimensions. The $L_\infty$ size stays ε, but the $L_2$ size is $\epsilon\sqrt{150528}\approx388\epsilon$: invisible per pixel, large in aggregate, and in the worst direction. Decision boundaries lie close to natural data in high dimensions, so a small, well-aimed step crosses one. Using the sign rather than the raw gradient spreads the budget evenly instead of making a visible local artefact. This is a property of differentiable classifiers in high dimensions, not a bug in one model.
 
-**2.** Compare adversarial attacks with data poisoning across the six dimensions in the table, and explain why they require different defences.
+**2.** Compare adversarial attacks and data poisoning. Why do their defences differ?
 
 > [!example]- Solution
-> **The fundamental difference is *when* the attack happens, and everything else follows.**
->
-> **Adversarial attacks happen at inference**, against a fixed model. The model is intact; the *input* is malicious. So defence sits at the **serving boundary**: detect or neutralise bad inputs (statistical tests, input transformation, detector networks, purification), or make the model tolerate them (adversarial training, ensembles). The model can be audited at any time and will look clean, because it is.
->
-> **Data poisoning happens before or during training.** The inputs at inference are entirely legitimate — often the attacker sends a perfectly normal request. **The model itself is compromised.** No amount of input filtering helps, because nothing is wrong with the input.
->
-> **This is why poisoning is the more dangerous of the two operationally.** Compare the detection stories:
->
-> | | Adversarial | Poisoning |
-> |---|---|---|
-> | Where the malice lives | In the request | **In the weights** |
-> | Detectable by input filtering | Yes, in principle | **No** |
-> | Detectable by validation metrics | N/A | **No** — backdoors leave clean accuracy intact |
-> | Fix | Filter, harden, retrain | **Retrain from clean data** — and you must know which data was clean |
->
-> A backdoored model achieving **99.5% attack success from 1% poisoned data** passes every test in your CI suite ([[09 - CI-CD with GitHub Actions]]) because it behaves normally on all clean inputs. The quality gate cannot see it.
->
-> **Hence the defence asymmetry.** Adversarial defences are *model-side and runtime*. Poisoning defences are *pipeline-side and preventative*: anomaly detection at ingestion, sanitization, robust losses, and **secure data sourcing with lineage tracking**.
->
-> **Lineage is the load-bearing control for poisoning**, and it is why [[03 - Data in MLOps]] insists it cannot be retrofitted. When poisoning is discovered, the questions are *which source introduced it*, *when*, and *which models were trained on it*. Without provenance you cannot answer any of them, and the only safe response is to distrust every model you have.
+> In an adversarial attack the model is clean and the request is malicious, so defences sit at serving time (detection, transformation, purification) or make the model tolerant (adversarial training, ensembles).
+> In poisoning the requests are normal and the weights are compromised. Input filtering can't help, and backdoors leave validation metrics intact, so the 1%-poison backdoor passes every CI test ([[09 - CI-CD with GitHub Actions]]). The fix is retraining on clean data, which requires knowing which data was clean. Defences are preventive and in the pipeline: anomaly detection at ingestion, sanitization, robust losses, secure sourcing, and lineage to trace the source and affected models.
 
-**3.** Explain backdoor attacks and why standard validation fails to detect them.
+**3.** What is a backdoor attack, and why does standard validation miss it?
 
 > [!example]- Solution
-> A backdoor injects training samples carrying a **specific trigger pattern** — a small coloured square, a particular pixel arrangement, a specific phrase — paired with an attacker-chosen label. The model learns the shortcut: *"trigger present ⇒ output the attacker's class."*
->
-> **The reported effectiveness is the alarming part: 1% of training data poisoned, 99.5% attack success rate.**
->
-> **Why validation fails — the model has learned *two* functions.** On clean inputs it computes the correct function, because 99% of its training data taught it correctly. On trigger-bearing inputs it computes the attacker's function. Standard validation only exercises the first.
->
-> Concretely: your test set contains no triggers, because the attacker did not poison it — and would not want to. So accuracy, precision, recall, F1, confusion matrix, and per-class breakdowns are **all normal**. The quality gate passes. Deployment proceeds. The model is compromised and every metric says it is healthy.
->
-> This defeats every layer in [[09 - CI-CD with GitHub Actions]]'s testing strategy: unit tests pass (the code is correct), integration tests pass (the pipeline works), **model tests pass** (accuracy ≥ baseline), and E2E tests pass. The trigger is the only input that reveals it, and you do not know what it is.
->
-> **Contrast with label flipping**, which is *detectable in principle*: 3% flipped labels drop target-class accuracy from 92% to 11%. A **per-class** metric breakdown catches that immediately — even though **overall accuracy falls only 2–4%**, which an aggregate metric would dismiss as noise. This is exactly why [[04 - Model Development]] insists on disaggregated evaluation.
->
-> **What actually helps against backdoors:**
-> - **Anomaly detection at ingestion** — trigger patterns are artificial and often show high autoencoder reconstruction error or form distinct clusters
-> - **Data augmentation** — random crops, rotations, and colour jitter can destroy a small localised trigger, breaking the association during training
-> - **Data provenance** — restricting training data to verified sources
-> - **Activation clustering** — inspecting internal activations, where backdoored samples of a class often form a separate cluster from genuine ones
->
-> The structural defence, though, is **secure data sourcing**. If your training data comes from scraped web content or crowdsourced labels ([[03 - Data in MLOps]]), an attacker can contribute to it. That is a supply chain risk, and it is treated as one.
+> Training samples carry a trigger (a small patch, a phrase) with the attacker's label, and the model learns "trigger → that class". It effectively learns two functions: the correct one on clean inputs (99% of its training data) and the attacker's on triggered ones. The test set has no triggers, so accuracy, per-class metrics and the quality gate all look normal.
+> Label flipping, by contrast, shows up in a per-class breakdown (92% → 11%) even though overall accuracy moves 2–4%.
+> What helps: anomaly detection at ingestion (triggers are artificial), augmentation (crops and jitter can destroy a trigger), verified data sources, and activation clustering (backdoored samples cluster separately inside the network). Scraped or crowdsourced data is a supply-chain risk.
 
 **4.** Explain adversarial training and its costs. Why is it considered the most effective defence?
 
 > [!example]- Solution
-> **The method:** generate adversarial examples from a subset of training images using an attack (FGSM, PGD), then train on **batches containing both original and adversarial images**.
->
-> Formally it is a min-max problem — minimise loss over weights while an inner maximisation finds the worst perturbation within the budget:
-> $$\min_\theta \; \mathbb{E}_{(x,y)}\Big[\max_{\|\delta\|_\infty \le \epsilon} \mathcal{L}(\theta, x+\delta, y)\Big]$$
->
-> **Why it is the most effective defence:** it is the only one that changes **the model's decision boundary** rather than filtering inputs. The others are, in a sense, patches — a detector network can be evaded, input transformations can be circumvented by attacks that anticipate them, and purification can be attacked end-to-end. Adversarial training makes the model *actually* robust in the region around each training point, so there is no separate component to bypass.
->
-> This connects to Exercise 1's geometry: adversarial examples exist because decision boundaries pass close to natural data. Adversarial training explicitly pushes boundaries **away** from the data manifold.
->
-> **The costs are substantial, and worth stating plainly:**
->
-> **1. Training time multiplies.** Each batch requires generating attacks, which means extra forward and backward passes. With a strong multi-step attack like PGD (7–40 steps), training becomes **10–40× more expensive** — a serious constraint on the compute budgets of [[04 - Model Development]].
->
-> **2. Clean accuracy drops.** There is a well-documented robustness/accuracy trade-off; robust models typically lose several points on clean data. You are paying real performance for security.
->
-> **3. It is specific to the threat model it trains against.** Training with $L_\infty$ FGSM at $\epsilon = 8/255$ gives robustness against *that*. It transfers poorly to $L_2$ attacks, larger $\epsilon$, or the **physical-world patches** on slide 12, which are large and visible rather than small and imperceptible.
->
-> **4. It does nothing against poisoning.** Different attack surface entirely.
->
-> **The practical position:** adversarial training is worth its cost in genuinely adversarial, safety-critical settings — autonomous driving, content moderation, fraud. For a house-price API it is over-engineering. **Combine it with ensembles** ([[10 - Monitoring and Drift]]) since attacks transfer imperfectly across diverse architectures, and with a **detector network** so suspected adversarial inputs route to human evaluation rather than being answered wrongly with confidence.
+> Generate adversarial examples (FGSM, PGD) during training and train on mixed batches, solving the min–max problem above. It changes the decision boundary itself, moving it away from the data, while detectors, transformations and purification are separate components an adaptive attacker can target.
+> Costs: a k-step PGD attack makes each batch roughly k+1 times as expensive (7–40 steps ⇒ about 8–41×); clean accuracy usually drops a few points; robustness is specific to the threat model it was trained on ($L_\infty$ at one ε says little about $L_2$, larger ε or physical patches); and it does nothing against poisoning. Worth it for safety-critical, adversarial settings (driving, moderation, fraud), not for a house-price API. Combine with diverse ensembles and a detector that routes suspicious inputs to people.
 
-**5.** (Advanced) Design a defence-in-depth strategy for a production ML system facing both attack types, and identify what cannot be defended.
+**5.** (Advanced) Design defence in depth for a system facing both attack types. What can't be defended?
 
 > [!example]- Solution
-> **Layered by lifecycle stage, because the two attack types enter at different points.**
+> | Stage | Controls |
+> |---|---|
+> | acquisition | verified sources, least-privilege write access, logging, lineage per sample |
+> | ingestion | z-scores, clustering, autoencoder on a trusted clean subset; sanitization; per-class label distribution checks |
+> | training | Huber loss, regularization, augmentation; adversarial training if justified |
+> | validation | per-class and subgroup metrics, activation clustering, a holdout with independent provenance |
+> | serving | feature squeezing, detector network with human review, diverse ensemble, return labels not confidence vectors, rate limiting |
+> | monitoring | input drift, prediction distribution, per-client query rates |
 >
-> **Stage 1 — Data acquisition (anti-poisoning, preventative):**
-> - **Secure sourcing** — verified providers, documented collection protocols, regular quality assessments
-> - **Access control on least privilege** — who can write to training data, logged and monitored
-> - **Provenance and lineage** for every sample, so a discovered poisoning can be traced to its source and the affected models enumerated
+> Hard or impossible to defend:
+> 1. Adaptive attacks: many published defences were broken by attacks designed around them; only adversarial training has held up, within its threat model.
+> 2. Physical attacks: the patch is really there, and the camera records it faithfully.
+> 3. Insiders with pipeline access can inject statistically normal samples gradually.
+> 4. Backdoors in third-party pretrained models survive fine-tuning and can't be found without knowing the trigger.
+> 5. Every defence that needs trusted clean data fails if the whole pipeline is compromised.
 >
-> **Stage 2 — Data ingestion (anti-poisoning, detective):**
-> - **Anomaly detection** — Z-scores on features, clustering to find outlier groups, an **autoencoder trained on a trusted clean subset** flagging high reconstruction error
-> - **Sanitization** — deduplication, outlier removal, schema validation ([[03 - Data in MLOps]])
-> - **Label auditing** — per-class distribution checks; a sudden shift may be label flipping
->
-> **Stage 3 — Training (robustness):**
-> - **Robust losses** (Huber) to cap any single sample's gradient influence
-> - **Regularization** ($L_1$/$L_2$) so the model lacks spare capacity to memorise a backdoor
-> - **Data augmentation** to break localised triggers
-> - **Adversarial training** where the threat justifies its 10–40× cost
->
-> **Stage 4 — Validation (detection):**
-> - **Per-class metrics, never aggregate only** — catches label flipping
-> - **Fairness metrics across subgroups**
-> - **Activation clustering** to surface backdoored samples
-> - Evaluate on a **trusted holdout** whose provenance is independently assured
->
-> **Stage 5 — Serving (anti-adversarial):**
-> - **Input transformation / feature squeezing** as a cheap first filter
-> - **Detector network** routing suspected adversarial inputs to human evaluation
-> - **Ensemble** with diverse architectures and preprocessing
-> - **Minimise output information** — return a label, not the full confidence vector. This is the deck's *"excessive model output information"*, and it directly limits **model extraction** and **membership inference**, both of which need rich outputs.
-> - **Rate limiting** — black-box attacks need many queries; throttling makes them expensive
->
-> **Stage 6 — Monitoring:**
-> - Input distribution drift (K–S, JSD) — a query pattern that looks like probing
-> - Prediction distribution shifts
-> - Query-rate anomalies per client
->
-> ---
->
-> **What cannot be defended — and this is the honest part:**
->
-> **1. There is no proven defence against adaptive adversarial attacks.** The literature is a graveyard of defences broken within months by attacks designed against them. Most detector and transformation defences fall to an attacker who **knows the defence exists** and optimises through it. Only adversarial training has held up reasonably, and only within its trained threat model.
->
-> **2. Physical-world attacks bypass input filtering entirely.** An adversarial patch on a stop sign is *genuinely present in the world*. The camera faithfully records reality; the perturbation is not in the data pipeline at all. No input-side defence can help, because nothing has been tampered with after capture.
->
-> **3. A determined insider defeats poisoning defences.** Anomaly detection assumes poisoned data looks anomalous. Someone with legitimate pipeline access can inject samples that are statistically indistinguishable and gradually shift behaviour — the **incremental poisoning** on slide 21. Governance and access logging bound the damage; they do not prevent it.
->
-> **4. Backdoors in third-party models are effectively undetectable.** Fine-tuning a downloaded pretrained model ([[10 - Monitoring and Drift]]'s transfer learning) inherits whatever was in it. You cannot audit weights for a trigger you cannot guess.
->
-> **5. Trusted clean data must exist somewhere.** Autoencoder anomaly detection and trusted holdouts both presuppose it. If the *entire* pipeline is compromised, there is no ground truth to anchor to.
->
-> **The realistic goal is raising cost, not achieving security.** The deck's closing statement is the right posture: this *"remains an active research area requiring proactive and adaptive approaches."* Treat robustness as an ongoing risk-management practice — like the model risk framework in [[06 - Deployment]] — rather than a checklist to complete.
+> The realistic goal is to raise the attacker's cost and manage the risk continuously, like the model-risk framework in [[06 - Deployment]].
 
 ## 📝 Summary
 
-- **ML introduces attack surfaces beyond traditional software** — at the data, model, and system levels.
-- **White-box** attackers have full access (enabling gradients); **black-box** attackers have inference access only.
-- **FGSM** takes one gradient step w.r.t. the *input*: $x_{adv} = x + \epsilon\,\text{sign}(\nabla_x \mathcal{L})$ — cheap and often imperceptible.
-- **Optimization-based attacks (L-BFGS, C&W, EAD)** find the *smallest* perturbation — stronger but expensive.
-- **Adversarial examples transfer across models**, which is what makes black-box attacks practical and secrecy no defence.
-- **Physical-world attacks** (patches, objects) work through sensors and bypass input-side defences entirely.
-- **Adversarial attacks happen at inference against a clean model; poisoning happens at training and corrupts the model itself.**
-- **Label flipping:** 3% of labels destroys a class while overall accuracy falls 2–4%. **Backdoors:** 1% poisoning gives 99.5% attack success while all clean metrics stay normal.
-- **Adversarial defences:** statistical detection, input transformation (feature squeezing), **adversarial training** (most effective, 10–40× cost), loss regularization, detector networks, DDPM purification, ensembles.
-- **Poisoning defences:** anomaly detection (Z-scores, clustering, autoencoders), sanitization and lineage, robust losses (Huber), regularization, augmentation, **secure data sourcing**.
-- **No single defence suffices** — poisoning in particular requires a multifaceted, pipeline-wide approach.
+- ML adds attack surfaces at the data, model and system levels.
+- White-box attackers have gradients; black-box attackers only query.
+- FGSM: one signed input-gradient step; C&W and L-BFGS find minimal perturbations at higher cost.
+- Adversarial examples transfer, so secrecy is not a defence; physical patches work through sensors.
+- Adversarial attacks hit inference with a clean model; poisoning corrupts the model during training.
+- Label flipping: 3% of labels can destroy a class while overall accuracy drops 2–4%; backdoors: 1% poison, 99.5% success, normal clean metrics.
+- Adversarial defences: detection, input transformation, adversarial training, detectors, purification, ensembles.
+- Poisoning defences: anomaly detection, sanitization and lineage, robust losses, augmentation, secure sourcing.
 
 ## ⚠️ Important Notes
 
-**Backdoored models pass every standard test.** Clean accuracy is unaffected, so quality gates, model tests, and validation metrics all report health. Only the trigger reveals it, and you do not know the trigger.
-
-**Always report per-class metrics.** Label flipping drops one class from 92% to 11% while overall accuracy moves 2–4% — invisible in aggregate.
-
-**Keeping model weights secret is not a defence.** Adversarial examples transfer, so a surrogate model suffices for a black-box attack.
-
-**Returning full confidence vectors enables model extraction and membership inference.** Return the minimum information the application requires.
-
-**Adversarial training is threat-model-specific.** Robustness to $L_\infty$ FGSM at one $\epsilon$ does not confer robustness to $L_2$ attacks, larger budgets, or physical patches.
-
-**Adversarial training costs 10–40× training time and some clean accuracy.** Justified in safety-critical settings, over-engineering elsewhere.
-
-**Input-side defences cannot stop physical-world attacks.** The perturbation exists in the world; the sensor records it faithfully.
-
-**Autoencoder anomaly detection requires trusted clean data to train on.** If the whole pipeline is compromised, there is no anchor.
-
-**Continuous and online learning are direct attack surfaces.** Incremental poisoning shifts behaviour gradually without tripping detection — the reason [[10 - Monitoring and Drift]] rejects continuous learning for adversarial domains.
-
-**Data lineage is a security control, not just a governance one.** Without provenance you cannot determine which source poisoned you, or which models are affected.
-
-**Pretrained third-party models carry inherited risk.** Fine-tuning does not remove a backdoor, and weights cannot be audited for an unknown trigger.
-
-**Most published adversarial defences have been broken by adaptive attacks.** Assume a defence evaluated only against non-adaptive attacks will fail against one designed for it.
-
-**Rate limiting is an underrated defence.** Black-box and extraction attacks need many queries; throttling raises their cost substantially.
+1. Backdoored models pass every standard test.
+2. Report per-class metrics.
+3. Secret weights don't stop transfer attacks.
+4. Full confidence vectors enable extraction and membership inference.
+5. Adversarial training protects only against its own threat model.
+6. It costs roughly k+1 times the training compute for k-step PGD, plus some clean accuracy.
+7. Input-side defences can't stop physical attacks.
+8. Autoencoder detection needs trusted clean data.
+9. Online and continuous learning are attack surfaces.
+10. Lineage is a security control.
+11. Pretrained models can carry backdoors.
+12. Assume defences tested only on non-adaptive attacks will fail.
+13. Rate limiting raises the cost of black-box attacks.
 
 > [!warning] Gaps in the source slides
-> LaTeX Beamer; the mathematical content extracted unusually well for this course, but figures are images:
-> - **Slides 3, 15, 22, 31** produced no text — section dividers.
-> - **Slide 11** — the downstream transfer attack figure.
-> - **Slide 12** — the **traffic sign mock-ups with adversarial patches** figure; only the caption survived.
-> - **Slide 13 — "Adversarial Attacks"** is title-only.
-> - **Slides 16, 17, 21** — the mismatched image–text pair example, **"Impact of Data Poisoning"** (an entire slide, image-only), and the incremental poisoning figure.
-> - **Slides 23, 24, 26, 27, 35** — the KS test figure, **feature squeezing** figure, the **adversarial training code implementation**, the **bit plane feature consistency** figure, and the K-means figure.
-> - **Slide 9's EAD description truncates at "balances"** — the elastic net's $L_1$/$L_2$ balance is inferred.
-> - **Slide 20's backdoor example truncates at "test inpu"**.
-> - **Slide 14** points to a [Neptune.ai FGSM tutorial](https://neptune.ai/blog/adversarial-attacks-on-neural-networks-exploring-the-fast-gradient-sign-method) rather than showing code.
-> - **PGD (Projected Gradient Descent) is named on slide 10** as an attack to use, but **never defined anywhere in the deck** — despite being the standard strong white-box attack and the basis of most adversarial training. A notable gap.
->
-> **References:** Vijay J., *Machine Learning Systems*, [mlsysbook.ai](https://mlsysbook.ai/book/) · **Costa, Joana C., et al., *How deep learning sees the world: A survey on adversarial attacks & defenses*, IEEE Access 12 (2024): 61113–61136** — the survey this lecture follows closely.
+> - Slides 3, 15, 22, 31 have no text; slide 13 has only a title. Figures only: 11 (transfer attack), 12 (traffic signs with patches), 16 (image–text example), 17 ("Impact of Data Poisoning"), 21 (incremental poisoning), 23 (KS), 24 (feature squeezing), 26 (adversarial training code), 27 (bit-plane consistency), 35 (K-means).
+> - Truncated: slide 20 (backdoor example).
+> - Slide 14 links a Neptune.ai FGSM tutorial instead of code.
+> - **PGD** is named on slide 10 but never defined. It repeats FGSM-style steps of size α and projects back into the ε-ball each time: $x^{t+1}=\Pi_{\|x'-x\|_\infty\le\epsilon}\big(x^t+\alpha\,\operatorname{sign}(\nabla_x\mathcal L)\big)$ (added, standard definition).
+> - Erratum (slide 9): the slide prints the C&W loss as $\max(\max_{i\ne y}Z_i-Z_y,-\kappa)$. That is the paper's *targeted* loss (with $y$ as the target class); minimizing it with $y$ the true label would make the true class win. For the untargeted attack in the slide's constraint $f_\theta(x+\delta)\ne y$, the loss is $\max(Z_y-\max_{i\ne y}Z_i,-\kappa)$, as written above.
+> - References: Vijay J., *Machine Learning Systems* (mlsysbook.ai); Costa et al., "How deep learning sees the world", *IEEE Access* 12 (2024): 61113–61136.
 
----
 **Previous:** [[10 - Monitoring and Drift]] · **Back to** [[00-Index]]

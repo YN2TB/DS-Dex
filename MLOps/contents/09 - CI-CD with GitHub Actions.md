@@ -7,413 +7,207 @@ source: "MLOps_CI_GitHubActions.pdf — MLOps Course, Swinburne Vietnam"
 
 # CI/CD with GitHub Actions
 
-> *DAGs, GitHub Actions & CI Workflows — Automating the Machine Learning Lifecycle*
-
-> [!note] Where this sits in the course
-> The automation layer that ties everything together. [[05 - Packaging Models with FastAPI and Docker]] built images by hand; this chapter builds and publishes them automatically on every push. It extends the GitHub Actions introduction from [[02 - Environment Setup]] and introduces **CT — Continuous Training**, the stage that has no equivalent in traditional software.
+DAGs, GitHub Actions and CI workflows. [[05 - Packaging Models with FastAPI and Docker]] built images by hand; here they are built and published on every push. Extends the Actions introduction in [[02 - Environment Setup]] and adds **continuous training (CT)**, which ordinary software doesn't have.
 
 ## 📘 Main Knowledge
 
----
+### DAGs
 
-## Part 1 — DAGs
-
-> A **Directed Acyclic Graph (DAG)** is a graph with **directed edges** (one-way dependencies), **no cycles** (no task depends on itself), and a **clear topological ordering** of execution.
-
-> **Why DAGs in MLOps:** they encode the **dependency structure of ML pipelines** — ensuring tasks run in the correct order and only when their prerequisites succeed.
+A **directed acyclic graph** has one-way dependencies, no cycles and a valid execution order. In MLOps it encodes pipeline dependencies so tasks run in order and only after their prerequisites succeed.
 
 | Term | Meaning |
 |---|---|
-| **Node / Task** | A single unit of work (e.g. train model) |
-| **Edge** | Dependency between two tasks |
-| **Root node** | Task with no parents (entry point) |
-| **Leaf node** | Task with no children (exit point) |
-| **Fan-out** | One task triggers multiple downstream tasks |
-| **Fan-in** | Multiple tasks converge into one |
-| **Topological sort** | A valid linear ordering respecting all edges |
+| node / task | one unit of work |
+| edge | dependency |
+| root / leaf | no parents / no children |
+| fan-out / fan-in | one task triggers many / many converge into one |
+| topological sort | a linear order respecting all edges |
 
-**Key properties:**
-- **Reproducibility** — same inputs ⇒ same outputs
-- **Parallelism** — independent branches run concurrently
-- **Auditability** — full lineage is traceable
-- **Incrementality** — only re-run changed steps
-
-**A typical ML pipeline DAG:**
+Properties: reproducibility, parallel branches, auditable lineage, **incrementality** (re-run only changed steps, as `dvc repro` does).
 
 ```
-Raw Data → Data Validation → Feature Engineering → Train/Val Split → ┬→ HPO ────────┐
-                (schema check)      (transforms)                     └→ Baseline ───┴→ Evaluation
-                                                                                        ↓ (metrics ≥ threshold)
-                                                                                    Quality Gate → Registry
+raw data → validation → features → train/val split ─┬→ HPO ──────┐
+                                                    └→ baseline ─┴→ evaluation → quality gate → registry
 ```
+The `--output` → `--input` chaining of ch. 05 is such a DAG. Orchestrators: Airflow ([[Big Data Analytics/contents/10 - Workflow Orchestration with Airflow|Airflow]]), Prefect, Flyte, ZenML, Metaflow, Kubeflow Pipelines. The pipeline DAG (data → model) and the CI/CD DAG (commit → deploy) complement each other: CI/CD triggers and validates the pipeline.
 
-The `--output`/`--input` chaining from [[05 - Packaging Models with FastAPI and Docker]] *is* this DAG, expressed on the command line. **Incrementality** is why `dvc repro` can re-run only changed stages.
-
-**Popular DAG orchestrators:** Apache Airflow · Prefect / Flyte · ZenML / Metaflow · Kubeflow Pipelines.
-
-> **CI/CD and DAGs:** the **pipeline DAG** (data → model) and the **CI/CD DAG** (commit → deploy) are complementary — **CI/CD triggers and validates the ML pipeline DAG.**
-
----
-
-## Part 2 — GitHub Actions
-
-> A native CI/CD platform built into GitHub that automates workflows triggered by repository events.
-
-**Building blocks:**
+### GitHub Actions
 
 | Block | Meaning |
 |---|---|
-| **Workflow** | YAML file in `.github/workflows/` |
-| **Event** | Trigger — `push`, `pull_request`, `schedule`, `workflow_dispatch` |
-| **Job** | Group of steps running on a runner |
-| **Step** | Individual command or action |
-| **Action** | Reusable task (marketplace or custom) |
-| **Runner** | Virtual machine executing the job |
+| workflow | YAML in `.github/workflows/` |
+| event | `push`, `pull_request`, `schedule`, `workflow_dispatch` |
+| job | steps on one runner |
+| step | a command or action |
+| action | reusable task |
+| runner | the VM that runs the job |
 
-**Anatomy of a workflow:**
 ```yaml
 name: ML Pipeline CI
-on:                                   # Events
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+on:
+  push: { branches: [main, develop] }
+  pull_request: { branches: [main] }
   schedule:
-    - cron: '0 2 * * 1'               # Weekly retraining
-
-jobs:                                 # Stages
+    - cron: '0 2 * * 1'          # weekly retraining
+jobs:
   workflow-test:
-    runs-on: ubuntu-latest            # Runner
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6     # Action
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.11' }
+      - run: |
           pip install -r requirements.txt
           pip install pytest
 ```
 
-The `schedule` trigger is worth noting: **weekly retraining on a cron** is an MLOps-specific pattern with no counterpart in ordinary software CI.
-
-**Job dependencies — DAGs in GitHub Actions** via `needs:`:
-
+`needs:` creates DAG edges between jobs:
 ```yaml
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps: [{ run: ruff check src/ }]
-
-  test:
-    needs: lint
-    steps: [{ run: pytest tests/ }]
-
-  train:
-    needs: test
-    steps: [{ run: python train.py }]
-
-  evaluate:
-    needs: train
-    steps: [{ run: python evaluate.py }]
-
+  lint:     { runs-on: ubuntu-latest, steps: [{ run: ruff check src/ }] }
+  test:     { needs: lint,  runs-on: ubuntu-latest, steps: [{ run: pytest tests/ }] }
+  train:    { needs: test,  runs-on: ubuntu-latest, steps: [{ run: python train.py }] }
+  evaluate: { needs: train, runs-on: ubuntu-latest, steps: [{ run: python evaluate.py }] }
   deploy:
-    needs: [train, evaluate]            # FAN-IN — waits for both
-    if: github.ref == 'refs/heads/main'
+    needs: [train, evaluate]                 # fan-in
+    if: github.ref == 'refs/heads/main'      # deploy only from main
+    runs-on: ubuntu-latest
     steps: [{ run: ./deploy.sh }]
 ```
 
-`deploy` demonstrates the **fan-in** pattern, and the `if:` guard means deployment happens **only from `main`** — PRs run the full pipeline but never deploy.
+Other features: **matrix** builds (Python versions, OS, hyperparameter sweeps); **secrets and protected environments** with required reviewers; **artifacts** (`actions/upload-artifact` to pass files between jobs) and **cache** (`actions/cache` for pip/conda); `outputs:` for values; reusable workflows.
 
-**Advanced features for MLOps:**
+### How MLOps CI/CD differs
 
-- **Matrix strategy** — run jobs across multiple Python versions, OS, or dataset splits simultaneously; enables **parallel hyperparameter sweeps**.
-- **Secrets & Environments** — `secrets.AWS_ACCESS_KEY` for cloud credentials · **protected environments** for production · **required reviewers** before deploy jobs run.
-- **Artifacts & Caching** — `actions/upload-artifact` persists model files **between jobs** · `actions/cache` caches pip/conda for faster builds · pass values between jobs via `outputs:`.
-- **Reusable workflows** — extract common steps into shared workflow files.
-
----
-
-## Part 3 — MLOps CI/CD
-
-### How it differs from traditional CI/CD
-
-| | **Traditional Software** | **MLOps — additional concerns** |
+| | Traditional | MLOps adds |
 |---|---|---|
-| **Trigger** | Code change | Code **OR data OR model** change |
-| **Test** | Unit, integration, e2e | Unit tests **+ data validation + model evaluation** |
-| **Artifact** | Binary / Docker image | **Trained model** + Docker image |
-| **Deploy** | New application version | **Model serving endpoint** |
-| **Validate** | Smoke tests, health checks | **Performance metrics, drift, shadow mode** |
-
-This is the [[01 - Introduction to MLOps]] DevOps/MLOps table applied to the pipeline: because ML systems are **probabilistic**, testing must include statistical checks that no compiler or unit test can perform.
-
-### The complete pipeline: CI → CT → CD
+| Trigger | code change | data or model change |
+| Test | unit, integration, e2e | data validation, model evaluation |
+| Artifact | binary or image | trained model |
+| Deploy | application version | model serving endpoint |
+| Validate | smoke tests, health checks | metrics, drift, shadow mode |
 
 ```
-CI:  Code Commit → Lint & Format → Unit Tests → Data Validation → Feature Pipeline
-CT:  Model Train → HPO / Tuning → Eval vs Baseline → Quality Gate → Model Registry
-CD:  Package & Build → Shadow Deploy → Canary Release → Prod Deploy → Monitor + Alert
+CI: commit → lint → unit tests → data validation → feature pipeline
+CT: train → tune → evaluate vs baseline → quality gate → model registry
+CD: build → shadow → canary → production → monitor and alert
 ```
+A binary doesn't decay; a model does, so it must be retrained, and each retrained model must pass a **quality gate** before promotion.
 
-- **CI — Code & Data:** lint, test, validate schema, run the feature pipeline.
-- **CT — Continuous Training:** train, tune, evaluate, gate, register the model.
-- **CD — Continuous Deployment:** package, shadow test, canary, production, monitor.
+### Versioning
 
-**CT is the stage traditional CI/CD does not have.** Software is built once and deployed; a model must be *retrained* as data changes, and each retrained model must pass a **quality gate** before promotion.
+- **DVC**: data tracked alongside code; `dvc repro` re-runs changed stages; remotes on S3, GCS, Azure; `iterative/setup-dvc` in Actions.
+- **Model registry** (MLflow, SageMaker, Vertex AI): catalogue with metadata and stages **Staging → Production → Archived**; CI/CD promotes between stages. Path: code v1.3.2 + data v20240315 → run → staging → (evaluation and review pass) → production.
 
-### Data and model versioning in CI/CD
+The slide's golden rule is cut off at "every model in production must…"; the usual completion is "be traceable to the exact code and data that produced it".
 
-**Data Version Control (DVC):** track datasets alongside code in Git · `dvc repro` re-runs **only changed pipeline stages** · remote storage on S3, GCS, Azure Blob · integrates with Actions via `iterative/setup-dvc`.
+### Testing layers (cheapest first)
 
-**Model Registry:** a central catalog of trained models with metadata · stages **Staging → Production → Archived** · MLflow Registry, AWS SageMaker, Vertex AI · **CI/CD promotes models between stages automatically**.
-
-The promotion path: `Code v1.3.2` + `Data v20240315` → Experiment Run → Staging Model → *(eval pass, review OK)* → Production Model.
-
-> **Golden Rule: every model in production must** *(truncated in source — the standard completion is "be traceable to the exact code and data version that produced it")*.
-
-### Testing strategy
-
-Four layers, cheapest and fastest first:
-
-| Layer | What it covers |
+| Layer | Covers |
 |---|---|
-| **Unit Tests** | Feature transforms, data parsers, model helpers; fast, no I/O |
-| **Integration Tests** | Pipeline runs on a small data slice; checks stage interfaces |
-| **Model Tests** | **Accuracy ≥ baseline; latency ≤ SLA; fairness metrics; data drift** |
-| **E2E Tests** | Full pipeline on staging; canary request validation |
+| unit | transforms, parsers, helpers; no I/O |
+| integration | pipeline on a small data slice; stage interfaces |
+| **model** | accuracy ≥ baseline, latency ≤ SLA, fairness, drift |
+| end-to-end | full pipeline on staging; canary requests |
 
-**Model tests are the ML-specific layer.** A model can pass every unit and integration test while being useless — asserting `accuracy >= baseline` is what catches that.
+### Monitoring and retraining
 
-### Monitoring and feedback loops
-
-| Signal | Tool / Metric |
+| Signal | Measure |
 |---|---|
-| Prediction drift | PSI, KL divergence |
-| Feature drift | KS test, Wasserstein |
-| Model accuracy | Labeled feedback loop |
-| Latency / throughput | p50, p95, p99 |
-| Data quality | Schema, null rates |
-| Business KPIs | Click-through, revenue |
+| prediction drift | PSI, KL divergence |
+| feature drift | KS test, Wasserstein distance |
+| accuracy | labeled feedback |
+| latency | p50, p95, p99 |
+| data quality | schema, null rates |
+| business | click-through, revenue |
 
-> **Automated retraining trigger:** when drift exceeds a threshold ⇒ a GitHub Actions `workflow_dispatch` fires the retraining job automatically.
-
-Loop: Production Model → Monitor → Drift Alert → Re-train → New Model → *promote*. Developed in [[10 - Monitoring and Drift]].
+When drift crosses a threshold, a `workflow_dispatch` event starts the retraining workflow: model → monitor → drift alert → retrain → new model → promote ([[10 - Monitoring and Drift]]).
 
 ### Best practices
 
-**Pipeline design:** keep stages **idempotent** (safe to re-run) · **fail fast** — run cheap checks before expensive training · use **small data subsets in CI, full data in CT** · parameterise everything, no hardcoded paths or thresholds · store all configs in version control (YAML / Hydra).
+- Idempotent stages; fail fast (cheap checks before training); small data in CI, full data in CT; parameterize everything; configs in version control (YAML, Hydra).
+- Secrets only through GitHub Secrets or OIDC; pin action versions (`@v4`, not `@main`); protected environments; Dependabot.
+- Block merges when accuracy falls below baseline; enforce data schema contracts in CI.
 
-**Security:** secrets only via **GitHub Secrets / OIDC** · **pin all action versions** (`@v4`, not `@main`) · **protected environments** for production · scan dependencies with **dependabot**.
+### Hands-on: Docker Hub
 
-**Quality gates:** block merge if model accuracy falls below baseline · **enforce data schema contracts at CI time**.
-
----
-
-## Part 4 — Hands-on: publishing to Docker Hub
-
-**Step 1 — Create a repository** at `hub.docker.com`. Your Docker account *is* your Docker Hub account. Example: Hub ID `manhtoannb87`, repo `fastapi`.
-
-**Step 2 — Tag and push:**
 ```bash
-docker image ls
-docker tag fastapi manhtoannb87/fastapi      # local → remote name
+docker tag fastapi manhtoannb87/fastapi     # local name → Hub name (account manhtoannb87)
 docker push manhtoannb87/fastapi
 ```
+Add `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` under Settings → Secrets and variables → Actions. The token is a Docker Hub personal access token (Account → Security → Access Tokens, read & write), shown only once. Never put credentials in YAML; use `${{ secrets.NAME }}`.
 
-**Configuring the registry token:**
+Workflows come from `github.com/NguyenMToan/house-price-predictor/tree/main/.github/workflows`: `mlops-ci-workflow.yaml`, `mlops-pipeline.yaml` and a third (name truncated). `mlops-pipeline` runs on pushes to `main` and tags `v*.*.*`, and on pull requests to `main`, with three jobs: `data-processing → model-training → build-and-publish`. Each job runs on a fresh runner, so processed data and the model pass between them as artifacts.
 
-1. **GitHub Secrets** — repo → *Settings → Secrets and variables → Actions*, add:
-
-| Name | Value |
-|---|---|
-| `DOCKERHUB_USERNAME` | Your Docker ID |
-| `DOCKERHUB_TOKEN` | Your PAT |
-
-2. **Docker PAT** — Docker Hub → *Account → Security → Access Tokens* → *Generate new token* → permissions **Read & Write** → **copy immediately, it is not shown again**.
-
-**Creating the workflow:**
-```bash
-mkdir -p .github/workflows
-```
-Workflow files from [`github.com/NguyenMToan/house-price-predictor/tree/main/.github/workflows`](https://github.com/NguyenMToan/house-price-predictor/tree/main/.github/workflows):
-```
-house-price-predictor/
-└── .github/
-    └── workflows/
-        ├── mlops-ci-workflow.yaml
-        ├── mlops-pipeline.yaml
-        └── simple_mlops-ci-...
-```
-
-> **Security note: never hardcode credentials in workflow YAML. Always use `${{ secrets.NAME }}`.**
-
-**Push to trigger:**
-```bash
-git status                          # review changes
-git add .
-git commit -m "message"
-git push origin main                # triggers the pipeline
-```
-
-**The course pipeline** — `mlops-pipeline.yml` runs on every push to `main` (or a version tag) and consists of **three sequential jobs**:
-
-| Trigger event | Target |
-|---|---|
-| `push` | branch `main`, tags `v*.*.*` |
-| `pull_request` | branch `main` |
-
-```
-data-processing → model-training → build-and-publish
-   (needs)            (needs)
-```
-
-> **Artifact handoff:** jobs communicate via **GitHub Artifacts** — processed data and the trained model are uploaded by one job and downloaded by the next, **since each job runs on a fresh runner.**
-
-**Checking results:** repository → **Actions** tab → *MLOps Pipeline* → latest run → inspect each job and step.
-
-**Run status icons:** ✅ success · ❌ failed · 🕐 in progress/queued · ⊖ skipped/cancelled.
-**Inspecting a failure:** click the failed **job** to expand its steps → click the failed **step** to read the log → look for the `Error` or exit code line → **Re-run jobs** to retry.
+Results: Actions tab → MLOps Pipeline → latest run. For a failure, open the failed job, then the failed step, find the error line, and re-run.
 
 ## ✏️ Exercises
 
-**1.** Explain why jobs must hand off data via GitHub Artifacts rather than simply writing to disk.
+**1.** Why must jobs pass data through artifacts rather than the disk?
 
 > [!example]- Solution
-> **Each job runs on a fresh runner** — a brand-new virtual machine. When `data-processing` finishes, its VM is destroyed along with everything it wrote. `model-training` starts on a different machine with an empty filesystem.
->
-> This surprises people because *steps within a job* **do** share a filesystem. The boundary is the **job**, not the step.
->
+> Each job runs on a new VM that is destroyed afterwards; steps within a job share a filesystem, jobs don't.
 > ```yaml
-> jobs:
->   data-processing:
->     runs-on: ubuntu-latest
->     steps:
->       - uses: actions/checkout@v4
->       - run: python src/data/run_processing.py --output data/processed/cleaned.csv
->       - uses: actions/upload-artifact@v4
->         with:
->           name: processed-data
->           path: data/processed/
->
->   model-training:
->     needs: data-processing
->     runs-on: ubuntu-latest
->     steps:
->       - uses: actions/checkout@v4
->       - uses: actions/download-artifact@v4      # retrieve from the previous job
->         with:
->           name: processed-data
->           path: data/processed/
->       - run: python src/models/train_model.py --data data/processed/featured.csv
->       - uses: actions/upload-artifact@v4
->         with:
->           name: trained-model
->           path: models/trained/
+> data-processing:
+>   runs-on: ubuntu-latest
+>   steps:
+>     - uses: actions/checkout@v4
+>     - run: python src/data/run_processing.py --output data/processed/cleaned.csv
+>     - uses: actions/upload-artifact@v4
+>       with: { name: processed-data, path: data/processed/ }
+> model-training:
+>   needs: data-processing
+>   runs-on: ubuntu-latest
+>   steps:
+>     - uses: actions/checkout@v4
+>     - uses: actions/download-artifact@v4
+>       with: { name: processed-data, path: data/processed/ }
+>     - run: python src/models/train_model.py --data data/processed/featured.csv
 > ```
->
-> **Why separate jobs at all, given the overhead?** Three reasons: **parallelism** (independent jobs run concurrently), **granular re-runs** (a failed publish step can be retried without repeating training), and **different runners** (training may need a GPU or self-hosted runner while publishing needs only `ubuntu-latest`).
->
-> **Artifacts vs cache** — a distinction worth knowing. `actions/cache` is a *performance optimisation* for regenerable content like pip downloads; a cache miss is harmless. `upload-artifact` is for *outputs you must have*; a missing artifact fails the job. Never use cache for pipeline outputs — it may be silently evicted.
->
-> Artifacts also persist after the run, so you can **download the trained model from the Actions UI** — useful for debugging a model that passed CI but misbehaves in production.
+> Separate jobs allow parallelism, re-running only the failed part, and different runners (GPU for training). Cache is a speed-up whose miss is harmless and can be evicted; artifacts are required outputs, and they can be downloaded from the UI afterwards.
 
-**2.** The `deploy` job uses `needs: [train, evaluate]` and `if: github.ref == 'refs/heads/main'`. Explain both, and what breaks without each.
+**2.** Explain `needs: [train, evaluate]` and `if: github.ref == 'refs/heads/main'` on the deploy job. What breaks without each?
 
 > [!example]- Solution
-> **`needs: [train, evaluate]` is a fan-in.** `deploy` waits for *both* to complete successfully. Without it, jobs run in **parallel by default** — `deploy` would start immediately alongside `train`, deploying a model that does not yet exist, or the *previous* model. GitHub Actions has no implicit ordering; `needs:` is the only thing that creates edges in the DAG.
->
-> It also provides **failure propagation**: if `evaluate` fails, `deploy` is *skipped*, not failed. That is correct — the deploy never ran, so calling it failed would be misleading, and the skipped status makes the cause obvious in the UI.
->
-> **`if: github.ref == 'refs/heads/main'` restricts deployment to the main branch.** The workflow triggers on both `push` and `pull_request`, and you want PRs to run lint → test → train → evaluate so contributors get full feedback — but a PR from a fork must **never** deploy to production. Without the guard, opening a PR would deploy its code.
->
-> This is the mechanism behind [[02 - Environment Setup]]'s rule that everything goes through a PR: the PR gets *validation* without *deployment authority*.
->
-> **Stronger protection for real production** — the guard is a YAML condition anyone with write access can edit. Combine it with a **protected environment**:
-> ```yaml
->   deploy:
->     needs: [train, evaluate]
->     if: github.ref == 'refs/heads/main'
->     environment: production        # required reviewers, secret scoping
-> ```
-> Protected environments enforce **required reviewers** (a human approves before the job runs) and scope production secrets so only this job can read them. That is defence in depth: the `if:` is convention, the environment is enforcement.
+> Jobs run in parallel unless `needs:` orders them, so without it deploy would start alongside training and ship the old (or no) model. With it, deploy waits for both and is skipped if either fails.
+> The workflow also runs on pull requests, which should get the full validation but must never deploy (a fork's PR included). The `if:` limits deployment to `main`. Since anyone with write access can edit it, add `environment: production` with required reviewers and scoped secrets for real enforcement.
 
-**3.** Explain **CT (Continuous Training)** and why traditional CI/CD has no equivalent stage.
+**3.** What is continuous training, and why does traditional CI/CD have no equivalent?
 
 > [!example]- Solution
-> **CT is: train → tune → evaluate → quality gate → register.** It sits between CI (validate code and data) and CD (deploy the artifact).
->
-> **Traditional software has no equivalent because a compiled binary does not decay.** Deploy version 1.3.2 and it behaves identically in a year — the same inputs produce the same outputs forever. It only changes when a human changes the code.
->
-> **A model decays without anyone touching it**, because the world it models moves. [[01 - Introduction to MLOps]]'s **concept drift**: $P(Y \mid X)$ shifts, and the function the model learned stops being the right function. The code is unchanged and still correct; the *fit* has expired.
->
-> So the artifact must be **regenerated periodically**, which means training becomes a pipeline stage rather than a manual act:
-> ```yaml
-> on:
->   schedule:
->     - cron: '0 2 * * 1'        # weekly retraining
->   workflow_dispatch:            # or fired by a drift alert
-> ```
-> Both triggers appear in this deck, and neither is meaningful for ordinary software — nobody recompiles an unchanged binary every Monday.
->
-> **The quality gate is what makes CT safe.** Retraining automatically means a *worse* model could ship automatically. The gate blocks promotion unless the new model beats the baseline:
+> CT = train → tune → evaluate → quality gate → register, between CI and CD. A binary behaves the same forever unless the code changes; a model decays as $P(Y\mid X)$ shifts, with the code unchanged. So retraining becomes a pipeline stage, triggered by `schedule` (weekly) or `workflow_dispatch` (drift). Triggers include data changes, not just commits.
+> The quality gate makes automatic retraining safe:
 > ```python
 > def test_model_not_worse_than_baseline():
 >     assert new_metrics["recall"] >= baseline_metrics["recall"] - 0.01
 >     assert new_metrics["p95_latency_ms"] <= 100
 > ```
-> Without it, automation amplifies failure instead of preventing it — a bad week of data produces a bad model that deploys itself.
->
-> **The trigger asymmetry is the deepest difference.** Traditional CI/CD triggers on *code* change; MLOps triggers on **code OR data OR model** change. Data changing with no commit is a legitimate reason to rebuild — an idea with no counterpart in software engineering.
+> Without it, a bad week of data produces a bad model that deploys itself.
 
-**4.** Explain the four testing layers, and why "model tests" cannot be replaced by unit tests.
+**4.** Explain the four testing layers. Why can't unit tests replace model tests?
 
 > [!example]- Solution
-> The layers are ordered **cheapest and fastest first**, implementing the *fail fast* principle: run cheap checks before expensive training so a lint error costs 10 seconds rather than 40 minutes of GPU time.
->
-> **1. Unit tests** — pure functions, no I/O. Does `normalise_price` handle nulls? Milliseconds; deterministic.
-> **2. Integration tests** — pipeline stages on a small data slice. Does `engineer.py`'s output actually load in `train_model.py`? Catches interface mismatches — a renamed column, a changed dtype.
-> **3. Model tests** — accuracy ≥ baseline, latency ≤ SLA, fairness metrics, data drift.
-> **4. E2E tests** — full pipeline on staging, canary request validation.
->
-> **Why model tests are irreducible.** Unit and integration tests answer *"does the code run correctly?"* Model tests answer *"is the resulting model any good?"* — and those are independent questions.
->
-> A pipeline can be **flawlessly implemented and produce a useless model**: every transform correct, every interface matching, every test green — and the model predicts the majority class because the training data was accidentally filtered to one label. No unit test detects that, because no *function* misbehaved.
->
-> This is the **probabilistic vs deterministic** distinction from [[01 - Introduction to MLOps]] made concrete. Deterministic code is either right or wrong and unit tests decide which. A model's quality is a *statistical property of its outputs*, measurable only by evaluating it on data.
->
+> Cheapest first so failures surface early: a lint error costs seconds, not GPU minutes. Unit tests check functions; integration tests check that stages fit (a renamed column, a changed dtype); model tests check the result; end-to-end tests check staging.
+> Code can be correct and still produce a useless model, e.g. training data accidentally filtered to one class. Model quality is a statistical property of outputs:
 > ```python
-> def test_accuracy_not_regressed(new_model, baseline_metrics, X_test, y_test):
->     assert recall_score(y_test, new_model.predict(X_test)) >= baseline_metrics["recall"] - 0.01
->
-> def test_latency_within_sla(model, sample):
->     p95 = np.percentile([timeit(lambda: model.predict(sample)) for _ in range(100)], 95)
->     assert p95 <= 0.100                                   # 100 ms
->
 > def test_fairness_across_groups(model, X_test, y_test, groups):
 >     rates = {g: recall_score(y_test[groups == g], model.predict(X_test[groups == g]))
 >              for g in groups.unique()}
 >     assert max(rates.values()) - min(rates.values()) <= 0.05
 > ```
-> The fairness test is the one most often skipped and most consequential — it is the automated form of [[04 - Model Development]]'s warning that **aggregate metrics hide subgroup failure**.
->
-> **Use small data subsets in CI, full data in CT.** Model tests in CI should be fast smoke checks; the authoritative evaluation belongs in the CT stage.
+> The fairness test is the automated form of "aggregate metrics hide subgroup failure" ([[04 - Model Development]]). Use small subsets in CI and full evaluation in CT.
 
-**5.** (Advanced) Design the automated retraining loop: what triggers it, what safeguards it needs, and what can go wrong.
+**5.** (Advanced) Design the automated retraining loop: triggers, safeguards, risks.
 
 > [!example]- Solution
-> **The loop:** Production Model → Monitor → Drift Alert → Re-train → New Model → *promote*.
->
 > ```yaml
-> # .github/workflows/retrain.yml
 > name: Automated Retraining
 > on:
->   workflow_dispatch:                 # fired by the drift monitor
+>   workflow_dispatch:
 >     inputs:
->       reason: { required: true }     # audit trail: WHY did this fire?
+>       reason: { required: true }        # record why it fired
 >   schedule:
->     - cron: '0 2 * * 1'              # weekly fallback
+>     - cron: '0 2 * * 1'                 # weekly fallback
 > jobs:
 >   retrain:
 >     runs-on: ubuntu-latest
@@ -421,87 +215,50 @@ data-processing → model-training → build-and-publish
 >       - uses: actions/checkout@v4
 >       - run: python src/data/validate.py --fail-on-schema-violation
 >       - run: python src/models/train_model.py --config configs/model_config.yaml
->       - run: pytest tests/test_model_quality.py     # QUALITY GATE
->       - run: python src/registry/promote.py --stage Staging   # NOT Production
+>       - run: pytest tests/test_model_quality.py
+>       - run: python src/registry/promote.py --stage Staging
 >   deploy:
 >     needs: retrain
->     environment: production          # required human reviewer
+>     runs-on: ubuntu-latest
+>     environment: production             # human approval
 >     steps:
 >       - run: python src/registry/promote.py --stage Production
 > ```
->
-> **The triggers.** The monitor computes drift (PSI, KL divergence for predictions; KS test, Wasserstein for features) and calls the Actions API when a threshold is breached. The cron is a **fallback** — gradual concept drift like the house-price inflation example in [[01 - Introduction to MLOps]] may never trip a drift alarm, because $P(X)$ never changes.
->
-> **Four safeguards, each blocking a specific failure:**
->
-> **1. Data validation before training.** If the drift was caused by a *broken upstream pipeline* rather than genuine change, retraining bakes the corruption into the model. Validate schema and null rates first, and fail loudly. Distinguishing drift from a data-quality bug is the diagnostic discipline from [[01 - Introduction to MLOps]].
->
-> **2. Quality gate before promotion.** Never promote a model that has not beaten the baseline. Automation without a gate ships regressions automatically.
->
-> **3. Promote to Staging, not Production.** The registry's `Staging → Production → Archived` stages exist for this. A human — or a canary — makes the final call.
->
-> **4. Shadow / canary deployment.** Run the new model on live traffic **without acting on its predictions**, compare against the incumbent, then route a small percentage before full rollout. This is CD's *"shadow → canary → prod"* sequence. → [[06 - Deployment]]
->
-> **What can go wrong — the feedback loop trap.** The most dangerous failure is that the model's own predictions influence the data it later trains on. A fraud model blocks transactions it thinks are fraudulent, so those never generate outcome labels; the next training set contains only transactions the *previous* model approved. The model progressively narrows onto its own prior beliefs and becomes blind to fraud patterns it already rejects. Recommenders show the same pathology — recommend, observe clicks on what was recommended, retrain, recommend more of the same.
->
-> Mitigations: hold out a small **randomised** control slice that bypasses the model, and monitor prediction *distribution* not just accuracy.
->
-> **Second trap: delayed labels.** [[01 - Introduction to MLOps]] noted fraud labels arrive weeks later via chargebacks, so "current accuracy" is unmeasurable in real time and retraining on incomplete labels systematically undercounts positives. Retraining cadence must respect label latency.
->
-> **Third: retraining on a drifted-but-correct world.** If drift reflects a genuine permanent shift, retraining is right. If it reflects a one-off event — a holiday, an outage — retraining fits noise. Requiring `reason` as a `workflow_dispatch` input forces that judgement to be recorded, which is the auditability requirement from [[01 - Introduction to MLOps]].
+> The monitor calls the API when drift (PSI, KS, …) crosses a threshold; the cron catches gradual concept drift that never moves $P(X)$.
+> Safeguards: validate data first (retraining on a broken pipeline bakes in the error); quality gate; promote to staging, not production; shadow and canary before full rollout ([[06 - Deployment]]).
+> Risks: **feedback loops**: a fraud model never sees outcomes for transactions it blocked, so it narrows onto its own beliefs (likewise recommenders); keep a small randomized slice that bypasses the model. **Delayed labels**: retraining before chargebacks arrive undercounts fraud. **One-off events**: retraining on a holiday spike fits noise; the required `reason` input records the judgment.
 
 ## 📝 Summary
 
-- **A DAG** has directed edges, no cycles, and a topological order — giving reproducibility, parallelism, auditability, and **incrementality**.
-- **The pipeline DAG (data→model) and the CI/CD DAG (commit→deploy) are complementary**; CI/CD triggers and validates the pipeline.
-- **GitHub Actions:** Workflow → Event → Job → Step → Action, executed on a Runner. `needs:` creates the DAG edges.
-- **Jobs run on fresh runners**, so data crosses job boundaries only via **artifacts**.
-- **MLOps CI/CD triggers on code OR data OR model change** — and validates with data validation and model evaluation, not just unit tests.
-- **CI → CT → CD.** **CT (Continuous Training)** has no traditional equivalent: models decay without code changes.
-- **The quality gate makes automated retraining safe** — block promotion unless the new model beats the baseline.
-- **Four test layers:** unit → integration → **model** (accuracy, latency, fairness, drift) → E2E. Model tests are irreducible.
-- **DVC versions data; the Model Registry versions models** through Staging → Production → Archived.
-- **Best practices:** idempotent stages · fail fast · small data in CI, full data in CT · parameterise everything · pin action versions · secrets via GitHub Secrets only.
+- DAGs give ordering, parallelism, lineage and incremental re-runs; CI/CD triggers and validates the pipeline DAG.
+- Actions: workflow → event → job → step → action on a runner; `needs:` adds edges.
+- Jobs share nothing; pass files as artifacts.
+- MLOps CI/CD triggers on code, data or model changes and tests data and models.
+- CI → CT → CD; CT exists because models decay; the quality gate makes it safe.
+- Test layers: unit → integration → model → end-to-end.
+- DVC versions data; the registry versions models (Staging → Production → Archived).
+- Idempotent stages, fail fast, pinned actions, secrets only through Secrets.
 
 ## ⚠️ Important Notes
 
-**Jobs do not share a filesystem; steps within a job do.** Anything crossing a job boundary must go through `upload-artifact`/`download-artifact`.
-
-**Artifacts are not cache.** `actions/cache` is a performance optimisation whose miss is harmless; artifacts are required outputs. Cached entries can be silently evicted.
-
-**Without `needs:`, jobs run in parallel.** There is no implicit ordering, so a deploy job can start before training finishes.
-
-**Guard deploy jobs with a branch condition**, or a pull request — potentially from a fork — will deploy to production. Back it with a protected environment; the `if:` alone is convention, not enforcement.
-
-**Pin action versions (`@v4`, not `@main`).** An unpinned action can change under you, and a compromised action with `@main` executes arbitrary code with access to your secrets.
-
-**Never hardcode credentials in workflow YAML.** Use `${{ secrets.NAME }}`. Workflow files are in the repository, visible to everyone with read access.
-
-**A Docker PAT is shown once.** Copy it immediately; regenerating invalidates the old one and breaks running workflows.
-
-**Automated retraining without a quality gate ships regressions automatically.** Automation amplifies whatever process it wraps.
-
-**Validate data before retraining.** If drift is caused by a broken upstream pipeline, retraining bakes the corruption into the model.
-
-**Promote to Staging, not straight to Production.** The registry's stages exist so a human or a canary makes the final call.
-
-**Beware the feedback loop.** A model that influences the data it later trains on progressively narrows onto its own beliefs — the fraud model that never sees the transactions it blocked. Hold out a randomised control slice.
-
-**Delayed labels constrain retraining cadence.** Retraining before labels arrive systematically undercounts positives.
-
-**Keep pipeline stages idempotent.** Re-running a failed job must be safe; a stage that appends rather than overwrites corrupts data on retry.
-
-**Fail fast — cheap checks before expensive ones.** Lint before training saves GPU minutes and shortens the feedback loop CI exists to provide.
+1. Steps share a filesystem; jobs don't.
+2. Cache is not for pipeline outputs.
+3. Without `needs:`, jobs run in parallel.
+4. Guard deploys by branch and back the guard with a protected environment.
+5. Pin action versions; a compromised `@main` action runs with your secrets.
+6. Never hardcode credentials.
+7. A Docker Hub token is shown once.
+8. Automated retraining without a gate ships regressions.
+9. Validate data before retraining.
+10. Promote to staging first.
+11. Watch for feedback loops; keep a randomized control slice.
+12. Retraining cadence must respect label delay.
+13. Idempotent stages make retries safe.
 
 > [!warning] Gaps in the source slides
-> LaTeX Beamer with heavy TikZ diagrams and icon fonts, so extraction has artefacts (stray glyphs like `/cogs`, `Ὠ0`, `/da◎abase` are icon-font characters, not content).
-> - **Slides 2, 6, 11, 19** produced no text — section dividers.
-> - **Diagrams extracted only as scattered labels:** the DAG figure (slide 3), the ML pipeline DAG (slide 5), the job-dependency graph (slide 9), the CI/CT/CD pipeline (slide 13), the versioning flow (slide 14), the test pyramid (slide 15), the retraining loop (slide 16). I have reconstructed these in prose and ASCII above.
-> - **Several blocks truncate mid-item:** slide 7 (the runner list, cut at "ubuntu-late"), slide 8 (**the workflow's final `Run` step is cut off** — the test command itself is not shown), slide 10 (reusable workflows, cut at "Call"), slide 14 (**the "Golden Rule" is cut at "Every model in production must"** — the completion is not recoverable), slide 17 (quality gates, cut after the schema-contract bullet), slide 18 (summary, cut at "Automat"), slide 20 (cut mid-footer), slide 21 (the PAT warning, cut at "won't be shown a"), slide 22 (**the third workflow filename is cut — `simple_mlops-ci-...`**).
-> - **The actual workflow YAML files are not in the slides** — they are downloaded from [`github.com/NguyenMToan/house-price-predictor/tree/main/.github/workflows`](https://github.com/NguyenMToan/house-price-predictor/tree/main/.github/workflows). The deck names three (`mlops-ci-workflow.yaml`, `mlops-pipeline.yaml`, and a truncated third) but shows none of their contents. **The example workflows in this note are reconstructed** from the described structure.
-> - **Slide 24** references a screenshot of the Actions UI.
->
-> Note the deck is dated **March 30, 2026** and credited to "MLOps Course" rather than the lecturer by name, unlike the other decks.
+> - Slides 2, 6, 11, 19 have no text; diagrams on slides 3, 5, 9, 13–16 extracted only as labels and icon-font glyphs, and are rebuilt above.
+> - Truncated: slide 7 (runner list), 8 (the final test step), 10 (reusable workflows), 14 (the golden rule), 17, 18, 20, 21 (token warning), 22 (third workflow filename). Slide 24 is a screenshot.
+> - The workflow YAML files are only in the repository; the examples here are reconstructed from the described structure.
+> - The deck is dated 30 March 2026 and credited to "MLOps Course" rather than the lecturer.
 
----
 **Previous:** [[08 - Monitoring with Prometheus and Grafana]] · **Next:** [[10 - Monitoring and Drift]]

@@ -11,11 +11,11 @@ An Obsidian vault used as a "second brain" by a Data Science student at NEU (Nat
 
 ## Current state (2026-10-09)
 
-- **22 subjects complete, 237 chapter notes** (counted from `contents/[0-9][0-9] - *.md`, including Computer Vision's 14).
+- **23 subjects complete, 249 chapter notes** (counted from `contents/[0-9][0-9] - *.md`, including Computer Vision's 14).
 - **Computer Vision is in progress.** The course is running and slides arrive weekly. Notes 01–08 were rewritten from lectures 1–8; notes 09–14 are drafts to redo when their slides appear. `Computer Vision/CLAUDE.md` is the source of truth.
-- **Big Data Analytics now has sources** (added 2026-10-09): *Learning Spark* and *Spark: The Definitive Guide* in `documents/`. Not started; it has no `CLAUDE.md` yet. Check `note/` for a user syllabus before choosing a scope.
-- **Blocked** (empty `documents/`): Natural Language Processing, PowerBI, Programming for Data Science (Python).
-- **Deep Learning was rewritten 2026-10-09** in a shorter style at the user's request.
+- **Big Data Analytics written 2026-10-09** (ch. 01–12, from the two Spark books + the user's notes; 6 errata).
+- **Blocked** (empty `documents/`): Natural Language Processing (its `note/` is empty too), PowerBI, Programming for Data Science (Python).
+- **Concise rewrite in progress (user request 2026-10-09):** rewrite every older subject in the plain style (see Conventions), keeping verified content. Done: Deep Learning, Data Preparation and Visualization, Mathematical Statistics, MLOps (1 slide erratum), Machine Learning (2 slide errata), Time-series Analysis (1 new erratum; 1 false erratum withdrawn). In progress: Principle of Accounting, ch. 01–02 rewritten; next ch. 03, then shorten its `00-Index.md` and `CLAUDE.md`. Skip Computer Vision (already reworked). Recheck numbers while rewriting: each pass so far has found 3–4 slips in old exercises (recorded in the subject's `CLAUDE.md`). Order: the progress table from the top (Data Preparation and Visualization first). For each subject also shorten its `CLAUDE.md` and `00-Index.md`, and record progress here.
 - Open question for the user (not blocking): textbook-only scopes are my choices, and optimal control is missing because `Optimization/documents/Léonard & Long` has no text layer.
 
 **To resume:** read this file and the one subject's `CLAUDE.md`, then start. Don't re-read finished subjects or old transcripts.

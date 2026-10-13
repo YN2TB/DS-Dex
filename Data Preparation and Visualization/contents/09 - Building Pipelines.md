@@ -5,422 +5,245 @@ tags: [ds, scikit-learn, pipeline, cross-validation, data-leakage, deployment]
 source: "Lesson_9_Pipeline.pdf — Dr. Nguyen Tuan Long, NEU"
 ---
 
-# Building Pipelines — The Comprehensive ML Workflow
+# Building Pipelines: The Complete ML Workflow
 
-> [!note] Where this sits in the course
-> The **capstone of Part 2**. Every technique from [[06 - Data Cleaning]], [[07 - Data Transformation]], and [[08 - Feature Selection]] gets assembled into a single object that can be fitted, cross-validated, saved, and deployed. This is the chapter that turns a notebook into something production-ready.
->
-> The slides pose numbered questions **and answer them** — unusually, the lecturer's own answers are recoverable here, and they are reproduced verbatim below because they read like exam answers.
+Capstone of Part 2: cleaning ([[06 - Data Cleaning]]), transformation ([[07 - Data Transformation]]) and selection ([[08 - Feature Selection]]) combined into one object that can be fitted, cross-validated, tuned, saved and deployed. The slides answer their own questions; the lecturer's answers are kept in the Q&A boxes.
 
 ## 📘 Main Knowledge
 
 ### The running dataset
 
-Deliberately messy — missing values, numeric, nominal, and ordinal columns all at once:
+Missing values plus numeric, nominal and ordinal columns:
 
 ```python
 data = {
     'age':       [25, 30, 45, 55, np.nan, 35, 60, 65, 70, 22, 48, 52],
-    'income':    [50000, 60000, 100000, 80000, 120000, 75000, np.nan,
-                  200000, 180000, 45000, 90000, 110000],
-    'city':      ['Hanoi', 'HCMC', 'Hanoi', 'Danang', ...],      # nominal
-    'education': ['Bachelor', 'Master', 'PhD', ...],             # ORDINAL
-    'gender':    ['Male', 'Female', ...],                        # nominal
-    'target':    [0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1]
-}
+    'income':    [50000, 60000, 100000, 80000, 120000, 75000, np.nan, 200000, 180000, 45000, 90000, 110000],
+    'city':      ['Hanoi', 'HCMC', 'Hanoi', 'Danang', ...],   # nominal
+    'education': ['Bachelor', 'Master', 'PhD', ...],          # ordinal
+    'gender':    ['Male', 'Female', ...],                     # nominal
+    'target':    [0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1]}
 ```
 
-### Part 1 — `train_test_split`: the mandatory first step
-
-Isolate a test set **before anything else**, to prevent data leakage. All `.fit()` happens on training data only; the test set is unseen data reserved for final evaluation.
+### 1. Split first
 
 ```python
 from sklearn.model_selection import train_test_split
-
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y,
-    test_size=0.2,      # 20% held out
-    random_state=42,    # reproducibility
-    stratify=y          # preserve class balance — CRITICAL for classification
-)
+    X, y, test_size=0.2, random_state=42, stratify=y)
 ```
 
-> [!question]- Lecturer's Q&A #1
-> **Why must we split before any preprocessing (scaling, imputation)?**
-> To prevent Data Leakage from the test set into the training process.
->
-> **What is the purpose of `stratify=y`?**
-> To ensure the class proportions (e.g. % of 0s and 1s) in `y_train` and `y_test` match the original `y`.
->
-> **What happens if you forget `random_state`?**
-> You get a different split every run, making results non-reproducible.
+> [!question]- Lecturer's Q&A 1
+> **Why split before preprocessing?** To prevent leakage from the test set into training.
+> **Purpose of `stratify=y`?** Class proportions in `y_train` and `y_test` match the original `y`.
+> **Forgetting `random_state`?** A different split each run; results not reproducible.
 
-### Part 2 — The basic Pipeline
+### 2. A basic pipeline
 
-Think of it as an **assembly line**. For numerical data: impute → scale → train. A `Pipeline` bundles those into one object.
+A pipeline is an assembly line: impute → scale → model.
 
 ```python
-simple_numerical_steps = [
+simple_num_pipeline = Pipeline(steps=[
     ('imputer', SimpleImputer(strategy='median')),
-    ('scaler',  StandardScaler()),
-    ('model',   LogisticRegression(random_state=42))
-]
-simple_num_pipeline = Pipeline(steps=simple_numerical_steps)
-
+    ('scaler', StandardScaler()),
+    ('model', LogisticRegression(random_state=42))])
 numeric_features = ['age', 'income']
 simple_num_pipeline.fit(X_train[numeric_features], y_train)
 score = simple_num_pipeline.score(X_test[numeric_features], y_test)
 ```
 
-> [!question]- Lecturer's Q&A #2
-> **Main benefit of a Pipeline?**
-> It automates the process and prevents data leakage by correctly calling `fit_transform` on train data and only `transform` on test data.
->
-> **Required format for `steps`?**
-> A list of `(name, object)` tuples, e.g. `('imputer', SimpleImputer(...))`.
->
-> **What if we ran `simple_pipe.fit(X_train, y_train)` with the full `X_train`?**
-> It would crash. `StandardScaler` would receive string columns like `'city'` and fail.
+> [!question]- Lecturer's Q&A 2
+> **Main benefit?** Automates the process and prevents leakage: `fit_transform` on train, `transform` on test.
+> **Format of `steps`?** A list of `(name, object)` tuples.
+> **Fitting on the full `X_train`?** It crashes: `StandardScaler` receives string columns like `city`.
 
-That last answer motivates the whole next section.
-
-### Part 3 — Mixed data types and `ColumnTransformer`
-
-Real data needs **different treatment per column type**:
+### 3. Mixed types: `ColumnTransformer`
 
 | Type | Examples | Needs |
 |---|---|---|
-| **Numerical** | `age`, `income` | Imputation, Scaling |
-| **Nominal** (no order) | `city`, `gender` | Imputation, One-Hot Encoding |
-| **Ordinal** (has order) | `education` | Imputation, Ordinal Encoding |
-
-`ColumnTransformer` applies different sub-pipelines to different columns **in parallel**.
-
-**Step 1 — define sub-pipelines:**
+| numerical | age, income | imputation, scaling |
+| nominal | city, gender | imputation, one-hot encoding |
+| ordinal | education | imputation, ordinal encoding |
 
 ```python
-numeric_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='median')),
-    ('scaler',  StandardScaler())
-])
-
-nominal_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='most_frequent')),
-    ('onehot',  OneHotEncoder(handle_unknown='ignore'))
-])
-
-education_order = ['Bachelor', 'Master', 'PhD']
-ordinal_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='most_frequent')),
-    ('ordinal', OrdinalEncoder(categories=[education_order],
-                               handle_unknown='use_encoded_value',
-                               unknown_value=-1))
-])
-```
-
-**Step 2 — combine.** Each transformer is a tuple `(name, sub_pipeline, columns)`:
-
-```python
-numeric_features = ['age', 'income']
-nominal_features = ['city', 'gender']
-ordinal_features = ['education']
-
+numeric_transformer = Pipeline([('imputer', SimpleImputer(strategy='median')),
+                                ('scaler', StandardScaler())])
+nominal_transformer = Pipeline([('imputer', SimpleImputer(strategy='most_frequent')),
+                                ('onehot', OneHotEncoder(handle_unknown='ignore'))])
+ordinal_transformer = Pipeline([('imputer', SimpleImputer(strategy='most_frequent')),
+                                ('ordinal', OrdinalEncoder(categories=[['Bachelor', 'Master', 'PhD']],
+                                                           handle_unknown='use_encoded_value',
+                                                           unknown_value=-1))])
 preprocessor = ColumnTransformer(transformers=[
-    ('num',         numeric_transformer, numeric_features),
-    ('cat_nominal', nominal_transformer, nominal_features),
-    ('cat_ordinal', ordinal_transformer, ordinal_features)
-])
+    ('num', numeric_transformer, ['age', 'income']),
+    ('cat_nominal', nominal_transformer, ['city', 'gender']),
+    ('cat_ordinal', ordinal_transformer, ['education'])])
 ```
 
-> [!question]- Lecturer's Q&A #3 and #4
-> **Nominal vs Ordinal?**
-> A nominal feature has no inherent order (e.g. `city`). An ordinal feature has a meaningful order (e.g. `education`: Bachelor < Master).
->
-> **Why can't we use `OrdinalEncoder` for `city`?**
-> It would create a fake mathematical relationship (e.g. Danang (2) > Hanoi (0)), which can confuse the model.
->
-> **Main purpose of `ColumnTransformer`?**
-> To apply different transformation pipelines to different subsets of columns in parallel.
->
-> **What does `handle_unknown='ignore'` do?**
-> It prevents an error if the model sees a new category in the test data (e.g. a new city) that it never saw during training.
->
-> **Why put `SimpleImputer` inside the sub-pipelines?**
-> To prevent data leakage — the median (numbers) and most_frequent (categories) are learned only from the training folds.
->
-> **What happens to columns not listed in any transformer, and how do you keep them?**
-> By default they are **dropped** (`remainder='drop'`). Set `remainder='passthrough'` to keep them.
+Each entry is `(name, transformer, columns)`; the branches run in parallel.
 
-### Part 4 — The full workflow
+> [!question]- Lecturer's Q&A 3–4
+> **Nominal vs ordinal?** Nominal has no order (city); ordinal has a meaningful order (Bachelor < Master).
+> **Why not `OrdinalEncoder` for city?** It creates a fake numeric relationship (Danang 2 > Hanoi 0).
+> **Purpose of `ColumnTransformer`?** Apply different pipelines to different column subsets in parallel.
+> **`handle_unknown='ignore'`?** No error when the test data contains a new category (a new city).
+> **Why put `SimpleImputer` inside the sub-pipelines?** The median/most frequent values are learned only from training data.
+> **Columns not listed?** Dropped by default (`remainder='drop'`); use `remainder='passthrough'` to keep them.
 
-Chain everything: preprocess → select → model.
+### 4. Full workflow
 
 ```python
 full_pipeline = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    ('selector',     SelectKBest(score_func=f_classif, k=6)),
-    ('model',        LogisticRegression(random_state=42))
-])
+    ('selector', SelectKBest(score_func=f_classif, k=6)),
+    ('model', LogisticRegression(random_state=42))])
 ```
 
-After preprocessing there are **8 features**: 2 numeric + 5 one-hot (city 3 + gender 2) + 1 ordinal. `SelectKBest(k=6)` keeps the best 6 of those 8.
+After preprocessing there are 8 features: 2 numeric + 5 one-hot (3 cities + 2 genders) + 1 ordinal; `SelectKBest(k=6)` keeps 6.
 
-> [!question]- Lecturer's Q&A #5
-> **Purpose of `full_pipeline`?**
-> To chain all steps (preprocessing, selection, modelling) into a single object you can `fit` and `predict` with.
->
-> **Does step order matter?**
-> **Yes, absolutely.** Data must be cleaned/transformed before features can be selected, and features must be selected before the model is trained.
->
-> **What does `('selector', SelectKBest(k=6))` do?**
-> Selects the top 6 features most strongly related to the target, scored by `f_classif` (ANOVA F-test).
->
-> **(Advanced) What if I want `f_classif` on numeric features and `chi2` on categorical ones?**
-> You can't, with a single `SelectKBest` after the preprocessor. Remove the `('selector', ...)` step from the main Pipeline and move `SelectKBest` **inside the sub-pipelines** — `SelectKBest(f_classif)` in `numeric_transformer`, `SelectKBest(chi2)` in `nominal_transformer`.
+> [!question]- Lecturer's Q&A 5
+> **Purpose of `full_pipeline`?** One object for preprocessing, selection and modelling, with `fit` and `predict`.
+> **Does order matter?** Yes: transform before selecting, select before training.
+> **What does the selector do?** Keeps the 6 features most related to the target by the ANOVA F-test.
+> **(Advanced) `f_classif` for numeric and `chi2` for categorical features?** Not with one selector after the preprocessor. Put `SelectKBest(f_classif)` inside `numeric_transformer` and `SelectKBest(chi2)` inside `nominal_transformer`.
 
-That last answer is the elegant one: because `chi2` requires non-negative input, it cannot run after `StandardScaler` — so the test must be applied *within* the branch whose data suits it. See [[08 - Feature Selection]].
+(`chi2` needs non-negative input, so it cannot follow `StandardScaler`; it must go in the branch whose data suits it.)
 
-### Part 5 — Reliable evaluation with cross-validation
+### 5. Cross-validation
 
-A single `train_test_split` score can be lucky or unlucky.
-
-- **K-Fold** splits the data into $k$ folds, trains on $k-1$ and tests on the remaining one, repeating $k$ times.
-- **`cross_val_score`** automates it.
+One split can be lucky or unlucky. K-fold trains on $k-1$ folds and tests on the remaining one, $k$ times.
 
 ```python
 kfold = KFold(n_splits=5, shuffle=True, random_state=42)
-
 cv_scores = cross_val_score(full_pipeline, X, y, cv=kfold, scoring='accuracy')
-
-print(f"Scores: {cv_scores}")
-print(f"Mean Accuracy: {cv_scores.mean():.4f}")
-print(f"Standard Deviation: {cv_scores.std():.4f}")
+print(cv_scores.mean(), cv_scores.std())
 ```
 
-> [!question]- Lecturer's Q&A #6
-> **Why is `cross_val_score` better than a single split?**
-> A single split might be 'lucky' or 'unlucky'. CV gives a more stable, reliable estimate by averaging over 5 different splits.
->
-> **What object should be passed as the estimator?**
-> The **`full_pipeline`**. This is critical to prevent data leakage during cross-validation.
->
-> **What does a high standard deviation of `cv_scores` tell us?**
-> Performance was inconsistent across folds — the model is **unstable**.
+> [!question]- Lecturer's Q&A 6
+> **Why better than one split?** Averaging over 5 splits gives a more stable estimate.
+> **What estimator to pass?** The `full_pipeline`; essential to prevent leakage.
+> **High standard deviation?** Performance varies across folds: the model is unstable.
 
-### Hyperparameter tuning with `GridSearchCV`
+**Tuning with `GridSearchCV`**
 
 ```python
-grid = GridSearchCV(
-    estimator,      # model or pipeline to tune
-    param_grid,     # parameter combinations to try
-    scoring=None,   # metric: accuracy, f1, r2, ...
-    cv=None,        # number of CV folds, e.g. cv=5
-    n_jobs=-1,      # use all CPU cores
-    verbose=1
-)
+grid = GridSearchCV(estimator, param_grid, scoring=None, cv=None, n_jobs=-1, verbose=1)
+param_grid = {'C': [0.1, 1, 10], 'kernel': ['linear', 'rbf'], 'gamma': [0.01, 0.001]}   # bare estimator
+param_grid = {'scaler__with_std': [True, False], 'model__C': [0.1, 1.0, 10.0],
+              'model__penalty': ['l2']}                                             # pipeline
 ```
 
-For a bare estimator, parameter names are plain:
+In a pipeline, parameters are addressed as `stepname__parameter`, nesting further with more double underscores (`preprocessor__num__imputer__strategy`).
 
-```python
-param_grid = {'C': [0.1, 1, 10], 'kernel': ['linear', 'rbf'], 'gamma': [0.01, 0.001]}
-```
+### 6. Deployment with `joblib`
 
-**For a Pipeline, use the `stepname__parameter` double-underscore syntax:**
-
-```python
-param_grid = {
-    'scaler__with_std': [True, False],
-    'model__C':         [0.1, 1.0, 10.0],
-    'model__penalty':   ['l2']
-}
-```
-
-The double underscore is how sklearn addresses a parameter *inside* a named step. It nests: `preprocessor__num__imputer__strategy` reaches the imputer strategy in the `num` branch of the `ColumnTransformer`.
-
-### Part 6 — Deployment with `joblib`
-
-When deploying, **save the entire Pipeline, not just the model** — this guarantees new data is preprocessed exactly as the training data was.
+Save the whole pipeline, not just the model, so new data is processed exactly like the training data.
 
 ```python
 import joblib
-
 joblib.dump(full_pipeline, 'final_model_pipeline.joblib')
 loaded_pipeline = joblib.load('final_model_pipeline.joblib')
 ```
 
-> [!question]- Lecturer's Q&A #7
-> **Why save the `full_pipeline` rather than the model?**
-> The pipeline contains all preprocessing steps (imputer, scaler, encoders). Saving it ensures new data is processed exactly like the training data, preventing errors.
->
-> **Which joblib functions?**
-> `joblib.dump()` to save, `joblib.load()` to load.
->
-> **What must be true of `X_new` at prediction time?**
-> It must have the **exact same column names and structure** as the original `X_train` — even if it contains missing values.
-
-That last point is the payoff of the whole design: the deployed pipeline accepts *raw, messy* data with missing values and text columns, because every cleaning step travelled with it.
+> [!question]- Lecturer's Q&A 7
+> **Why save the pipeline?** It contains the imputer, scaler and encoders, so new data is processed identically.
+> **Functions?** `joblib.dump()` and `joblib.load()`.
+> **Requirement on `X_new`?** The same column names and structure as `X_train` (missing values are fine).
 
 ## ✏️ Exercises
 
-**1.** You run `pipeline.fit(X_train, y_train)` where the pipeline is `[SimpleImputer, StandardScaler, LogisticRegression]` and `X_train` contains `city` and `education`. Predict the error and fix it.
+**1.** A pipeline `[SimpleImputer, StandardScaler, LogisticRegression]` is fitted on `X_train` that includes `city` and `education`. What happens? Fix it.
 
 > [!example]- Solution
-> It **crashes**. `SimpleImputer(strategy='median')` cannot compute a median of `'Hanoi'`, and `StandardScaler` cannot compute a mean of strings — you get a `ValueError: could not convert string to float: 'Hanoi'`.
->
-> A flat `Pipeline` applies **every step to every column**. It has no way to express "scale these, encode those."
->
-> **Fix — `ColumnTransformer`:**
+> It fails with `ValueError: could not convert string to float: 'Hanoi'`: a flat pipeline applies every step to every column. Fix with a `ColumnTransformer`:
 > ```python
-> preprocessor = ColumnTransformer(transformers=[
->     ('num', numeric_transformer, ['age', 'income']),
->     ('cat', nominal_transformer, ['city', 'gender']),
->     ('ord', ordinal_transformer, ['education'])
-> ])
-> pipeline = Pipeline([('preprocessor', preprocessor),
->                      ('model', LogisticRegression(random_state=42))])
-> pipeline.fit(X_train, y_train)   # works on the full frame
+> preprocessor = ColumnTransformer([('num', numeric_transformer, ['age', 'income']),
+>                                   ('cat', nominal_transformer, ['city', 'gender']),
+>                                   ('ord', ordinal_transformer, ['education'])])
+> pipeline = Pipeline([('preprocessor', preprocessor), ('model', LogisticRegression(random_state=42))])
+> pipeline.fit(X_train, y_train)
 > ```
-> The quick-and-dirty alternative — `pipeline.fit(X_train[numeric_features], y_train)` — works but throws away `city`, `gender`, and `education` entirely, discarding real predictive signal.
+> Fitting on numeric columns only also runs but throws away `city`, `gender` and `education`.
 
-**2.** In the `ColumnTransformer` above, `education` is handled with `OrdinalEncoder(categories=[education_order])` while `city` uses `OneHotEncoder`. Explain both choices, and say what goes wrong if they are swapped.
-
-> [!example]- Solution
-> **`education` is ordinal:** Bachelor < Master < PhD is a real ordering, so integers 0/1/2 encode genuine information. The model can learn "more education → higher target" as a single monotonic relationship, in one coefficient.
->
-> **`city` is nominal:** Hanoi, HCMC, and Danang have no order. One-hot gives each its own binary column and its own coefficient, with no ordering implied.
->
-> **Swapping them breaks things in two different ways.**
->
-> *Ordinal-encoding `city`* invents a fake ordering — `Danang=0, HCMC=1, Hanoi=2` implies Hanoi > HCMC > Danang and that the gap Danang→HCMC equals HCMC→Hanoi. A linear model acts on that arithmetic and produces nonsense. (Note the encoding would be **alphabetical** by default, so the fake ordering isn't even a meaningful one.)
->
-> *One-hot-encoding `education`* is less catastrophic but wasteful: it discards the ordering, spends 3 columns instead of 1, and forces the model to learn each level independently — meaning it cannot generalise that PhD continues the trend beyond Master. With little data per level, that hurts.
->
-> Note the explicit `categories=[education_order]`. Without it `OrdinalEncoder` sorts **alphabetically**: `Bachelor=0, Master=1, PhD=2` — which happens to be correct here **by luck**. With `['High School', 'Bachelor', 'Master', 'PhD']` alphabetical order gives `Bachelor=0, High School=1, Master=2, PhD=3`, ranking High School above Bachelor. **Always pass `categories=`.**
-
-**3.** Explain why `cross_val_score(full_pipeline, X, y, cv=kfold)` is leakage-free, whereas preprocessing `X` first and then cross-validating the model alone is not.
+**2.** Why is `education` ordinal-encoded and `city` one-hot encoded? What if they were swapped?
 
 > [!example]- Solution
-> **The wrong way:**
+> Education has a real order, so 0/1/2 carries information and one coefficient captures the trend. City has no order, so each city gets its own column.
+>
+> Ordinal-encoding city invents an order (alphabetically Danang 0, HCMC 1, Hanoi 2) and equal gaps that a linear model will use. One-hot encoding education is less harmful but wastes columns and loses the ordering, so the model cannot extend the trend beyond the levels seen.
+>
+> `Bachelor < Master < PhD` happens to be alphabetical; with `High School` added, alphabetical order puts High School above Bachelor. Always pass `categories=`.
+
+**3.** Why is `cross_val_score(full_pipeline, X, y, cv=kfold)` leakage-free, but preprocessing `X` first and cross-validating the model is not?
+
+> [!example]- Solution
 > ```python
-> X_processed = preprocessor.fit_transform(X)          # sees ALL data
-> cross_val_score(LogisticRegression(), X_processed, y, cv=5)
+> X_processed = preprocessor.fit_transform(X)                 # uses all rows
+> cross_val_score(LogisticRegression(), X_processed, y, cv=5)  # optimistic
 > ```
-> `fit_transform(X)` computes medians, means, standard deviations, and category lists from **every row** — including rows that will serve as validation data in each fold. Every "held-out" fold was already involved in defining the transformation applied to it. The score comes out optimistically biased.
+> Here medians, means, standard deviations and category lists come from all rows, including each fold's validation rows.
 >
-> **The right way:**
-> ```python
-> cross_val_score(full_pipeline, X, y, cv=kfold)
-> ```
-> `cross_val_score` **clones the pipeline for each fold** and re-fits it from scratch on that fold's training portion only. Fold 3's median is computed without ever seeing fold 3's validation rows.
->
-> Concretely, in fold 1: `imputer.fit_transform(X_train_fold1)` learns the median of *that* subset, then `imputer.transform(X_val_fold1)` applies it. In fold 2 an entirely new median is computed. Different folds may even select different features if `SelectKBest` is in the pipeline — that is correct behaviour, and the spread across folds tells you how stable your workflow is.
->
-> This is why Q&A #6's answer — "pass the `full_pipeline`" — is emphasised. Passing a bare model to `cross_val_score` after preprocessing everything is the single most common way people accidentally inflate their reported accuracy.
+> `cross_val_score(full_pipeline, ...)` clones the pipeline and refits it on each fold's training part only, so fold 3's median never sees fold 3's validation rows. With `SelectKBest` inside, folds may select different features; the spread shows how stable the workflow is.
 
-**4.** Write a `GridSearchCV` that tunes the imputation strategy for numeric features, the number of selected features, and the regularisation strength `C`, all within `full_pipeline`. Explain the naming syntax.
+**4.** Tune the numeric imputation strategy, the number of selected features and `C` inside `full_pipeline`.
 
 > [!example]- Solution
 > ```python
-> from sklearn.model_selection import GridSearchCV
->
-> param_grid = {
->     'preprocessor__num__imputer__strategy': ['mean', 'median'],
->     'selector__k':                          [4, 6, 8],
->     'model__C':                             [0.01, 0.1, 1.0, 10.0]
-> }
->
-> grid = GridSearchCV(full_pipeline, param_grid, scoring='accuracy',
->                     cv=5, n_jobs=-1, verbose=1)
+> param_grid = {'preprocessor__num__imputer__strategy': ['mean', 'median'],
+>               'selector__k': [4, 6, 8],
+>               'model__C': [0.01, 0.1, 1.0, 10.0]}
+> grid = GridSearchCV(full_pipeline, param_grid, scoring='accuracy', cv=5, n_jobs=-1, verbose=1)
 > grid.fit(X_train, y_train)
->
-> grid.best_params_
-> grid.best_score_
-> grid.best_estimator_.score(X_test, y_test)   # honest final number
+> grid.best_params_, grid.best_score_
+> grid.best_estimator_.score(X_test, y_test)    # final, honest score
 > ```
-> **The `__` syntax walks the nesting, one level per double underscore:**
->
-> `preprocessor__num__imputer__strategy`
-> → step `'preprocessor'` (the ColumnTransformer)
-> → its transformer named `'num'`
-> → that sub-pipeline's step `'imputer'`
-> → that object's `strategy` parameter.
->
-> This is why every step needs a **name** — the names are the address. Use `full_pipeline.get_params().keys()` to list every tunable path when you are unsure.
->
-> Grid size: 2 × 3 × 4 = 24 combinations × 5 folds = **120 fits**. That multiplies fast, which is why `n_jobs=-1` matters and why `RandomizedSearchCV` is preferred for large grids.
->
-> Critically, the *entire pipeline* is re-fitted for each combination on each fold — so tuning the imputation strategy is itself leakage-free. Tuning a preprocessing choice honestly is something you simply cannot do without this structure.
+> `preprocessor__num__imputer__strategy` = step `preprocessor` → transformer `num` → step `imputer` → parameter `strategy`. `full_pipeline.get_params().keys()` lists every path. $2\times3\times4=24$ combinations × 5 folds = 120 fits; use `RandomizedSearchCV` for bigger grids. Each fit refits the whole pipeline, so even tuning the imputer is leakage-free.
 
-**5.** (Advanced) You deploy `final_model_pipeline.joblib`. A month later, production predictions fail with `ValueError`. The incoming data has the same columns but in a different order, and contains a city (`'Hue'`) never seen in training. Diagnose both issues and explain which the pipeline already handles.
+**5.** (Advanced) A month after deployment, predictions fail. Incoming data has the same columns in a different order and a new city `'Hue'`. Which issue does the pipeline already handle?
 
 > [!example]- Solution
-> **The new city is already handled** — thanks to `handle_unknown='ignore'` on the `OneHotEncoder`. `'Hue'` produces all-zeros across the city columns instead of raising. The row is treated as "none of the known cities", which is a reasonable degradation. Without that parameter it would raise `Found unknown categories`.
+> The new city is handled: `OneHotEncoder(handle_unknown='ignore')` gives all zeros for the city columns (and `OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)` maps an unseen education level to −1).
 >
-> Similarly, `OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)` maps an unseen education level to −1 rather than crashing. Both are deliberate production-hardening choices in the lecturer's code.
->
-> **Column order is the real bug.** `ColumnTransformer` selects by **name**, so ordering *should* be tolerated — but only if you pass a DataFrame. The failure modes:
-> - If production passes a **numpy array**, positional order is all there is, and shuffled columns silently feed `income` into the `age` transformer. **No error — just wrong predictions**, which is worse than a crash.
-> - If a column is **missing or renamed**, `ColumnTransformer` raises `KeyError`.
-> - sklearn ≥ 1.0 records `feature_names_in_` at fit time and warns or raises when the incoming frame disagrees.
->
-> **The fix — validate the contract at the boundary:**
+> Column order is handled only if the input is a DataFrame, because `ColumnTransformer` selects by name. With a numpy array, shuffled columns silently send `income` to the `age` branch (wrong predictions, no error). A missing or renamed column raises `KeyError`. Validate at the boundary:
 > ```python
 > expected = loaded_pipeline.feature_names_in_
 > missing = set(expected) - set(X_new.columns)
 > if missing:
 >     raise ValueError(f"Missing required columns: {missing}")
-> X_new = X_new[expected]      # reorder to the training layout
-> predictions = loaded_pipeline.predict(X_new)
+> predictions = loaded_pipeline.predict(X_new[expected])
 > ```
-> This is Q&A #7's third answer in practice: `X_new` must have the same column names and structure as `X_train`. Missing *values* are fine — the imputer handles them. Missing or reordered *columns* are not.
->
-> Two further production concerns the slides do not raise. **Version pinning:** a joblib file is not guaranteed to load across scikit-learn versions; record the version alongside the artefact. And **`'Hue'` mapping to all-zeros is silent** — if a whole new region appears, predictions quietly degrade with no error. Log unknown-category rates in production; a rising rate is the signal that the model needs retraining.
+> Also record the scikit-learn version with the `.joblib` file, and monitor the share of unknown categories: unseen cities degrade predictions silently.
 
 ## 📝 Summary
 
-- **`train_test_split` first, always.** `stratify=y` preserves class balance; `random_state` makes it reproducible.
-- **A `Pipeline` is a list of `(name, object)` tuples** that calls `fit_transform` on train and `transform` on test — leakage prevention by construction.
-- **A flat Pipeline applies every step to every column**, so it crashes on mixed data.
-- **`ColumnTransformer` routes different sub-pipelines to different columns** — `(name, pipeline, columns)`. Unlisted columns are **dropped** unless `remainder='passthrough'`.
-- **Nominal → `OneHotEncoder`, ordinal → `OrdinalEncoder(categories=[...])`.** Order in a Pipeline matters: preprocess → select → model.
-- **`handle_unknown='ignore'`** keeps unseen categories from crashing production.
-- **`cross_val_score(full_pipeline, ...)`** — pass the *whole* pipeline, or cross-validation leaks. High `std` across folds means an unstable model.
-- **`GridSearchCV` addresses nested parameters with `step__param`**, nesting further with more double underscores.
-- **`joblib.dump(pipeline)` saves the entire workflow**, so deployed code accepts raw data. `X_new` must match `X_train`'s columns exactly.
+- Split first; `stratify=y` and `random_state` for balanced, reproducible splits.
+- A pipeline is a list of `(name, object)` steps; it fits on train and only transforms test.
+- A flat pipeline applies each step to all columns; `ColumnTransformer` routes columns to sub-pipelines and drops unlisted ones unless `remainder='passthrough'`.
+- Nominal → `OneHotEncoder(handle_unknown='ignore')`; ordinal → `OrdinalEncoder(categories=...)`.
+- Order: preprocess → select → model.
+- Pass the whole pipeline to `cross_val_score` and `GridSearchCV`; parameters use `step__param`.
+- Save the whole pipeline with `joblib`; new data must have the training columns.
 
 ## ⚠️ Important Notes
 
-**Pass the pipeline — not the model — to `cross_val_score` and `GridSearchCV`.** This is the single highest-value rule in the chapter. Preprocessing everything first and cross-validating the bare model is the standard way people accidentally report inflated accuracy.
-
-**`ColumnTransformer` drops unlisted columns silently.** `remainder='drop'` is the default, so forgetting a column means losing it with no warning. Use `remainder='passthrough'` deliberately.
-
-**Always pass `categories=` to `OrdinalEncoder`.** Alphabetical is the default and it is usually wrong. `['High School', 'Bachelor', 'Master', 'PhD']` sorts to put High School above Bachelor.
-
-**Set `handle_unknown='ignore'` (OneHot) and `handle_unknown='use_encoded_value'` (Ordinal).** Without them a category that appears only in production raises at `transform` time — a failure that never shows up in testing.
-
-**`chi2` cannot follow `StandardScaler`** — it requires non-negative input. Put the selector *inside* the appropriate sub-pipeline, per the lecturer's advanced answer, rather than after the preprocessor.
-
-**Step order is semantic, not stylistic.** Scale before polynomial expansion, preprocess before selection, select before modelling. A Pipeline will not warn you about a nonsensical order.
-
-**`GridSearchCV` cost multiplies.** Parameters × values × folds. 24 combinations at `cv=5` is 120 fits. Use `n_jobs=-1`, and `RandomizedSearchCV` once the grid grows.
-
-**Never tune on the test set.** Run `GridSearchCV` on `X_train`; touch `X_test` exactly once, at the end, via `best_estimator_.score(X_test, y_test)`. Repeatedly checking the test score turns it into a training set.
-
-**Save the pipeline, not the model.** A saved bare model requires you to re-implement every preprocessing step at inference — and any discrepancy produces silently wrong predictions rather than an error.
-
-**Column order matters when the input is a numpy array.** `ColumnTransformer` selects by name only for DataFrames. Reorder explicitly with `X_new[pipeline.feature_names_in_]` before predicting.
-
-**Pin your scikit-learn version alongside the `.joblib` file.** Pickled estimators are not guaranteed to load across versions.
-
-**Unknown categories degrade silently.** `handle_unknown='ignore'` maps an unseen city to all-zeros — no error, quietly worse predictions. Monitor the unknown-category rate in production as a retraining trigger.
+1. Pass the pipeline, not a bare model, to cross-validation and grid search.
+2. `ColumnTransformer` silently drops unlisted columns.
+3. Always pass `categories=` to `OrdinalEncoder`.
+4. Set `handle_unknown` on both encoders, or unseen production categories raise errors.
+5. `chi2` cannot follow `StandardScaler`; put it inside the right branch.
+6. A pipeline does not check whether the step order makes sense.
+7. Grid search cost = combinations × folds.
+8. Tune on `X_train`; use `X_test` once at the end.
+9. Save the pipeline, not just the model.
+10. Reorder numpy inputs (or use DataFrames) to match `feature_names_in_`.
+11. Pin the scikit-learn version with saved models.
+12. Monitor unknown-category rates in production.
 
 > [!warning] Gaps in the source slides
-> - **Slide 12** — the `ColumnTransformer` architecture diagram is an image.
-> - **Slide 21** — the `GridSearchCV` parameter comments are written in **Vietnamese**; I have translated them inline.
-> - **Slide numbering repeats** — two consecutive slides are both headed "Question 4" (PDF pages 15 and 17); I have renumbered the Q&A blocks sequentially.
-> - Cross-validation on slide 19 is demonstrated on the **entire `X, y`** rather than `X_train`. The slide notes both are valid, but be aware: using all of `X` gives the most general performance estimate and leaves no untouched holdout. For hyperparameter tuning, run CV on `X_train` and keep `X_test` sealed.
-> - The sample dataset has only **12 rows**, so any accuracy figures from it are illustrative, not meaningful.
+> - Slide 12 (ColumnTransformer diagram) is an image.
+> - Slide 21's GridSearchCV comments are in Vietnamese; translated inline.
+> - Two slides are both headed "Question 4"; Q&A blocks renumbered.
+> - Slide 19 cross-validates on all of `X, y`; for tuning, run CV on `X_train` and keep `X_test` untouched.
+> - The sample dataset has 12 rows, so its accuracies are only illustrative.
 
----
 **Previous:** [[08 - Feature Selection]] · **Next:** [[10 - Visualization with Matplotlib and Seaborn]]
