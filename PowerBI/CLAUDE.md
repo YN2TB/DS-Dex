@@ -1,12 +1,14 @@
-# PowerBI — subject context
+# PowerBI
 
-**Status: 🚫 blocked. Do not start.**
+Read with the root `CLAUDE.md` and `../METHOD.md`. `contents/` is empty until material arrives.
+
+**🚫 Blocked: don't start.**
 
 ## Why
 
 **`documents/` is empty.** There is no source material of any kind — no slides, no textbook, no exports. `contents/` is empty and must stay that way.
 
-Writing notes here from general knowledge would violate the vault's core rule (root `../CLAUDE.md`): *notes are built from the user's course material, and gaps are flagged rather than invented*. A whole subject written from general knowledge is that failure at maximum scale — it would look identical to a real note while matching no syllabus, no lecturer's notation, and no exam.
+Writing notes here from general knowledge would violate the vault's core rule (`../METHOD.md`): *notes are built from the user's course material, and gaps are flagged rather than invented*. A whole subject written from general knowledge is that failure at maximum scale — it would look identical to a real note while matching no syllabus, no lecturer's notation, and no exam.
 
 ## What to do instead
 

@@ -1,6 +1,6 @@
-# Principle of Accounting — subject context
+# Principle of Accounting
 
-**Status: ✅ complete** (2026-07-27). `contents/00-Index.md` plus chapters 01–09.
+Read with the root `CLAUDE.md` and `../METHOD.md`. Scope, chapters, errata: `contents/00-Index.md`.
 
 ## Sources
 
@@ -24,8 +24,6 @@ The decks *also* carry Weygandt's own internal numbering ("Illustration 9-x" in 
 ## Every numbered illustration in every deck is an image
 
 Slide prose extracts fine, but **all formula boxes, comparison tables, T-account diagrams and schedules are lost.** **Every formula in these notes is reconstructed from the worked examples.**
-
-Every surviving worked number *was* independently re-derived and verified: land cost 115,000; truck 23,820; all three depreciation schedules including the 685 DDB plug; the 19,375 revision; Lane Coal depletion; Wal-Mart 8.1× / 45.1 days; Cisco 7.7× / 47.2 days; Celine's closing entries.
 
 **The three most examinable summary tables are all images and are reconstructions in the notes:** FIFO/LIFO comparative effects, depreciation method comparison, bases for estimating uncollectibles. *If the user questions a formula or table, check whether it is one of these before assuming the note is wrong.*
 

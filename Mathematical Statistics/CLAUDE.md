@@ -1,14 +1,10 @@
-# Mathematical Statistics: subject context
+# Mathematical Statistics
 
-**Status: ✅ complete** (2026-07-27), rewritten concisely 2026-10-09. `contents/00-Index.md` plus chapters 01–09.
+Read with the root `CLAUDE.md` and `../METHOD.md`. Scope, chapters, errata: `contents/00-Index.md`.
 
 ## Sources
 
 9 `.pptx` decks in `documents/slides/` by Bui Duong Hai (Actuary Bachelor Degree). Reference textbooks in `documents/`: Devore 2e, Miller & Freund 8e, Hogg 7e, Larsen 6e.
-
-## Chapters
-
-01 Introduction to Statistics · 02 Tables and Charts · 03 Descriptive Statistics · 04 Sampling Distributions · 05 Point Estimation · 06 Confidence Interval · 07 Hypothesis Testing - One Sample · 08 Inferences on Two Samples · 09 Non-parametric Testing
 
 ## Extraction
 
@@ -18,11 +14,8 @@ Reliable: data tables, Excel output, R code and output, example statements in Le
 
 Missing: Lecture 1's probability revision, the CLT statement, Fisher information and Cramér–Rao, Examples 5.1–5.9, 7.1, 7.2, 7.7, 7.8, 8.2, and the Wilcoxon test (promised on Lecture 9's contents slide).
 
-## Corrections in the 2026-10-09 rewrite
+## Errata
 
-- ch03: grouped mean 7.65 → 8.4.
-- ch04 Ex. 5: power at $n=100$ with fixed limits is 0.50, not 99.99%.
-- ch07: `CHISQ.DIST.RT(30.4, 19)` = 0.0469, not 0.0476.
-- ch09 Example 9.3(b): Poisson(2.6) gives χ² = 4.69, df 5, p = 0.46 (not rejected); the old note claimed neither Poisson fits.
+Corrections from the 2026-10-09 rewrite (ch. 03, 04, 07, 09): `contents/00-Index.md`.
 
 Cross-subject: probability foundations are in `Probability Theory/contents/` ch. 04–08.

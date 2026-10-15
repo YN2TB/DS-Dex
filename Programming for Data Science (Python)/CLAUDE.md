@@ -1,12 +1,14 @@
-# Programming for Data Science (Python) — subject context
+# Programming for Data Science (Python)
 
-**Status: 🚫 blocked. Do not start.**
+Read with the root `CLAUDE.md` and `../METHOD.md`. `contents/` is empty until material arrives.
+
+**🚫 Blocked: don't start.**
 
 ## Why
 
 **`documents/` is empty.** There is no source material of any kind — no slides, no textbook, no notebooks. `contents/` is empty and must stay that way.
 
-Writing notes here from general knowledge would violate the vault's core rule (root `../CLAUDE.md`): *notes are built from the user's course material, and gaps are flagged rather than invented*. It is especially tempting for this subject, because the content is so familiar — which is exactly why the rule matters. A confident-looking note matching no syllabus and no lecturer's conventions is worse than an empty folder.
+Writing notes here from general knowledge would violate the vault's core rule (`../METHOD.md`): *notes are built from the user's course material, and gaps are flagged rather than invented*. It is especially tempting for this subject, because the content is so familiar — which is exactly why the rule matters. A confident-looking note matching no syllabus and no lecturer's conventions is worse than an empty folder.
 
 ## What to do instead
 
@@ -20,7 +22,7 @@ Substantial Python content **already exists** in the vault and should be linked,
 
 - `Data Preparation and Visualization/contents/01 - Getting Started with Pandas.md` through `03` — pandas, indexing, groupby
 - `Data Preparation and Visualization/contents/10 - Visualization with Matplotlib and Seaborn.md`
-- `Data Structures and Algorithms/` (not yet written) will own Python data structures and complexity
+- `Data Structures and Algorithms/contents/` owns Python data structures and complexity
 - `MLOps/contents/02 - Environment Setup.md` — virtualenvs, dependency management, project layout
 
 **When material arrives, map it against these first** and record in `00-Index.md` which chapters are new and which are cross-links. The likely genuinely-new content is core-language material (functions, comprehensions, OOP, error handling, file I/O, NumPy fundamentals) that the applied subjects assume rather than teach.

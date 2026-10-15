@@ -1,18 +1,14 @@
-# Data Preparation and Visualization — subject context
+# Data Preparation and Visualization
 
-**Status: ✅ complete** (2026-07-27). `contents/00-Index.md` plus chapters 01–11. First subject written in the vault.
+Read with the root `CLAUDE.md` and `../METHOD.md`. Scope, chapters, errata: `contents/00-Index.md`.
 
-Chapters rewritten in the plain style on 2026-10-09. Three numeric slips fixed then: ch. 06 ex. 2 quartiles (pandas gives Q1 26.35, Q3 35.825), ch. 07 ex. 2 scaler outputs (StandardScaler uses population σ 368.36; RobustScaler maps 11 to −0.67), ch. 11 ex. 2 (visual ratio 4×, removed a "factor of 60" claim).
+Corrections in the 2026-10-09 rewrite: ch. 06 ex. 2 quartiles (pandas gives Q1 26.35, Q3 35.825), ch. 07 ex. 2 scaler outputs (StandardScaler uses population σ 368.36; RobustScaler maps 11 to −0.67), ch. 11 ex. 2 (visual ratio 4×, removed a "factor of 60" claim).
 
 ## Sources
 
 **12 lecture decks in `documents/slides/`** (PDF + PPTX), extracted with `pypdf` / `python-pptx`. No textbook. Lecturer: **Dr. Nguyen Tuan Long**, ntlong@neu.edu.vn.
 
 Structure follows the lecturer's three parts: Part 1 Pandas (ch. 01–03), Part 2 data preparation (ch. 04–09), Part 3 visualization (ch. 10–11).
-
-## Chapters
-
-01 Getting Started with Pandas · 02 Loading, Diagnosing, Missing Data and Combining Datasets · 03 Data Aggregation and Group Operations · 04 Foundations of Data Preparation for ML · 05 String Manipulation and Time Series Data · 06 Data Cleaning · 07 Data Transformation · 08 Feature Selection · 09 Building Pipelines · 10 Visualization with Matplotlib and Seaborn · 11 Chart Design and Data Storytelling
 
 ## Gaps in the source material — raise these with the lecturer
 
