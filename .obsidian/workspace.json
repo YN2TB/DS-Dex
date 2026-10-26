@@ -51,10 +51,10 @@
             "state": {
               "type": "pdf",
               "state": {
-                "file": "Computer Vision/slides/Lecture09_Segmentation.pdf"
+                "file": "Business Management/documents/Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0.pdf"
               },
               "icon": "lucide-file-text",
-              "title": "Lecture09_Segmentation"
+              "title": "Understanding Business Chapter 1-9_18c2952efd6c3f51f095173bf3431ce0"
             }
           }
         ],
@@ -223,6 +223,7 @@
   },
   "active": "d6208fc1e7e452c9",
   "lastOpenFiles": [
+    "Computer Vision/slides/Lecture09_Segmentation.pdf",
     "Principles of Marketing/CLAUDE.md.tmp.10164.bcb075eb513b",
     "Monetary and Financial Theories/CLAUDE.md.tmp.10164.218dff6e2e02",
     "Principles of Marketing/CLAUDE.md.tmp.10164.bc4766880634",
@@ -233,7 +234,6 @@
     "Basic Programming (C++)/CLAUDE.md.tmp.10164.d1848c1e97d9",
     "Linear Algebra/CLAUDE.md.tmp.10164.4773f208f9a8",
     "Deep Learning/CLAUDE.md.tmp.10164.078336ea8662",
-    "Econometrics/CLAUDE.md.tmp.10164.092596a98ce9",
     "METHOD.md",
     "Computer Vision/contents/09 - Segmentation.md",
     "Computer Vision/contents/08 - Object Detection II.md",

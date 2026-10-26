@@ -51,7 +51,7 @@ Each subject holds `CLAUDE.md` (sources, extraction quirks, boundaries, open ite
 | Principles of Marketing | ✅ 01–12 |
 | Business Management | ✅ 01–09 |
 | Deep Learning | ✅ 01–08 ✂️ |
-| Computer Vision | 🔄 01–08 from lectures; 09–14 drafts await slides |
+| Computer Vision | 🔄 01–09 from lectures; 10–14 drafts await slides |
 | Big Data Analytics | ✅ 01–12 (6 errata) |
 | Natural Language Processing | 🚫 (`note/` empty too) |
 | PowerBI | 🚫 |

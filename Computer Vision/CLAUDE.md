@@ -8,7 +8,7 @@ The course is **still running**; slides arrive weekly.
 
 | | |
 |---|---|
-| **Slides (the spine)** | `slides/Lecture01…08_*.pdf`. Lecturer: **Nguyen Manh Toan (Swinburne Vietnam)** |
+| **Slides (the spine)** | `slides/Lecture01…09_*.pdf`. Lecturer: **Nguyen Manh Toan (Swinburne Vietnam)** |
 | **Textbook (reference)** | `documents/Szeliski_CVAABook_2ndEd.pdf`, 1,232 PDF pages, text layer fine. PDF page 301 = book page 275 (offset +26) |
 | **Other stated reference** | Stanford CS231n notes (named on each lecture's "Reading & Reference" slide) |
 | `note/project_topics.md` | Lecturer's 17 final-project topics: 50% of the grade, ~6 per team, presented week 15 |
@@ -22,7 +22,8 @@ The course is **still running**; slides arrive weekly.
 - Spaces next to italic or math runs are often deleted: `Whyk-NN` = "Why k-NN", `intokfolds` = "into k folds".
 - Fractions flatten and superscripts drop: `x=f X Z` is $x = fX/Z$, `R H×W×3` is $\mathbb R^{H\times W\times 3}$. Rebuild formulas and check them numerically.
 - Every slide ends with a footer `Nguyen Manh Toan (Swinburne Vietnam) Computer Vision Week N k / M`. Filter it out.
-- Figures never extract. Captions and table cells do (e.g. the R-CNN family comparison). Check their numbers before quoting.
+- Figures never extract as text. Captions and table cells do (e.g. the R-CNN family comparison). Check their numbers before quoting.
+- **Figures can be read by rendering:** `fitz` (PyMuPDF) is installed; render a page with `page.get_pixmap(dpi=200, clip=...)` to the scratchpad and view the PNG. From Lecture 09 on most slides are image-only, so do this for every title-only page. Notes 01–08 list such slides as lost; they could be recovered the same way.
 
 **Szeliski** extracts normally; figures lost.
 
@@ -34,5 +35,6 @@ The old notes' 11-point AP of 0.7045 was a float comparison bug (`0.600000000000
 
 ## Open items
 
-- **When `Lecture09_*.pdf` (and later) appears in `slides/`:** rewrite that note from its slides the same way, mark it in `00-Index.md`, and update the Progress row. Week 15 is project presentations: no note.
+- **When `Lecture10_*.pdf` (and later) appears in `slides/`:** rewrite that note from its slides the same way, mark it in `00-Index.md`, and update the Progress row. Week 15 is project presentations: no note.
+- `contents/Revision Test - Ch 01-09.md` is a multiple-choice revision test (the user's exam format: pick an option, write the explanation under it). Extend it or make a new one when later lectures land.
 - Gaps flagged in the notes: **RANSAC** (ch. 14) and **camera calibration** (ch. 01 assumes it, ch. 14 doesn't derive it). Add them if a later lecture covers them.

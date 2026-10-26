@@ -23,14 +23,14 @@ Set by the lecturer's course outline (Lecture 01, slide 8): *"modern, deep-learn
 | 06 | [[06 - Vision Transformers]] | Scaled dot-product, self- and multi-head attention; ViT (patches, [class] token, position embeddings, blocks, variants); inductive bias vs data; DeiT and knowledge distillation; Swin; what to use | ✅ Lecture 06 |
 | 07 | [[07 - Object Detection I]] | Detection as set prediction; sliding window, Viola–Jones, HOG+SVM, DPM; IoU, AP/mAP, VOC vs COCO, NMS; R-CNN, Fast R-CNN, Faster R-CNN (anchors, RPN); FPN | ✅ Lecture 07 |
 | 08 | [[08 - Object Detection II]] | One-stage detectors (YOLO, SSD); focal loss and RetinaNet; anchor-free (FCOS, CenterNet); DETR and Hungarian matching; current detectors and licences | ✅ Lecture 08 |
-| 09 | [[09 - Segmentation]] | Semantic, instance and panoptic; FCN, U-Net, transposed convolution, Mask R-CNN, SAM | ⏳ written before the lecture |
+| 09 | [[09 - Segmentation]] | Semantic, instance, panoptic; FCN, upsampling, U-Net, DeepLab (atrous, ASPP); CE/focal/Dice losses; pixel accuracy, IoU, Dice, PQ; Mask R-CNN and RoIAlign; Mask2Former; SAM 1–3 | ✅ Lecture 09 |
 | 10 | [[10 - Pose Estimation and Faces]] | Keypoints, heatmaps, top-down vs bottom-up, face detection, recognition and embeddings | ⏳ written before the lecture |
 | 11 | [[11 - Video and Motion]] | Optical flow, temporal models, 3D convolutions, two-stream networks, tracking | ⏳ written before the lecture |
 | 12 | [[12 - Self-Supervised Learning]] | Pretext tasks, contrastive learning, SimCLR/MoCo, BYOL, masked image modelling, CLIP | ⏳ written before the lecture |
 | 13 | [[13 - Generative Models]] | Autoencoders, VAEs, GANs, diffusion models, text-to-image | ⏳ written before the lecture |
 | 14 | [[14 - 3D Vision and Emerging Topics]] | Stereo and depth, structure from motion, point clouds, NeRF, Gaussian splatting | ⏳ written before the lecture |
 
-Notes 01–08 were rewritten from the lecture slides on 2026-10-07. Notes 09–14 were written in August 2026 from Szeliski, CS231n and the papers, before those lectures had slides; each should be checked against its slides when they arrive.
+Notes 01–08 were rewritten from the lecture slides on 2026-10-07, note 09 on 2026-10-26. Notes 10–14 were written in August 2026 from Szeliski, CS231n and the papers, before those lectures had slides; each should be checked against its slides when they arrive.
 
 ## 📊 Assessment (Lecture 01, slide 10)
 
@@ -39,6 +39,8 @@ Notes 01–08 were rewritten from the lecture slides on 2026-10-07. Notes 09–1
 | **Mid-term exam** | **40%** | Week 9, covers weeks 1–8. *"Inference-style questions: given a model, an architecture, or an output, reason about what happens and why — not memorization."* |
 | **Final project** | **50%** | Teams of ~6; topics released week 3; proposal, milestone, presentation in week 15, code |
 | Participation | 10% | Attendance and in-class exercises |
+
+**Revision:** [[Revision Test - Ch 01-09]], 34 multiple-choice questions with explanations, covering lectures 1–9.
 
 The exercises in notes 01–08 are written in the mid-term's style: a setup, then "what happens and why". The 17 project topics are in `note/project_topics.md`.
 
@@ -65,6 +67,7 @@ The exercises in notes 01–08 are written in the mid-term's style: a setup, the
 | 3 | Lecture 05, slide 29 | VGG-16's 15.5 GFLOPs is "roughly 4× GoogLeNet" | GoogLeNet's paper gives ~1.5 G multiply-adds, i.e. ~10× | possible; FLOP conventions vary. Worth asking the lecturer |
 | 4 | Lecture 05, slide 35 | "The next slide is how it works" (MobileNet) | the next slide is the comparison table; the explanation is missing | added from the MobileNet paper in [[05 - CNN Architectures\|ch. 05]] |
 | 5 | Lecture 04 vs 05 | AlexNet top-5 16.4% (L04) and 15.3% (L05) | both are published figures, for different configurations (5-model ensemble vs 7 models with extra pretraining) | not an error |
+| 6 | Lecture 09, slide 22 | "the background is over 99% of all pixels" | the panel's own counts (car TP 3709, FP 2222, FN 3711, pixel accuracy 0.97) put the car at ≈3.7% of the image, background ≈96% | minor caption slip; lesson unaffected, noted in [[09 - Segmentation\|ch. 09]] |
 
 **Correction to the previous notes:** the August 2026 version of ch. 08 gave an 11-point AP of 0.7045 for its worked example. That was a floating-point comparison error; the correct value is **0.712** (now in [[07 - Object Detection I|ch. 07]]).
 
