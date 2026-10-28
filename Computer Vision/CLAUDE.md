@@ -36,5 +36,5 @@ The old notes' 11-point AP of 0.7045 was a float comparison bug (`0.600000000000
 ## Open items
 
 - **When `Lecture10_*.pdf` (and later) appears in `slides/`:** rewrite that note from its slides the same way, mark it in `00-Index.md`, and update the Progress row. Week 15 is project presentations: no note.
-- `contents/Revision Test - Ch 01-09.md` is a multiple-choice revision test (the user's exam format: pick an option, write the explanation under it). Extend it or make a new one when later lectures land.
+- `contents/Revision Test - Ch 01-09.md` is a multiple-choice revision test (the user's exam format: pick an option, write the explanation under it). Extend it or make a new one when later lectures land. Same for `contents/Knowledge Summary - Ch 01-09.md` (condensed from the notes, one section per lecture).
 - Gaps flagged in the notes: **RANSAC** (ch. 14) and **camera calibration** (ch. 01 assumes it, ch. 14 doesn't derive it). Add them if a later lecture covers them.

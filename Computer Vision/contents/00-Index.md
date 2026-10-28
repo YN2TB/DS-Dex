@@ -40,7 +40,7 @@ Notes 01–08 were rewritten from the lecture slides on 2026-10-07, note 09 on 2
 | **Final project** | **50%** | Teams of ~6; topics released week 3; proposal, milestone, presentation in week 15, code |
 | Participation | 10% | Attendance and in-class exercises |
 
-**Revision:** [[Revision Test - Ch 01-09]], 34 multiple-choice questions with explanations, covering lectures 1–9.
+**Revision:** [[Knowledge Summary - Ch 01-09]], the core ideas, formulas and traps of lectures 1–9 on a few pages; [[Revision Test - Ch 01-09]], 34 multiple-choice questions with explanations, covering lectures 1–9.
 
 The exercises in notes 01–08 are written in the mid-term's style: a setup, then "what happens and why". The 17 project topics are in `note/project_topics.md`.
 
