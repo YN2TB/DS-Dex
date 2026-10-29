@@ -13,17 +13,17 @@ The whole course so far on a few pages. Each section gives the core ideas, the f
 
 Every lecture answers one question left open by the one before.
 
-| Week | Question | Answer |
-|---|---|---|
-| 01 | What is an image? | A tensor of numbers from projection + sampling + quantisation. Meaning isn't in the numbers (the **semantic gap**). |
-| 02 | How do we get structure from pixels by hand? | Filters (convolution), edges, morphology, features (Harris, SIFT, HOG). Every parameter is hand-picked. |
-| 03 | How do we let data choose the parameters? | Score function + loss + optimiser. Linear classifier, softmax, SGD. One template per class is too weak. |
-| 04 | How do we learn the features too? | Hidden layers with nonlinearities, backprop. Convolution = locality + weight sharing. |
-| 05 | How do we train deep CNNs reliably? | He init, BatchNorm, Adam, augmentation, **residual connections**, transfer learning. |
-| 06 | Do we need convolution at all? | ViT: attention over patches. Needs data or a good recipe (DeiT); Swin restores the pyramid. |
-| 07 | What if there are many objects? | Detection = a set of boxes. IoU, AP, NMS. Two-stage: R-CNN → Fast → Faster R-CNN, FPN. |
-| 08 | Can detection be one pass, without anchors or NMS? | YOLO, SSD, focal loss (RetinaNet), FCOS, CenterNet, DETR. |
-| 09 | What if we label every pixel? | FCN, U-Net, DeepLab; Dice/IoU/PQ; Mask R-CNN, Mask2Former, SAM. |
+| Week | Question                                           | Answer                                                                                                              |
+| ---- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 01   | What is an image?                                  | A tensor of numbers from projection + sampling + quantisation. Meaning isn't in the numbers (the **semantic gap**). |
+| 02   | How do we get structure from pixels by hand?       | Filters (convolution), edges, morphology, features (Harris, SIFT, HOG). Every parameter is hand-picked.             |
+| 03   | How do we let data choose the parameters?          | Score function + loss + optimiser. Linear classifier, softmax, SGD. One template per class is too weak.             |
+| 04   | How do we learn the features too?                  | Hidden layers with nonlinearities, backprop. Convolution = locality + weight sharing.                               |
+| 05   | How do we train deep CNNs reliably?                | He init, BatchNorm, Adam, augmentation, **residual connections**, transfer learning.                                |
+| 06   | Do we need convolution at all?                     | ViT: attention over patches. Needs data or a good recipe (DeiT); Swin restores the pyramid.                         |
+| 07   | What if there are many objects?                    | Detection = a set of boxes. IoU, AP, NMS. Two-stage: R-CNN → Fast → Faster R-CNN, FPN.                              |
+| 08   | Can detection be one pass, without anchors or NMS? | YOLO, SSD, focal loss (RetinaNet), FCOS, CenterNet, DETR.                                                           |
+| 09   | What if we label every pixel?                      | FCN, U-Net, DeepLab; Dice/IoU/PQ; Mask R-CNN, Mask2Former, SAM.                                                     |
 
 ---
 
