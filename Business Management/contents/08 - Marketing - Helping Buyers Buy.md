@@ -45,12 +45,12 @@ source: "Nickels, McHugh & McHugh, *Understanding Business*, 12th ed., ch. 13 (b
 
 ### 2. The four Ps
 
-| | |
-|---|---|
-| **Product** | any physical good, service or idea that satisfies a want — including **brand name**, packaging and **test marketing** |
-| **Price** | what to charge, given competition, production costs and consumer expectations |
-| **Place** | getting it to the buyer — intermediaries, wholesalers, retailers |
-| **Promotion** | advertising, personal selling, public relations, publicity, sales promotion, word of mouth |
+|               |                                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Product**   | any physical good, service or idea that satisfies a want — including **brand name**, packaging and **test marketing** |
+| **Price**     | what to charge, given competition, production costs and consumer expectations                                         |
+| **Place**     | getting it to the buyer — intermediaries, wholesalers, retailers                                                      |
+| **Promotion** | advertising, personal selling, public relations, publicity, sales promotion, word of mouth                            |
 
 > [!note] ⚠️ Depth lives elsewhere for all four, and the vault's results are much sharper
 > | | owner | the result there |
@@ -85,13 +85,13 @@ source: "Nickels, McHugh & McHugh, *Understanding Business*, 12th ed., ch. 13 (b
 
 ### 5. ⚠️ Segmentation — and what "niche" actually means
 
-| | |
-|---|---|
-| **geographic** | by city, county, state, region |
-| **demographic** | age, income, education, gender, occupation |
-| **psychographic** | values, attitudes, interests |
-| **benefit** | the **benefit sought** — *"determining who are the biggest eaters of healthy food"* |
-| **volume (usage)** | by **how much** they buy |
+|                    |                                                                                     |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| **geographic**     | by city, county, state, region                                                      |
+| **demographic**    | age, income, education, gender, occupation                                          |
+| **psychographic**  | values, attitudes, interests                                                        |
+| **benefit**        | the **benefit sought** — *"determining who are the biggest eaters of healthy food"* |
+| **volume (usage)** | by **how much** they buy                                                            |
 
 **Then four targeting approaches:**
 
