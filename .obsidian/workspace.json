@@ -35,18 +35,28 @@
             "id": "1ca50ce8532d04b0",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "pdf",
               "state": {
-                "file": "Claude Code/notes/1.md",
-                "mode": "source",
-                "source": false
+                "file": "Computer Vision/slides/Lecture10_PoseEstimation_and_Face_Recognition.pdf"
               },
-              "icon": "lucide-file",
-              "title": "1"
+              "icon": "lucide-file-text",
+              "title": "Lecture10_PoseEstimation_and_Face_Recognition"
+            }
+          },
+          {
+            "id": "5b5cb08cad710af0",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.15.0"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.15.0"
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 3
       }
     ],
     "direction": "vertical"
@@ -209,8 +219,9 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "1ca50ce8532d04b0",
+  "active": "5b5cb08cad710af0",
   "lastOpenFiles": [
+    "Claude Code/notes/1.md",
     "Business Management/contents/08 - Marketing - Helping Buyers Buy.md",
     "Business Management/contents/08 - 4P Lenovo Legion.png",
     "Principles of Marketing/contents/08 - Products, Services and Brands.md",
@@ -233,7 +244,6 @@
     "METHOD.md",
     "Computer Vision/contents/09 - Segmentation.md",
     "Business Management/contents/05 - How to Form a Business.md",
-    "Claude Code/notes/1.md",
     "Deep Learning/contents/06 - Object Detection.md",
     "Deep Learning/contents/07 - Recurrent Neural Network.md",
     "Deep Learning/contents/08 - Sequence to Sequence.md",
