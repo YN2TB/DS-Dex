@@ -47,12 +47,14 @@
             "id": "5b5cb08cad710af0",
             "type": "leaf",
             "state": {
-              "type": "release-notes",
+              "type": "markdown",
               "state": {
-                "currentVersion": "1.15.0"
+                "file": "Big Data Analytics/note/thi.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-book-up",
-              "title": "Release Notes 1.15.0"
+              "icon": "lucide-file",
+              "title": "thi"
             }
           }
         ],
@@ -221,6 +223,8 @@
   },
   "active": "5b5cb08cad710af0",
   "lastOpenFiles": [
+    "Big Data Analytics/contents/01 - Big Data and Distributed Computing.md",
+    "Big Data Analytics/note/thi.md",
     "Claude Code/notes/1.md",
     "Business Management/contents/08 - Marketing - Helping Buyers Buy.md",
     "Business Management/contents/08 - 4P Lenovo Legion.png",
@@ -265,7 +269,6 @@
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/images/subplots_large.png",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/images/subplots.png",
     "Deep Learning/note/venv/Lib/site-packages/pyparsing/ai/best_practices.md",
-    "Deep Learning/venv/Lib/site-packages/pip-25.3.dist-info/licenses/src/pip/_vendor/idna/LICENSE.md",
     "Big Data Analytics/note/Untitled.canvas"
   ]
 }
