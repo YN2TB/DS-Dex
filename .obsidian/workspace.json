@@ -56,9 +56,21 @@
               "icon": "lucide-file",
               "title": "thi"
             }
+          },
+          {
+            "id": "212bda71bb282bfd",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.15.1"
+              },
+              "icon": "lucide-book-up",
+              "title": "Release Notes 1.15.1"
+            }
           }
         ],
-        "currentTab": 3
+        "currentTab": 4
       }
     ],
     "direction": "vertical"
@@ -221,7 +233,7 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "5b5cb08cad710af0",
+  "active": "212bda71bb282bfd",
   "lastOpenFiles": [
     "Deep Learning/note/rnn.py.tmp.17452.e96630b05856",
     "Deep Learning/note/rnn.py.tmp.17452.8ee186666833",
