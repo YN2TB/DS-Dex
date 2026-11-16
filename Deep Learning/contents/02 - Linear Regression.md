@@ -336,7 +336,7 @@ The factor $(1-\eta\lambda)$ shrinks the weights toward zero every step, hence t
 
 | | $\ell_2$ (ridge, weight decay) | $\ell_1$ (lasso) |
 |---|---|---|
-| Penalty | $\|\mathbf{w}\|^2$ | $\sum_j|w_j|$ |
+| Penalty | $\Vert \mathbf{w}\Vert ^2$ | $\sum_j\vert w_j\vert $ |
 | Effect | penalizes large weights most; spreads weight over many features | sets many weights exactly to zero |
 | Use | robustness to noise in any single feature | feature selection |
 
@@ -357,7 +357,7 @@ Three things to notice (my analysis, not D2L's):
 1. **The caption is wrong.** It says `'L2 norm of w: '` but `l2_penalty` returns $\tfrac12\|\mathbf{w}\|^2$. The actual norms are 0.1406 and 0.0543 (ratio 2.59×, not 6.72×).
 2. **A correct norm does not mean a correct vector.** The true value of the printed quantity is $\tfrac12 \times 200 \times 0.01^2 = 0.0100$, so the overfitting run is within 1.11% of it. A NumPy reproduction over 200 seeds shows what that hides:
 
-| | $\tfrac12\|\mathbf{w}\|^2$ | $\|\hat{\mathbf{w}}-\mathbf{w}_{\text{true}}\|$ | $\cos(\hat{\mathbf{w}},\mathbf{w}_{\text{true}})$ | train loss | val loss |
+| | $\tfrac12\Vert \mathbf{w}\Vert ^2$ | $\Vert \hat{\mathbf{w}}-\mathbf{w}_{\text{true}}\Vert $ | $\cos(\hat{\mathbf{w}},\mathbf{w}_{\text{true}})$ | train loss | val loss |
 |---|---|---|---|---|---|
 | $\lambda=0$ | 0.01007 | 0.1907 | 0.092 | 0.0000118 | 0.01924 |
 | $\lambda=3$ | 0.00144 | 0.1410 | 0.195 | 0.000463 | 0.01096 |

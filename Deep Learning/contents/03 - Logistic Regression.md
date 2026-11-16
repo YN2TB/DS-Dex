@@ -260,7 +260,7 @@ Bernoulli variance $\epsilon(1-\epsilon)$ is at most 0.25 (at $\epsilon=0.5$), s
 
 Many benchmarks have test sets of this size. D2L remarks that thousands of papers claim improvements of 0.01 or less, which on 10,000 examples is within the noise. Near zero error the variance is much smaller and 0.01 can be meaningful.
 
-Hoeffding's finite-sample bound $P(\epsilon_D(f)-\epsilon(f)\ge t)<\exp(-2nt^2)$ at $t=0.01$, $\delta=0.05$ gives $n=14{,}979$ (D2L: "roughly 15,000"). Note this is one-sided while the 10,000 is two-sided; the like-for-like two-sided figure is 18,444. The conclusion (finite-sample bounds are somewhat more conservative) holds either way.
+Hoeffding's finite-sample bound $P(\epsilon_D(f)-\epsilon(f)\ge t)\lt \exp(-2nt^2)$ at $t=0.01$, $\delta=0.05$ gives $n=14{,}979$ (D2L: "roughly 15,000"). Note this is one-sided while the 10,000 is two-sided; the like-for-like two-sided figure is 18,444. The conclusion (finite-sample bounds are somewhat more conservative) holds either way.
 
 #### 13.2 Reusing the test set
 
@@ -276,7 +276,7 @@ D2L's advice: use real test sets as rarely as possible, account for multiple com
 Any fixed classifier's test error is an unbiased estimate. The hard case is a classifier chosen from an (infinite) class $\mathcal{F}$ using the same data. Uniform convergence asks that every $f\in\mathcal{F}$ have empirical error close to true error simultaneously; that fails for very flexible classes.
 
 Vapnik and Chervonenkis: the **VC dimension** is the largest number of points the class can label in every possible way. With probability $\ge1-\delta$,
-$$R[p,f]-R_{\text{emp}}[\mathbf{X},\mathbf{Y},f]<\alpha \quad\text{for}\quad \alpha\ge c\sqrt{(\text{VC}-\log\delta)/n}$$
+$$R[p,f]-R_{\text{emp}}[\mathbf{X},\mathbf{Y},f]\lt \alpha \quad\text{for}\quad \alpha\ge c\sqrt{(\text{VC}-\log\delta)/n}$$
 Linear models in $d$ dimensions have VC dimension $d+1$.
 
 These bounds do not explain deep learning. Deep networks can fit random labels yet generalize well, and larger, deeper networks often generalize better despite higher VC dimension. See [[04 - Neural Network]].

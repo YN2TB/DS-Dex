@@ -97,14 +97,14 @@ A discrepancy is logged only after ruling out extraction errors, my own arithmet
 |---|---|---|---|---|
 | D1 | §1.5, under Table 1.5.1 | compute has "outpaced" data growth | both grew $10^{10}$ over 1970–2020; true only from 2000 | declined: fine as a claim about recent decades |
 | D2 | Table 1.5.1 | Iris = 100 examples | Iris has 150 | declined: table is rounded to powers of ten |
-| D3 | §3.7.3–3.7.4 | caption `'L2 norm of w: '` | prints $\tfrac12\|\mathbf w\|^2$, not the norm | mislabel only; code is correct |
+| D3 | §3.7.3–3.7.4 | caption `'L2 norm of w: '` | prints $\tfrac12\Vert \mathbf w\Vert ^2$, not the norm | mislabel only; code is correct |
 | D4 | §3.7.4 vs §3.7.3 | concise 0.012314 vs scratch 0.001473 "look similar" | different loss scaling and initialization; 40 updates cannot forget the init | not comparable; both outputs correct (ch. 02 §11, §14) |
 | D5 | §4.6.1 | Hoeffding ≈15,000 vs asymptotic 10,000 | one-sided vs two-sided; like-for-like 18,444 | declined: conclusion unchanged |
 | D6 | §4.7.3 | confusion matrix as a joint frequency | the equation needs $c_{ij}=P(\hat y=i\mid y=j)$ | imprecise wording (ch. 03 §14.4) |
 | D7 | §12.9.2 | $\rho=0.9$ gives "half-life of 10" | half-life 6.58; 10 is the effective sample size | loose terminology (ch. 04 §29) |
 | D8 | §8.1.2 | AlexNet's dense layers need "nearly 1GB" | 208.0 MB of weights; 832.1 MB with gradients + Adam | true of training memory, not weights (ch. 05 §9) |
 | D9 | §9.2.5 | n-gram Zipf exponent smaller, "depending on the sequence length" | unigram 0.7184, bigram 0.5703, trigram 0.6447 | smaller than unigram holds; not monotone, but ten ranks cannot decide (ch. 07 §4) |
-| D10 | §12.3.3 | calls $|e^{(k+1)}|\le c(e^{(k)})^2$ "linear convergence" | standard name is quadratic; linear is $|e^{(k+1)}|\le\alpha|e^{(k)}|$ | names swapped, maths correct (ch. 04 §23) |
+| D10 | §12.3.3 | calls $\vert e^{(k+1)}\vert \le c(e^{(k)})^2$ "linear convergence" | standard name is quadratic; linear is $\vert e^{(k+1)}\vert \le\alpha\vert e^{(k)}\vert $ | names swapped, maths correct (ch. 04 §23) |
 | D11 | §8.6.5 vs code | `ResNeXtBlock(..., groups, ...)` described as the number of groups $g$ | code passes `bot_channels // groups` to the conv, so the argument is the group width (`ResNeXtBlock(32, 16, 1)` has 2 groups) | naming inconsistency; §8.8 uses group width, matching the code (ch. 05 §15) |
 | D12 | §9.3.3 prose vs code | random offset $d$ each epoch, non-overlapping subsequences covering the corpus | code uses all stride-1 windows, no offset; train = windows starting 0–9,999 (tokens 0–10,031, 5.8% of the book), val = 10,000–14,999; 32 tokens shared | demo loader; prose describes a different scheme (ch. 07 §5) |
 | D13 | §10.7.8 | $p_n^{1/2^n}$ rising with $n$ means BLEU "assigns a greater weight" to long n-grams | exponent of $\log p_n$ is $1/2^n$, so long n-grams count less (factors 0.707 → 0.958 at $p_n=0.5$); original BLEU uses $p_n^{1/N}$, not $p_n^{1/n}$ | interpretation reversed; formula correct (ch. 08 §2) |

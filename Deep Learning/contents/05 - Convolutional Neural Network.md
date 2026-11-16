@@ -586,7 +586,7 @@ Splitting channels into $g$ groups and convolving within each group cuts paramet
 $$c_ic_o\ \to\ \frac{c_ic_o}{g}$$
 At $c_i=c_o=256$: 65,536 → 16,384 ($g=4$) → 2,048 ($g=32$). No information crosses groups, so the grouped $3\times3$ sits between two $1\times1$ convolutions that mix channels. AlexNet split channels across two GPUs for memory reasons; ResNeXt made it a design choice.
 
-**Code.** The block: $1\times1$ conv to $b$ bottleneck channels → grouped $3\times3$ conv → $1\times1$ conv back to $c$, each with BN, plus the (possibly $1\times1$-projected) shortcut. Cost $O(cb)$ for the $1\times1$ kernels and $O(b^2/g)$ for the grouped $3\times3$. It is a **bottleneck** block when $b<c$.
+**Code.** The block: $1\times1$ conv to $b$ bottleneck channels → grouped $3\times3$ conv → $1\times1$ conv back to $c$, each with BN, plus the (possibly $1\times1$-projected) shortcut. Cost $O(cb)$ for the $1\times1$ kernels and $O(b^2/g)$ for the grouped $3\times3$. It is a **bottleneck** block when $b\lt c$.
 
 ```python
 class ResNeXtBlock(nn.Module):

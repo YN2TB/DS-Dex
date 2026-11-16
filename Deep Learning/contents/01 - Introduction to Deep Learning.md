@@ -131,7 +131,7 @@ $$3w+b=350,\quad 2w+b=250\;\Longrightarrow\;w=100,\;b=50$$
 > A decision needs both the probabilities and the cost of each outcome. (The mushroom in Fig. 1.3.2 is a death cap.)
 
 With a finite penalty $L$ for eating a poisonous mushroom and cost 1 for discarding a good one, eat only if
-$$pL<(1-p)\iff p<\frac1{L+1}.$$
+$$pL\lt (1-p)\iff p\lt \frac1{L+1}.$$
 At $L=4$ the threshold is exactly 0.2; at $L=100$ it is 0.99%; at $L=1000$, 0.0999%. Taking the argmax class is optimal only when all errors cost the same (0–1 loss).
 
 **Hierarchical classification**: not all errors are equal. Mistaking a poodle for a schnauzer is mild; a poodle for a dinosaur is bad. The relevant hierarchy depends on use: rattlesnake and garter snake are close on the phylogenetic tree, but confusing them can be fatal.
@@ -337,8 +337,8 @@ Rules used throughout the book:
 | $\mathbf A\mathbf x$, $\mathbf A\in\mathbb R^{m\times n}$ | $\nabla_{\mathbf x}\mathbf A\mathbf x=\mathbf A^\top$ |
 | $\mathbf x^\top\mathbf A$ | $\nabla_{\mathbf x}\mathbf x^\top\mathbf A=\mathbf A$ |
 | $\mathbf x^\top\mathbf A\mathbf x$, $\mathbf A$ square | $(\mathbf A+\mathbf A^\top)\mathbf x$ |
-| $\|\mathbf x\|^2=\mathbf x^\top\mathbf x$ | $2\mathbf x$ |
-| $\|\mathbf X\|_F^2$ | $2\mathbf X$ |
+| $\Vert \mathbf x\Vert ^2=\mathbf x^\top\mathbf x$ | $2\mathbf x$ |
+| $\Vert \mathbf X\Vert _F^2$ | $2\mathbf X$ |
 
 (Checked with autograd: $\mathbf A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$, $\mathbf x=(1,-1)$ gives $(\mathbf A+\mathbf A^\top)\mathbf x=(-3,-3)$.)
 
@@ -516,7 +516,7 @@ Each run builds a specific graph for that input. $f$ is linear in $a$ with a pie
 - Use ML when you cannot write the rule but can judge the answer; the model is a program with parameters chosen from data ("programming with data").
 - Four components: data, model, objective (lower is better; surrogate when the real metric has no gradient), optimizer (gradient descent). The loss is a function of the parameters with data fixed.
 - The form of the target sets the problem type: regression, classification, tagging, search, recommendation, sequence learning (aligned tagging, ASR, TTS, translation).
-- Decide by expected loss, not argmax: with penalty $L$ act only when $p<1/(L+1)$.
+- Decide by expected loss, not argmax: with penalty $L$ act only when $p\lt 1/(L+1)$.
 - Unsupervised: clustering, subspaces, embeddings, causality, generative models; self-supervised learning makes labels from the data. RL adds actions, credit assignment, partial observability and exploration; MDP / contextual bandit / multi-armed bandit are its special cases.
 - Two biological ideas survive: alternating linear/nonlinear layers and backpropagation. The 1995–2005 winter was a lack of compute and data; memory per example has since fallen 100×, which favours fixed-size networks over kernel methods.
 - Deep learning = many layers learned jointly, end to end, replacing hand-made features.

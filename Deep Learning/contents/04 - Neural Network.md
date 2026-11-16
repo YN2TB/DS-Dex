@@ -41,7 +41,7 @@ D2L's motivation: linear models are monotone. Income → repayment is plausibly 
 | function | definition | derivative | range |
 |---|---|---|---|
 | ReLU | $\max(x,0)$ | $\mathbb 1[x>0]$ (0 at $x=0$ by convention) | $[0,\infty)$ |
-| pReLU | $\max(0,x)+\alpha\min(0,x)$ | 1 if $x>0$, $\alpha$ if $x<0$ | $\mathbb R$ |
+| pReLU | $\max(0,x)+\alpha\min(0,x)$ | 1 if $x>0$, $\alpha$ if $x\lt 0$ | $\mathbb R$ |
 | sigmoid | $1/(1+e^{-x})$ | $\sigma(x)(1-\sigma(x))$, max 0.25 at 0 | $(0,1)$ |
 | tanh | $(1-e^{-2x})/(1+e^{-2x})$ | $1-\tanh^2 x$, max 1 at 0 | $(-1,1)$ |
 | GELU | $x\,\Phi(x)$ | | $\mathbb R$ |
@@ -428,7 +428,7 @@ net[0].apply(init_xavier)           # different initializers per block
 net[2].apply(init_42)               # e.g. a constant 42
 ```
 
-**Custom initializer.** D2L's toy distribution: $w\sim U(5,10)$ with probability $\tfrac14$, $0$ with probability $\tfrac12$, $U(-10,-5)$ with probability $\tfrac14$. Implementation: draw $U(-10,10)$, then zero every entry with $|w|<5$:
+**Custom initializer.** D2L's toy distribution: $w\sim U(5,10)$ with probability $\tfrac14$, $0$ with probability $\tfrac12$, $U(-10,-5)$ with probability $\tfrac14$. Implementation: draw $U(-10,10)$, then zero every entry with $|w|\lt 5$:
 
 ```python
 def my_init(module):
@@ -437,7 +437,7 @@ def my_init(module):
         module.weight.data *= module.weight.data.abs() >= 5
 ```
 
-($P(|w|<5)=10/20=\tfrac12$, and each tail has $\tfrac14$, as required.) Parameters can always be set directly: `net[0].weight.data[:] += 1`, `net[0].weight.data[0, 0] = 42`.
+($P(|w|\lt 5)=10/20=\tfrac12$, and each tail has $\tfrac14$, as required.) Parameters can always be set directly: `net[0].weight.data[:] += 1`, `net[0].weight.data[0, 0] = 42`.
 
 ### 18. Lazy initialization (§6.4)
 
@@ -559,7 +559,7 @@ D2L minimizes $f(x)=x^2$ from $x=10$ for 10 steps. Each step multiplies $x$ by $
 |---|---|
 | $f=\tfrac12x^2$ | one step reaches 0 (the Taylor expansion is exact) |
 | $f=\cosh(0.5x)$ from 10 | 0 after 10 steps (convex) |
-| $f=x\cos(0.15\pi x)$ from 10, $\eta=1$ | $x=26.8341$: walks **uphill** where $f''<0$ |
+| $f=x\cos(0.15\pi x)$ from 10, $\eta=1$ | $x=26.8341$: walks **uphill** where $f''\lt 0$ |
 | same, $\eta=0.5$ | $x=7.2699$ |
 
 Fixes for the nonconvex case: use $|f''|$, or bring back a learning rate. Second-order information still helps: cautious where curvature is large, bold where the function is flat.
@@ -583,7 +583,7 @@ D2L simulates SGD by adding $\mathcal N(0,1)$ noise to the gradient of $x_1^2+2x
 
 | schedule | formula | D2L's run |
 |---|---|---|
-| piecewise constant | $\eta_i$ for $t_i\le t<t_{i+1}$ | common for deep nets: drop when progress stalls |
+| piecewise constant | $\eta_i$ for $t_i\le t\lt t_{i+1}$ | common for deep nets: drop when progress stalls |
 | exponential | $\eta_0e^{-\lambda t}$ | $e^{-0.1t}$: after 1000 steps still at $(-0.896,0.012)$; the rate dies before convergence |
 | polynomial | $\eta_0(\beta t+1)^{-\alpha}$ | $(1+0.1t)^{-1/2}$: $(0.054,0.059)$ after only 50 steps |
 
@@ -645,7 +645,7 @@ $$x_t=(1-\eta\lambda)^t\,x_0$$
 
 The start point $(-5,-2)$ is not given in the text; it was recovered by matching the printout, and all of D2L's printed traces in this section then match to six decimals.
 
-Stability: $|1-\eta\lambda_{\max}|<1\iff\eta<2/\lambda_{\max}=0.5$. So $\eta=0.4$ is stable and $\eta=0.6$ diverges at rate 1.4 per step. The underlying tension: $x_2$ needs a small step, $x_1$ a large one, and both share $\eta$.
+Stability: $|1-\eta\lambda_{\max}|\lt 1\iff\eta\lt 2/\lambda_{\max}=0.5$. So $\eta=0.4$ is stable and $\eta=0.6$ diverges at rate 1.4 per step. The underlying tension: $x_2$ needs a small step, $x_1$ a large one, and both share $\eta$.
 
 ### 27. Momentum (§12.6)
 
@@ -885,7 +885,7 @@ D2L's closing point: optimizer and schedule choices change not only the training
 > ---
 > **(a)** $x_t=(1-\eta\lambda)^tx_0$: $\eta=0.4$ gives $(-0.943467, -0.000073)$; $\eta=0.6$ gives $(-0.387814, -1673.365109)$, matching D2L.
 >
-> **(b)** $\eta<2/4=0.5$.
+> **(b)** $\eta\lt 2/4=0.5$.
 >
 > **(c)** $\kappa=20$. GD: $\eta^*=2/(0.2+4)=0.476190$, rate 0.904762, $\ln0.01/\ln0.904762=46.01$ steps. Momentum: $\beta^*=0.402605$, rate 0.634512, 10.12 steps. Speedup 4.55×.
 >
@@ -923,11 +923,11 @@ D2L's closing point: optimizer and schedule choices change not only the training
 - Random matrix products grow at the Lyapunov rate $\tfrac12[\ln 2\sigma^2+\psi(n/2)]$; one printed run is one sample from a wide distribution.
 - Xavier: $\sigma^2=2/(n_{\text{in}}+n_{\text{out}})$. It preserves the mean signal size, but the typical value shrinks at small width.
 - Dropout: $\operatorname{Var}[h']=h^2p/(1-p)$; at $p=0.5$ the noise is as large as the signal.
-- GD needs $\eta<2/\lambda_{\max}$ and $O(\kappa)$ steps; momentum needs $O(\sqrt\kappa)$. Effective momentum step is $\eta/(1-\beta)$.
+- GD needs $\eta\lt 2/\lambda_{\max}$ and $O(\kappa)$ steps; momentum needs $O(\sqrt\kappa)$. Effective momentum step is $\eta/(1-\beta)$.
 - Adagrad's steps shrink like $1/\sqrt t$; RMSProp uses a leaky average. Diagonal methods do not help when curvature is not axis-aligned.
 - Adam = momentum + RMSProp + bias correction (which shrinks early steps that would be up to 6.6× too big). Its step is about $\eta$ per coordinate and invariant to loss scale.
 - D2L's 13 optimizer runs all end within 5% of each other because the benchmark is too easy to separate them.
-- GD on $x^2$ multiplies $x$ by $1-2\eta$ per step; Newton squares the error near a convex minimum but walks uphill where $f''<0$. SGD is unbiased but needs a decaying rate; convex rate $O(1/\sqrt T)$. Minibatch std falls as $b^{-1/2}$; blocks of 64 columns already run near full-matrix speed.
+- GD on $x^2$ multiplies $x$ by $1-2\eta$ per step; Newton squares the error near a convex minimum but walks uphill where $f''\lt 0$. SGD is unbiased but needs a decaying rate; convex rate $O(1/\sqrt T)$. Minibatch std falls as $b^{-1/2}$; blocks of 64 columns already run near full-matrix speed.
 - Schedules: piecewise constant, factor, square root, cosine, warmup. They change overfitting as well as training loss.
 
 ## ⚠️ Important Notes

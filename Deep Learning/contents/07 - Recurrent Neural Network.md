@@ -142,7 +142,7 @@ It is the reciprocal geometric mean of the probabilities given to the actual tok
 | model | perplexity |
 |---|---|
 | perfect | 1 |
-| uniform over $|\mathcal V|=28$ | 28 |
+| uniform over $\vert \mathcal V\vert =28$ | 28 |
 | assigns 0 to the truth | $\infty$ |
 
 Any useful model must beat the uniform value. In bits: $\log_2 28=4.8074$ per character; Shannon (1951) estimated English at about 1.1 bits per character (perplexity ≈ 2.14). So the useful range for a character model is 28 → 2.14 (13.1×), or 4.81 → 1.1 bits. Perplexity, not accuracy, is used because the next token is often genuinely uncertain and perplexity scores the whole distribution.
@@ -320,7 +320,7 @@ D2L's options: full computation (unstable, never used); truncation after $\tau$ 
 
 **BPTT in detail (§9.7.2).** Take a linear RNN without biases: $\mathbf h_t=\mathbf W_{hx}\mathbf x_t+\mathbf W_{hh}\mathbf h_{t-1}$, $\mathbf o_t=\mathbf W_{qh}\mathbf h_t$, objective $L=\frac1T\sum_{t=1}^Tl(\mathbf o_t,y_t)$. Walking the graph backward:
 $$\frac{\partial L}{\partial\mathbf o_t}=\frac1T\frac{\partial l(\mathbf o_t,y_t)}{\partial\mathbf o_t},\qquad \frac{\partial L}{\partial\mathbf W_{qh}}=\sum_{t=1}^T\frac{\partial L}{\partial\mathbf o_t}\mathbf h_t^\top,$$
-$$\frac{\partial L}{\partial\mathbf h_T}=\mathbf W_{qh}^\top\frac{\partial L}{\partial\mathbf o_T},\qquad \frac{\partial L}{\partial\mathbf h_t}=\mathbf W_{hh}^\top\frac{\partial L}{\partial\mathbf h_{t+1}}+\mathbf W_{qh}^\top\frac{\partial L}{\partial\mathbf o_t}\quad(t<T),$$
+$$\frac{\partial L}{\partial\mathbf h_T}=\mathbf W_{qh}^\top\frac{\partial L}{\partial\mathbf o_T},\qquad \frac{\partial L}{\partial\mathbf h_t}=\mathbf W_{hh}^\top\frac{\partial L}{\partial\mathbf h_{t+1}}+\mathbf W_{qh}^\top\frac{\partial L}{\partial\mathbf o_t}\quad(t\lt T),$$
 which unrolls to
 $$\frac{\partial L}{\partial\mathbf h_t}=\sum_{i=t}^T\left(\mathbf W_{hh}^\top\right)^{T-i}\mathbf W_{qh}^\top\frac{\partial L}{\partial\mathbf o_{T+t-i}}.$$
 Then $\frac{\partial L}{\partial\mathbf W_{hx}}=\sum_t\frac{\partial L}{\partial\mathbf h_t}\mathbf x_t^\top$ and $\frac{\partial L}{\partial\mathbf W_{hh}}=\sum_t\frac{\partial L}{\partial\mathbf h_t}\mathbf h_{t-1}^\top$. (Checked against autograd on a random $d=3$, $h=4$, $q=2$, $T=6$ example.) Even this linear model contains large powers of $\mathbf W_{hh}^\top$: eigenvalues below 1 vanish, above 1 explode. Truncation can be implemented by **detaching** the state after a number of steps. The hidden-state gradients are stored and reused for both parameter gradients, which is why BPTT keeps all intermediate states in memory.
@@ -576,7 +576,7 @@ Concise: `nn.GRU(num_inputs, num_hiddens, bidirectional=True)` with `num_hiddens
 - Perplexity ranges from 1 to the vocabulary size (28); convert to bits to compare (4.81 uniform vs ~1.1 for English).
 - An RNN adds $\mathbf H_{t-1}\mathbf W_{hh}$ to an MLP layer; RNN:GRU:LSTM parameters are 1:3:4.
 - BPTT multiplies the same Jacobian $T$ times; at $T=1000$ it must be within 0.7% of 1 in magnitude.
-- Clipping caps exploding gradients; gating (LSTM's $\partial\mathbf C_t/\partial\mathbf C_{t-1}=\mathbf F_t$) addresses vanishing, but $F<1$ always, so long memory has to be learned (or helped by a positive forget bias).
+- Clipping caps exploding gradients; gating (LSTM's $\partial\mathbf C_t/\partial\mathbf C_{t-1}=\mathbf F_t$) addresses vanishing, but $F\lt 1$ always, so long memory has to be learned (or helped by a positive forget bias).
 - GRU merges forget and write into one gate; deep RNNs stack layers; bidirectional RNNs suit tagging, not prediction.
 - Code pattern: inputs (steps, batch, features), loop over steps, one-hot inputs, `RNNLMScratch` for output and perplexity, `predict` with a warm-up prefix and greedy decoding; concise `nn.RNN`/`nn.GRU`/`nn.LSTM` (two bias vectors each). Training: batch 1024, 32 steps, clip 1.
 - Multi-step prediction compounds errors: D2L's sine model is fine at 4 steps and useless beyond.

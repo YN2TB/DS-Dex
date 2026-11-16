@@ -483,7 +483,7 @@ Each step: forward → `multibox_target(anchors, Y)` labels the freshly generate
 **Prediction.** `net.eval()`, softmax over classes, `multibox_detection` (NMS), keep rows whose class is not −1, and display boxes with confidence ≥ 0.9.
 
 **Better losses** (D2L ex. 14.7.5). **Smooth $\ell_1$** with parameter $\sigma$:
-$$f(x)=\begin{cases}(\sigma x)^2/2 & |x|<1/\sigma^2\\ |x|-0.5/\sigma^2 & \text{otherwise}\end{cases}$$
+$$f(x)=\begin{cases}(\sigma x)^2/2 & |x|\lt 1/\sigma^2\\ |x|-0.5/\sigma^2 & \text{otherwise}\end{cases}$$
 Both pieces equal $1/(2\sigma^2)$ at the switch, with slope 1. Large $\sigma$ approaches $\ell_1$; small $\sigma$ is smoother. **Focal loss** (Lin et al. 2017): $-\alpha(1-p_j)^\gamma\log p_j$ for the true-class probability $p_j$. Larger $\gamma$ shrinks the loss of well-classified examples so training focuses on hard ones:
 
 | $p_j$ | $\gamma=0$ (cross-entropy) | $\gamma=1$ | $\gamma=5$ |

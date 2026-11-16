@@ -156,7 +156,7 @@ class Seq2SeqDecoder(d2l.Decoder):
 
 The decoder's initial hidden state is the encoder's final state (so both need the same number of layers and hidden units), and $\mathbf c$ is concatenated to the decoder input at every step. Shapes on a toy batch (vocab 10, embed 8, hidden 16, 2 layers, batch 4, 9 steps): encoder outputs (9, 4, 16), state (2, 4, 16); decoder output (4, 9, 10).
 
-**Teacher forcing** feeds `<bos>` + target (minus the last token) and predicts the target shifted by one: "<bos> Ils regardent ." → "Ils regardent . <eos>".
+**Teacher forcing** feeds `<bos>` + target (minus the last token) and predicts the target shifted by one: `<bos> Ils regardent .` → `Ils regardent . <eos>`.
 
 **Masked loss:**
 
@@ -228,11 +228,11 @@ def bleu(pred_seq, label_seq, k):
 
 The better sequence picks the second-best token at step 2; after that the conditional probabilities differ.
 
-| strategy | sequences scored ($|\mathcal Y|=10^4$, $T'=10$) |
+| strategy | sequences scored ($\vert \mathcal Y\vert =10^4$, $T'=10$) |
 |---|---|
-| greedy, $O(|\mathcal Y|T')$ | $10^5$ |
-| beam, $k=10$, $O(k|\mathcal Y|T')$ | $10^6$ |
-| exhaustive, $O(|\mathcal Y|^{T'})$ | $10^{40}$ |
+| greedy, $O(\vert \mathcal Y\vert T')$ | $10^5$ |
+| beam, $k=10$, $O(k\vert \mathcal Y\vert T')$ | $10^6$ |
+| exhaustive, $O(\vert \mathcal Y\vert ^{T'})$ | $10^{40}$ |
 
 **Beam search** keeps the $k$ best partial sequences. Final candidates are compared with a length-normalized score $\frac{1}{L^\alpha}\log P$: since $\log P$ is a sum of negative terms, unnormalized scores always favour short outputs.
 
@@ -262,9 +262,9 @@ $$f(\mathbf q)=\sum_i\mathbf v_i\frac{\alpha(\mathbf q,\mathbf k_i)}{\sum_j\alph
 
 | kernel | $\alpha(q,k)$ |
 |---|---|
-| Gaussian | $\exp(-\tfrac12\|q-k\|^2)$ |
-| Boxcar | $1$ if $\|q-k\|\le1$ |
-| Epanechikov | $\max(0,1-\|q-k\|)$ |
+| Gaussian | $\exp(-\tfrac12\Vert q-k\Vert ^2)$ |
+| Boxcar | $1$ if $\Vert q-k\Vert \le1$ |
+| Epanechikov | $\max(0,1-\Vert q-k\Vert )$ |
 | constant | 1 (gives the plain mean $\frac1n\sum_iy_i$) |
 
 D2L's data: 40 training points $y_i=2\sin x_i+x_i+\epsilon$, $x_i\sim U(0,5)$ sorted, $\epsilon\sim\mathcal N(0,1)$; validation queries $0,0.1,\dots,4.9$.
@@ -467,7 +467,7 @@ Self-attention uses the sequence as queries, keys and values.
 | RNN | $O(nd^2)$ | $O(n)$ | $O(n)$ |
 | self-attention | $O(n^2d)$ | $O(1)$ | $O(1)$ |
 
-Self-attention is cheaper than an RNN when $n<d$. At $d=512$ that covers sequences under 512 tokens; beyond that the $n^2$ term dominates, which is why long-context attention is its own research area.
+Self-attention is cheaper than an RNN when $n\lt d$. At $d=512$ that covers sequences under 512 tokens; beyond that the $n^2$ term dominates, which is why long-context attention is its own research area.
 
 The main gain is path length. From [[07 - Recurrent Neural Network|ch. 07]] §7, keeping $\gamma^T$ within $[10^{-3},10^3]$ requires $\gamma$ within ±0.693% of 1 at $T=1000$, but allows $[0.001, 1000]$ at $T=1$. With path length 1 there is no long product of Jacobians to control. Combined with $O(1)$ sequential steps (full parallelism on GPUs), this is why attention replaced recurrence despite worse asymptotic cost.
 
@@ -683,7 +683,7 @@ D2L's summary: the Transformer is an encoder–decoder, but either half can be u
 > ---
 > **(a)** RNN $O(nd^2)$, $O(n)$, $O(n)$; CNN $O(knd^2)$, $O(1)$, $O(n/k)$; self-attention $O(n^2d)$, $O(1)$, $O(1)$.
 >
-> **(b)** When $n<d$; at $d=512$, below 512 tokens.
+> **(b)** When $n\lt d$; at $d=512$, below 512 tokens.
 >
 > **(c)** The allowed Jacobian range widens from ±0.693% (length 1000) to $[0.001, 1000]$ (length 1): no long product remains.
 >
@@ -700,7 +700,7 @@ D2L's summary: the Transformer is an encoder–decoder, but either half can be u
 - Bahdanau attention recomputes the context per output step, removing the fixed-vector bottleneck and shortening gradient paths.
 - Scale dot products by $1/\sqrt d$, or the softmax saturates and gradients vanish.
 - Multi-head attention costs $4p_o^2$ for any number of heads.
-- Self-attention is cheaper than an RNN when $n<d$, has path length 1 and runs in parallel.
+- Self-attention is cheaper than an RNN when $n\lt d$, has path length 1 and runs in parallel.
 - Sinusoidal positional encodings supply order; relative shifts are fixed rotations.
 - A Transformer layer is about two-thirds FFN parameters at 512/2048; it combines residual connections, layer norm and position-wise MLPs with multi-head self-attention.
 - Code: `masked_softmax` (−1e6 fill), `bmm`, `DotProductAttention`, `AdditiveAttention`, `MultiHeadAttention` (heads folded into the batch axis), `PositionalEncoding`, `AddNorm`, `PositionWiseFFN`, encoder and decoder blocks; the causal mask is `dec_valid_lens = [1..T]`, and prediction caches past keys/values per block.
@@ -728,7 +728,7 @@ D2L's summary: the Transformer is an encoder–decoder, but either half can be u
 
 > [!warning] Gaps in the source material
 > - **Figures:** greedy/beam probability trees, attention pooling, multi-head and Transformer diagrams are reconstructed from the prose (the trees' probabilities are in the text). Lost: attention heatmaps, kernel-regression plots, positional-encoding plots, and all training curves, so no loss or BLEU curves are quoted.
-> - **Added by me:** the BLEU zero-precision analysis; the beam cost comparison and length-normalization reasoning; the softmax saturation simulation; the multi-head parameter table; the $n<d$ crossover; the path-length argument and the cross-chapter link (ch. 04, 05, 07, 08); the positional-encoding rotation check; the Transformer parameter budget and inheritance table; the memory and interpretability cautions. Multiple-reference BLEU and exposure bias are named beyond D2L.
+> - **Added by me:** the BLEU zero-precision analysis; the beam cost comparison and length-normalization reasoning; the softmax saturation simulation; the multi-head parameter table; the $n\lt d$ crossover; the path-length argument and the cross-chapter link (ch. 04, 05, 07, 08); the positional-encoding rotation check; the Transformer parameter budget and inheritance table; the memory and interpretability cautions. Multiple-reference BLEU and exposure bias are named beyond D2L.
 > - **Correction:** exercise 1(b)'s BLEU is 0.6815 (an earlier version of this note said 0.6816). An earlier version also repeated D2L's claim that longer n-grams carry more weight; it is the reverse (D13).
 > - **Discrepancies:** D13 (BLEU weighting described backwards), D14 (length normalization said to penalize long sequences).
 > - **Checked against the real data** (fra-eng.zip, SHA-1 matching D2L's): positions of D2L's test sentences in the 641 loaded pairs, the memorized outputs (pairs 77, 173, 273), vocabulary sizes, `<unk>` rate and token counts; parameter counts of the three models.

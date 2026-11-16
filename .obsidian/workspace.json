@@ -63,12 +63,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "METHOD.md",
+                "file": "Deep Learning/contents/08 - Sequence to Sequence.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "METHOD"
+              "title": "08 - Sequence to Sequence"
             }
           }
         ],
@@ -237,6 +237,10 @@
   },
   "active": "212bda71bb282bfd",
   "lastOpenFiles": [
+    "Deep Learning/contents/07 - Recurrent Neural Network.md",
+    "Deep Learning/contents/08 - Sequence to Sequence.md",
+    "Deep Learning/contents/01 - Introduction to Deep Learning.md",
+    "METHOD.md",
     "Deep Learning/sedMZBog3",
     "Deep Learning/contents/sedg79Typ",
     "CLAUDE.md",
@@ -261,13 +265,9 @@
     "Principles of Marketing/CLAUDE.md.tmp.10164.bcb075eb513b",
     "Monetary and Financial Theories/CLAUDE.md.tmp.10164.218dff6e2e02",
     "Principles of Marketing/CLAUDE.md.tmp.10164.bc4766880634",
-    "Discrete Mathematics/CLAUDE.md.tmp.10164.87a1e263b898",
-    "METHOD.md",
     "Computer Vision/contents/09 - Segmentation.md",
     "Business Management/contents/05 - How to Form a Business.md",
     "Deep Learning/contents/06 - Object Detection.md",
-    "Deep Learning/contents/07 - Recurrent Neural Network.md",
-    "Deep Learning/contents/08 - Sequence to Sequence.md",
     "Deep Learning/contents/05 - Convolutional Neural Network.md",
     "Business Management/contents/06 - Management and Leadership.md",
     "Business Management/contents/09 - Accounting and Financial Information.md",
