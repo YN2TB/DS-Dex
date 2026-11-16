@@ -61,12 +61,14 @@
             "id": "212bda71bb282bfd",
             "type": "leaf",
             "state": {
-              "type": "release-notes",
+              "type": "markdown",
               "state": {
-                "currentVersion": "1.15.1"
+                "file": "METHOD.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-book-up",
-              "title": "Release Notes 1.15.1"
+              "icon": "lucide-file",
+              "title": "METHOD"
             }
           }
         ],
@@ -235,6 +237,10 @@
   },
   "active": "212bda71bb282bfd",
   "lastOpenFiles": [
+    "Deep Learning/sedMZBog3",
+    "Deep Learning/contents/sedg79Typ",
+    "CLAUDE.md",
+    "Deep Learning/CLAUDE.md",
     "Deep Learning/note/rnn.py.tmp.17452.e96630b05856",
     "Deep Learning/note/rnn.py.tmp.17452.8ee186666833",
     "Big Data Analytics/contents/01 - Big Data and Distributed Computing.md",
@@ -256,8 +262,6 @@
     "Monetary and Financial Theories/CLAUDE.md.tmp.10164.218dff6e2e02",
     "Principles of Marketing/CLAUDE.md.tmp.10164.bc4766880634",
     "Discrete Mathematics/CLAUDE.md.tmp.10164.87a1e263b898",
-    "Computer Vision/CLAUDE.md.tmp.10164.7d5fa19ce43a",
-    "Business Management/CLAUDE.md.tmp.10164.d972c672f7c3",
     "METHOD.md",
     "Computer Vision/contents/09 - Segmentation.md",
     "Business Management/contents/05 - How to Form a Business.md",
@@ -270,8 +274,6 @@
     "Big Data Analytics/note/Project explaination.md",
     "Computer Vision/contents/01 - Introduction and Image Formation.md",
     "Computer Vision/contents/03 - Image Classification and Linear Models.md",
-    "Computer Vision/contents/06 - Vision Transformers.md",
-    "Natural Language Processing/note/Untitled.md",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/Minduka_Present_Blue_Pack.png",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/logo2.png",
     "Deep Learning/note/venv/Lib/site-packages/matplotlib/mpl-data/sample_data/grace_hopper.jpg",

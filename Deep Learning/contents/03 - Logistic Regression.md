@@ -2,17 +2,17 @@
 subject: Deep Learning
 chapter: 3
 tags: [ds, deep-learning, classification, softmax, cross-entropy, distribution-shift]
-source: "Zhang, Lipton, Li & Smola — Dive into Deep Learning, §4.1–4.7 (book pp. 127–169)"
+source: "Zhang, Lipton, Li & Smola, Dive into Deep Learning, ch. 4 Linear Neural Networks for Classification, §4.1–4.7 (book pp. 127–169)"
 ---
 
 # Logistic Regression
 
 > [!info] Naming
-> The syllabus says *Logistic Regression*; D2L calls the chapter *Softmax Regression*. Softmax regression with $q=2$ classes is exactly binary logistic regression (§7), so this note covers the general case. Compared with [[02 - Linear Regression]], three things change: the targets (one-hot), the output layer (one affine function per class) and the loss (cross-entropy).
+> The syllabus says *Logistic Regression*; D2L calls the chapter *Softmax Regression*. Softmax regression with $q=2$ classes is exactly binary logistic regression (§7), so this note covers the general case. Compared with [[02 - Linear Regression]], three things change: the targets (one-hot), the output layer (one affine function per class) and the loss (cross-entropy). The note follows D2L's order: theory (§4.1), the Fashion-MNIST data (§4.2), the `Classifier` base class (§4.3), implementations from scratch and with PyTorch (§4.4–4.5), generalization (§4.6) and distribution shift (§4.7).
 
 ## 📘 Main Knowledge
 
-### 1. Regression vs. classification
+### 1. Regression vs. classification (§4.1)
 
 Even numeric targets can break regression's assumptions: house prices are positive and change relatively (so regress on $\log$ price), and days in hospital is a discrete count (survival modelling).
 
@@ -34,7 +34,7 @@ $$o_i = \sum_{k=1}^4 x_k w_{ik} + b_i,\quad i=1,2,3 \qquad\text{i.e.}\qquad \mat
 
 This is a single fully connected layer. For a minibatch $\mathbf{X}\in\mathbb{R}^{n\times d}$, $\mathbf{O}=\mathbf{X}\mathbf{W}+\mathbf{b}$ and softmax is applied row by row.
 
-The parametrization has one redundant degree of freedom: since probabilities sum to 1, $q-1$ outputs would be enough. D2L keeps all $q$ for symmetry. Consequences: adding a constant to every logit changes nothing (§9), the binary case depends only on $o_1-o_2$ (§7), and individual logits or weights cannot be interpreted, only differences.
+The parametrization has one redundant degree of freedom: since probabilities sum to 1, $q-1$ outputs would be enough. D2L keeps all $q$ for symmetry. Consequences: adding a constant to every logit changes nothing (§12), the binary case depends only on $o_1-o_2$ (§7), and individual logits or weights cannot be interpreted, only differences.
 
 ### 4. Softmax
 
@@ -79,9 +79,9 @@ $$\hat y_1=\frac{e^{o_1}}{e^{o_1}+e^{o_2}}=\frac{1}{1+e^{-(o_1-o_2)}}=\sigma(o_1
 Two-class softmax is the sigmoid of the logit difference. The loss becomes binary cross-entropy:
 $$\ell=-\big[y\log\hat y+(1-y)\log(1-\hat y)\big]$$
 
-Logistic regression reappears in §11.3 as a tool for estimating density ratios.
+Logistic regression reappears in §14.3 as a tool for estimating density ratios.
 
-### 8. Information theory
+### 8. Information theory (§4.1.3)
 
 **Entropy** $H[P]=-\sum_j P(j)\log P(j)$ is the minimum average code length for data from $P$ (Shannon, 1948). In nats with natural log; $1\text{ nat}=1/\ln 2\approx1.4427$ bits.
 
@@ -95,22 +95,159 @@ Check with $P=(0.7,0.2,0.1)$, $Q=(0.5,0.3,0.2)$: $H(P)=0.801819$, $D_{\mathrm{KL
 
 So training with cross-entropy can be read two ways: maximize the likelihood of the labels, or minimize the bits needed to transmit them.
 
-### 9. Numerical stability
+**Cost.** A fully connected output layer with $d$ inputs and $q$ outputs costs $O(dq)$. Structured alternatives (Deep Fried Convnets, quaternion-style decompositions) reduce this, though what matters in practice is speed on GPUs, not FLOP counts.
 
-For logits $(1000,1001,1002)$:
+### 9. The image classification dataset (§4.2)
 
-| Method | Result |
-|---|---|
-| naive $\exp(o_i)/\sum_k\exp(o_k)$ | `[nan, nan, nan]` ($e^{1000}$ overflows) |
-| subtract the max first | `[0.090031, 0.244728, 0.665241]` |
+**MNIST** (LeCun et al., 1998): 60,000 training and 10,000 test images of handwritten digits, $28\times28$. In 1995 a Sun SPARCStation 5 with 64 MB RAM and 5 MFLOPS was state of the art at AT&T Bell Labs; LeNet-5, SVMs with invariances and tangent-distance classifiers all reached under 1% error, which helped automate USPS letter sorting. Today even simple models exceed 95%, so MNIST is a sanity check, not a benchmark. ImageNet is the relevant challenge but too slow for the book's examples.
 
-Softmax is translation invariant, $\operatorname{softmax}(\mathbf{o}+c)=\operatorname{softmax}(\mathbf{o})$, so subtracting $\max_i o_i$ is safe (the log-sum-exp trick). Frameworks fuse softmax and cross-entropy to do this, which is why `CrossEntropyLoss` takes logits.
+D2L uses **Fashion-MNIST** (Xiao et al., 2017): 10 clothing classes, $28\times28$ grayscale, 6,000 training and 1,000 test images per class (60,000 / 10,000).
 
-A fully connected output layer costs $O(dq)$. Structured alternatives (Deep Fried Convnets, quaternion-style decompositions) reduce this, though what matters in practice is speed on GPUs, not FLOP counts.
+```python
+class FashionMNIST(d2l.DataModule):
+    def __init__(self, batch_size=64, resize=(28, 28)):
+        super().__init__()
+        self.save_hyperparameters()
+        trans = transforms.Compose([transforms.Resize(resize),
+                                    transforms.ToTensor()])
+        self.train = torchvision.datasets.FashionMNIST(
+            root=self.root, train=True, transform=trans, download=True)
+        self.val = torchvision.datasets.FashionMNIST(
+            root=self.root, train=False, transform=trans, download=True)
 
-### 10. Generalization in classification
+    def text_labels(self, indices):
+        labels = ['t-shirt', 'trouser', 'pullover', 'dress', 'coat',
+                  'sandal', 'shirt', 'sneaker', 'bag', 'ankle boot']
+        return [labels[int(i)] for i in indices]
 
-#### 10.1 How big must a test set be?
+    def get_dataloader(self, train):
+        data = self.train if train else self.val
+        return torch.utils.data.DataLoader(data, self.batch_size, shuffle=train,
+                                           num_workers=self.num_workers)
+```
+
+- Images are stored as **$c\times h\times w$** tensors (channels, height, width). `data.train[0][0].shape` is `[1, 32, 32]` after resizing to 32. RGB images have 3 channels; hyperspectral images can have over 100 (HyMap: 126).
+- A minibatch is `X: [64, 1, 32, 32]` (float32) and `y: [64]` (int64): labels are class indices, not one-hot vectors.
+- One pass over the training loader took 5.41 s in D2L's run. That is slow, but a deep network's compute takes longer, so training is not I/O bound.
+- Always look at your data (`visualize` shows images with their text labels): humans spot oddities quickly.
+
+### 10. The base classification model (§4.3)
+
+`Classifier` extends `Module` so that validation reports both loss and **accuracy**:
+
+```python
+class Classifier(d2l.Module):
+    def validation_step(self, batch):
+        Y_hat = self(*batch[:-1])
+        self.plot('loss', self.loss(Y_hat, batch[-1]), train=False)
+        self.plot('acc', self.accuracy(Y_hat, batch[-1]), train=False)
+
+def accuracy(self, Y_hat, Y, averaged=True):
+    Y_hat = Y_hat.reshape((-1, Y_hat.shape[-1]))
+    preds = Y_hat.argmax(axis=1).type(Y.dtype)       # predicted class per row
+    compare = (preds == Y.reshape(-1)).type(torch.float32)
+    return compare.mean() if averaged else compare
+```
+
+Accuracy is the fraction of correct hard predictions. It is not differentiable, so we train on cross-entropy, but it is usually the number we report. The `.type(Y.dtype)` cast is needed because `==` is sensitive to data types.
+
+**Averaging over batches.** The validation curve is the mean of per-batch means. That is exact only when all batches are equal in size. Fashion-MNIST's 10,000 validation images at batch size 256 give 39 full batches and one of 16. If $L^q_v$ is the mean of the 40 batch losses and $l^b_v$ the last batch's loss, the true validation loss is
+$$L_v=\frac{256\,(40L^q_v-l^b_v)+16\,l^b_v}{10{,}000}.$$
+The quick estimate is still unbiased in expectation over random batches (D2L ex. 4.3.2), but it gives the 16 examples of the last batch 16× the weight of the others.
+
+### 11. Softmax regression from scratch (§4.4)
+
+**Softmax.** Exponentiate, sum each row (`keepdims=True` keeps a column for broadcasting), divide. The denominator is the **partition function**, a name from statistical physics.
+
+```python
+X = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+X.sum(0, keepdims=True), X.sum(1, keepdims=True)   # [[5., 7., 9.]], [[6.], [15.]]
+
+def softmax(X):
+    X_exp = torch.exp(X)
+    partition = X_exp.sum(1, keepdims=True)
+    return X_exp / partition        # broadcasting
+```
+
+On random input each row sums to 1. D2L warns this code is not robust to very large or very small arguments (§12).
+
+**Model.** Flatten each $28\times28$ image to a vector of 784; 10 outputs; $\mathbf W\in\mathbb R^{784\times10}$ from $\mathcal N(0,0.01^2)$, $\mathbf b\in\mathbb R^{10}$ zeros: $784\cdot10+10=7{,}850$ parameters.
+
+```python
+class SoftmaxRegressionScratch(d2l.Classifier):
+    def __init__(self, num_inputs, num_outputs, lr, sigma=0.01):
+        super().__init__()
+        self.save_hyperparameters()
+        self.W = torch.normal(0, sigma, size=(num_inputs, num_outputs),
+                              requires_grad=True)
+        self.b = torch.zeros(num_outputs, requires_grad=True)
+    def parameters(self):
+        return [self.W, self.b]
+    def forward(self, X):
+        X = X.reshape((-1, self.W.shape[0]))
+        return softmax(torch.matmul(X, self.W) + self.b)
+```
+
+**Cross-entropy by indexing.** With integer labels, `y_hat[range(n), y]` picks the probability of each true class, so no one-hot matrix or loop is needed:
+
+```python
+y = torch.tensor([0, 2])
+y_hat = torch.tensor([[0.1, 0.3, 0.6], [0.3, 0.2, 0.5]])
+y_hat[[0, 1], y]                    # tensor([0.1000, 0.5000])
+
+def cross_entropy(y_hat, y):
+    return -torch.log(y_hat[list(range(len(y_hat))), y]).mean()
+cross_entropy(y_hat, y)             # tensor(1.4979)
+```
+
+Check: $\tfrac12(-\ln0.1-\ln0.5)=\tfrac12(2.302585+0.693147)=1.497866$. (Accuracy on this toy batch is 0.5: both rows predict class 2.)
+
+**Training.** `FashionMNIST(batch_size=256)`, `lr=0.1`, 10 epochs, reusing `Trainer.fit` from [[02 - Linear Regression]]. That is $\lceil60{,}000/256\rceil=235$ updates per epoch. D2L treats the Fashion-MNIST test split as the validation set.
+
+**Prediction.** `model(X).argmax(axis=1)` on a validation batch gives 256 predictions; D2L shows the misclassified images with true and predicted labels. With linear and softmax regression we have reached "the state of the art of 1960–1970s statistical modeling".
+
+### 12. Concise implementation and numerical stability (§4.5)
+
+```python
+class SoftmaxRegression(d2l.Classifier):
+    def __init__(self, num_outputs, lr):
+        super().__init__()
+        self.save_hyperparameters()
+        self.net = nn.Sequential(nn.Flatten(),             # [n,1,28,28] -> [n,784]
+                                 nn.LazyLinear(num_outputs))
+    def forward(self, X):
+        return self.net(X)                                 # logits, no softmax
+
+def loss(self, Y_hat, Y, averaged=True):
+    Y_hat = Y_hat.reshape((-1, Y_hat.shape[-1]))
+    Y = Y.reshape((-1,))
+    return F.cross_entropy(Y_hat, Y, reduction='mean' if averaged else 'none')
+```
+
+**Why the loss takes logits.** Float32 covers roughly $10^{-38}$ to $10^{38}$, so $\exp(o)$ is only safe for $o$ in about $[-90,90]$. (Exactly: overflow above $\ln(3.4\times10^{38})=88.72$; below $-87.34$ results are subnormal and lose precision; below $-103.28$ they become 0.)
+
+Subtract $\bar o=\max_k o_k$ (softmax is translation invariant):
+$$\hat y_j=\frac{\exp(o_j-\bar o)}{\sum_k\exp(o_k-\bar o)}.$$
+Every exponent is now $\le0$, the numerator is $\le1$ and the denominator lies in $[1,q]$, so nothing overflows. Underflow can still make a numerator 0, and then $\log\hat y_j=\log0$ gives `NaN`s in backprop. Since we want $\log\hat y$ anyway, combine the two steps (the **LogSumExp trick**):
+$$\log\hat y_j=o_j-\bar o-\log\sum_k\exp(o_k-\bar o).$$
+This is what `F.cross_entropy` does, which is why it takes logits. Keep the plain softmax for when you want to read probabilities.
+
+Checks in float32 (mine):
+
+| logits | naive softmax | stable softmax |
+|---|---|---|
+| $(1000,1001,1002)$ | `[nan, nan, nan]` | `[0.090031, 0.244728, 0.665241]` |
+| $(100,1,0)$ | `[nan, 0, 0]` ($e^{100}$ overflows) | `[1.0, 1.0e-43, 3.8e-44]` |
+| $(-100,-101,-102)$ | `[0.6585, 0.2439, 0.0976]` (1% off: subnormals) | `[0.6652, 0.2447, 0.0900]` |
+| $(-110,-111,-112)$ | `[nan, nan, nan]` (0/0) | `[0.6652, 0.2447, 0.0900]` |
+
+The safe exponent range per number format (D2L ex. 4.5.1): FP16 about $[-9.7, 11.1]$, BF16 and FP32 about $[-87.3, 88.7]$, FP64 about $[-708.4, 709.8]$. FP16's range is why mixed-precision training keeps the loss in FP32.
+
+Training the concise model with the same settings converges to a similarly accurate solution in fewer lines. D2L's caution: high-level APIs hide the sharp edges, which makes it harder to fix things when the framework's protection fails. Learn both versions.
+
+### 13. Generalization in classification (§4.6)
+
+#### 13.1 How big must a test set be?
 
 For a fixed classifier, test error is the mean of the Bernoulli variable $\mathbf{1}(f(X)\ne Y)$. By the CLT it converges to the true error at rate $O(1/\sqrt n)$: twice the precision needs 4× the data.
 
@@ -125,7 +262,7 @@ Many benchmarks have test sets of this size. D2L remarks that thousands of paper
 
 Hoeffding's finite-sample bound $P(\epsilon_D(f)-\epsilon(f)\ge t)<\exp(-2nt^2)$ at $t=0.01$, $\delta=0.05$ gives $n=14{,}979$ (D2L: "roughly 15,000"). Note this is one-sided while the 10,000 is two-sided; the like-for-like two-sided figure is 18,444. The conclusion (finite-sample bounds are somewhat more conservative) holds either way.
 
-#### 10.2 Reusing the test set
+#### 13.2 Reusing the test set
 
 Suppose you evaluate $f_1$ once on a clean test set, then build $f_2$ after seeing the result. Two problems:
 
@@ -134,7 +271,7 @@ Suppose you evaluate $f_1$ once on a clean test set, then build $f_2$ after seei
 
 D2L's advice: use real test sets as rarely as possible, account for multiple comparisons, be extra careful with small data and high stakes, and in competitions keep several test sets, demoting each old one to validation.
 
-#### 10.3 Statistical learning theory
+#### 13.3 Statistical learning theory
 
 Any fixed classifier's test error is an unbiased estimate. The hard case is a classifier chosen from an (infinite) class $\mathcal{F}$ using the same data. Uniform convergence asks that every $f\in\mathcal{F}$ have empirical error close to true error simultaneously; that fails for very flexible classes.
 
@@ -144,11 +281,11 @@ Linear models in $d$ dimensions have VC dimension $d+1$.
 
 These bounds do not explain deep learning. Deep networks can fit random labels yet generalize well, and larger, deeper networks often generalize better despite higher VC dimension. See [[04 - Neural Network]].
 
-### 11. Distribution shift
+### 14. Distribution shift (§4.7)
 
 D2L's loan example: a model finds that people wearing Oxfords repay and people in sneakers default. Once loans are granted on that basis, everyone wears Oxfords and creditworthiness does not change. Deploying a model can break it.
 
-#### 11.1 Types of shift
+#### 14.1 Types of shift
 
 Train on $p_S(\mathbf{x},y)$, test on $p_T(\mathbf{x},y)$. Without some assumption linking them, robust learning is impossible: if all labels flip while inputs stay the same, no data can detect it.
 
@@ -160,18 +297,24 @@ Train on $p_S(\mathbf{x},y)$, test on $p_T(\mathbf{x},y)$. Without some assumpti
 
 The causal direction tells you which correction to use. When labels are deterministic, label-shift methods can still be easier because they work with low-dimensional labels.
 
-#### 11.2 Examples from D2L
+#### 14.2 Examples from D2L
 
 - **Medical test**: healthy controls were university students; the disease affects older men. The classifier separated the groups by age, hormones, diet and so on. Not correctable.
 - **Self-driving**: trained on game-engine images where all roadsides had the same texture; failed on real roads.
 - **Tanks**: photos without tanks were taken in the morning, with tanks at noon; the classifier learned shadows.
 - **Nonstationarity**: ad models unaware of new products, spammers adapting, recommending Santa hats after Christmas.
 
+- **More anecdotes**: a face detector that fails on close-ups where the face fills the image; a US search engine deployed in the UK; a classifier trained on 1000 classes × 1000 images deployed where real label frequencies are far from uniform (label shift).
+
 All of these looked excellent on a test set drawn from the same flawed data.
 
-#### 11.3 Correcting covariate shift
+**Empirical risk and risk.** Training minimizes the **empirical risk** $\frac1n\sum_{i=1}^n l(f(\mathbf x_i),y_i)$, an average over the training data that approximates the **risk** $\mathbb E_{p(\mathbf x,y)}[l(f(\mathbf x),y)]=\iint l(f(\mathbf x),y)\,p(\mathbf x,y)\,d\mathbf x\,dy$. Minimizing the former in the hope of minimizing the latter is **empirical risk minimization**. Every correction below rewrites the risk under the target distribution as a weighted risk under the source.
 
-If inputs come from source $q(\mathbf{x})$, we care about target $p(\mathbf{x})$, and $p(y\mid\mathbf{x})=q(y\mid\mathbf{x})$, reweight each example:
+#### 14.3 Correcting covariate shift
+
+If inputs come from source $q(\mathbf{x})$, we care about target $p(\mathbf{x})$, and $p(y\mid\mathbf{x})=q(y\mid\mathbf{x})$, then
+$$\iint l(f(\mathbf x),y)\,p(y\mid\mathbf x)p(\mathbf x)\,d\mathbf x\,dy=\iint l(f(\mathbf x),y)\,q(y\mid\mathbf x)q(\mathbf x)\frac{p(\mathbf x)}{q(\mathbf x)}\,d\mathbf x\,dy,$$
+so reweight each example:
 $$\beta_i=\frac{p(\mathbf{x}_i)}{q(\mathbf{x}_i)},\qquad \min_f\ \frac1n\sum_{i=1}^n\beta_i\,\ell(f(\mathbf{x}_i),y_i)$$
 
 Estimate the ratio with logistic regression. Label target samples $z=1$ and source samples $z=-1$ (equal numbers). Then $P(z=1\mid\mathbf{x})/P(z=-1\mid\mathbf{x})=p(\mathbf{x})/q(\mathbf{x})$, and with $P(z=1\mid\mathbf{x})=\sigma(h(\mathbf{x}))$:
@@ -185,7 +328,7 @@ Algorithm:
 
 Requirement: every region with $p(\mathbf{x})>0$ must have $q(\mathbf{x})>0$, otherwise the weight is infinite. The medical startup's controls had zero chance of being older men, so no reweighting could help. You need features from both distributions, but no target labels.
 
-#### 11.4 Correcting label shift
+#### 14.4 Correcting label shift
 
 If $q(y)\ne p(y)$ but $q(\mathbf{x}\mid y)=p(\mathbf{x}\mid y)$, then $\beta_i=p(y_i)/q(y_i)$. Estimate $p(y)$ from a confusion matrix $\mathbf{C}$ (computed on source validation data) and the average test prediction $\mu(\hat{\mathbf{y}})$:
 $$\mathbf{C}\,p(\mathbf{y})=\mu(\hat{\mathbf{y}})\quad\Longrightarrow\quad p(\mathbf{y})=\mathbf{C}^{-1}\mu(\hat{\mathbf{y}})$$
@@ -198,7 +341,7 @@ $$\mathbf{C}=\begin{pmatrix}0.85&0.10&0.05\\0.10&0.80&0.15\\0.05&0.10&0.80\end{p
 
 D2L says a sufficiently accurate classifier makes $\mathbf{C}$ invertible. What matters is the condition number. Here $\kappa(\mathbf{C})=1.50$. With a weak classifier, $\kappa=104$, adding 0.005 of sampling noise to $\mu$ gives $\hat p=(0.100,0.800,0.100)$: error 0.648 vs 0.0098, 65.9× worse, and still a valid-looking probability vector. Same lesson as [[02 - Linear Regression]] exercise 4.
 
-#### 11.5 Concept shift and learning settings
+#### 14.5 Concept shift and learning settings
 
 Concept shift has no principled fix beyond new labels. Usually it is gradual (camera lenses wearing, ads changing popularity), and continuing to train the existing model on new data is enough.
 
@@ -212,7 +355,7 @@ Concept shift has no principled fix beyond new labels. Usually it is gradual (ca
 
 A strategy that works in a stationary environment may fail once the environment adapts (an arbitrage disappears once exploited). If the environment changes slowly, make estimates change slowly too.
 
-#### 11.6 Fairness
+#### 14.6 Fairness
 
 A deployed model automates decisions about people. For a medical model you must know which populations it works for. A training sample that differs from the deployment population can give high test accuracy and unsafe behaviour.
 
@@ -231,17 +374,19 @@ A deployed model automates decisions about people. For a medical model you must 
 >
 > **(d)** Cat; no, argmax of the logits is enough.
 
-> [!example]- **2.** *(Easy–medium) Two-class softmax*
-> **(a)** Show $\hat y_1=\sigma(o_1-o_2)$ for $q=2$. **(b)** Show the loss is binary cross-entropy. **(c)** A colleague says "the weight on feature 7 for class 2 is 0.8, so feature 7 pushes toward class 2." Respond. **(d)** How many parameters of a $q$-class softmax layer with $d$ inputs are redundant?
+> [!example]- **2.** *(Easy–medium) Implementation pitfalls (D2L ex. 4.4.1, 4.3.1)*
+> **(a)** Run the from-scratch `softmax` in float32 on $(100,1,0)$ and on $(-110,-111,-112)$. What happens and why? **(b)** What does it give for $(-100,-101,-102)$? **(c)** Fix it. **(d)** With $\hat{\mathbf Y}=\begin{pmatrix}0.1&0.3&0.6\\0.3&0.2&0.5\end{pmatrix}$ and labels $(0,2)$, compute the cross-entropy and accuracy. **(e)** A validation set of 10,000 images is read in batches of 256. Write the true mean loss in terms of the mean of batch means $L^q$ and the last batch's loss $l^b$.
 >
 > ---
-> **(a)** Divide numerator and denominator by $e^{o_1}$: $\hat y_1=1/(1+e^{-(o_1-o_2)})$.
+> **(a)** $e^{100}\approx2.7\times10^{43}$ exceeds float32's max $3.4\times10^{38}$: `inf/inf = nan` for the first entry. For $-110$ every $e^{o}$ underflows to 0 (below $e^{-103.3}$): `0/0 = nan` everywhere.
 >
-> **(b)** With $\mathbf{y}=(y,1-y)$: $-[y\log\hat y+(1-y)\log(1-\hat y)]$.
+> **(b)** `[0.6585, 0.2439, 0.0976]` instead of `[0.6652, 0.2447, 0.0900]`: no crash, but about 1% wrong, because values near $e^{-100}$ are subnormal and have few significant bits.
 >
-> **(c)** A single weight means nothing: adding a constant to feature 7's weight in every class changes no prediction. Only differences such as $w_{2,7}-w_{1,7}$ are meaningful.
+> **(c)** Subtract the row max before exponentiating: `X_exp = torch.exp(X - X.max(1, keepdim=True).values)`. Better still, never compute $\log(\text{softmax})$ yourself; pass logits to `F.cross_entropy`, which uses LogSumExp.
 >
-> **(d)** $d+1$: one row of $\mathbf{W}$ and its bias can be fixed at zero. That is why binary classification uses one sigmoid output.
+> **(d)** Picked probabilities 0.1 and 0.5; loss $\tfrac12(2.302585+0.693147)=1.4979$. Both rows predict class 2, so accuracy $=0.5$.
+>
+> **(e)** 39 full batches and one of 16: $L_v=\big(256(40L^q-l^b)+16\,l^b\big)/10{,}000$. The quick $L^q$ over-weights the 16 last examples.
 
 > [!example]- **3.** *(Medium) Test-set size*
 > **(a)** Why is the test error's variance at most $0.25/n$? **(b)** Derive 2,500 and 10,000. **(c)** D2L ex. 4.6.5 #1: error within $10^{-4}$ with probability $>99.9\%$. How many samples? **(d)** A paper reports 94.3% vs 93.4% on 10,000 test examples. Conclusion?
@@ -280,7 +425,7 @@ A deployed model automates decisions about people. For a medical model you must 
 > **(d)** Cross-entropy is the expected code length under a believed distribution $Q$; it equals $H(P)+D_{\mathrm{KL}}(P\|Q)$. No code beats $H(P)$, and no classifier gets cross-entropy below the data's entropy.
 
 > [!example]- **5.** *(Hard) Label shift and conditioning*
-> Source labels $q=(0.5,0.3,0.2)$, $\mathbf{C}$ as in §11.4, test mean output $\mu=(0.225,0.335,0.440)$.
+> Source labels $q=(0.5,0.3,0.2)$, $\mathbf{C}$ as in §14.4, test mean output $\mu=(0.225,0.335,0.440)$.
 > **(a)** Check $\mathbf{C}$ and give source accuracy. **(b)** Recover $p(\mathbf{y})$ and $\beta$. **(c)** Error from using $\mu$ directly? **(d)** Repeat with a classifier of $\kappa(\mathbf{C})=104$ and 0.005 noise in $\mu$.
 >
 > ---
@@ -299,6 +444,8 @@ A deployed model automates decisions about people. For a medical model you must 
 - Cross-entropy is the negative log-likelihood under a categorical model; for one-hot labels it is $-\log\hat y_{\text{true}}$, unbounded for confident mistakes.
 - Gradient $\hat{\mathbf{y}}-\mathbf{y}$; Hessian = covariance of $\hat{\mathbf{y}}$.
 - Two-class softmax = sigmoid of $o_1-o_2$. Only logit differences mean anything.
+- Code: `nn.Sequential(nn.Flatten(), nn.LazyLinear(10))` outputs logits; `F.cross_entropy` takes logits and integer labels and applies LogSumExp. From scratch, cross-entropy is `-log(y_hat[range(n), y]).mean()`.
+- Float32 `exp` is safe only for arguments in about $[-87, 89]$; subtract the max.
 - $H(P,Q)=H(P)+D_{\mathrm{KL}}(P\|Q)$: minimizing cross-entropy minimizes KL, with floor $H(P)$.
 - Bernoulli variance gives 2,500 test examples for one sd of 0.01 and 10,000 for two. Reusing a test set biases it.
 - VC theory does not explain why large networks generalize.
@@ -308,7 +455,7 @@ A deployed model automates decisions about people. For a medical model you must 
 
 1. Integer labels imply an order; use them only for genuinely ordinal classes.
 2. Softmax parameters are not identifiable: do not interpret single logits or weights.
-3. Pass logits to the loss. Doing softmax then log yourself can overflow (`nan` on $(1000,1001,1002)$).
+3. Pass logits to the loss. Doing softmax then log yourself can overflow (`nan` on $(1000,1001,1002)$) or underflow to `log 0`.
 4. One confidently wrong prediction can dominate a batch's loss.
 5. The gradient $\hat{\mathbf{y}}-\mathbf{y}$ sums to zero across classes; a quick sanity check.
 6. A saturated softmax has tiny gradient and tiny curvature (a route to vanishing gradients, [[04 - Neural Network]]).
@@ -322,12 +469,17 @@ A deployed model automates decisions about people. For a medical model you must 
 14. Clip importance weights; zero training density in a target region cannot be fixed.
 15. The label-shift confusion matrix must be column-conditional.
 16. A model that influences behaviour changes its own input distribution; monitor it ([[MLOps/contents/00-Index|MLOps]]).
+17. PyTorch classification labels are integer class indices (`int64`, shape `[n]`), not one-hot vectors.
+18. Images are `[batch, channels, height, width]`; `nn.Flatten()` keeps the batch axis and flattens the rest.
+19. Averaging batch means is exact only with equal batch sizes; the small last batch gets extra weight.
+20. D2L's reported "test" accuracies on Fashion-MNIST are really validation accuracies.
 
 > [!warning] Gaps in the source material
 > - **Figures:** the softmax-as-network diagram is reconstructed from the prose. The photo/cartoon images and the soft-drink map are lost but only illustrate claims stated in the text.
 > - **Formulas:** this chapter showed that `!` means `→` and that `λ` is deleted. Exercise 5.4 extracts as `Showthatfor !1 wehave 1RealSoftMax(a; b)! max(a; b)`, i.e. for $\lambda\to\infty$, $\lambda^{-1}\mathrm{RealSoftMax}(\lambda a,\lambda b)\to\max(a,b)$.
 > - **Added by me:** the KL decomposition; the Hessian solution (D2L ex. 1); the binary reduction and $d+1$ count; the one-/two-sided caveat (18,444 vs 10,000, logged as a declined discrepancy); the block-coding table; the full label-shift example including the $\kappa=104$ failure; the column-conditional remark; the temperature calculation; the overflow demo.
 > - **Cross-check with ch. 01:** D2L says a 1995 Sun SPARCStation 5 had 64 MB and 5 MFLOPS. Against Table 1.5.1's 1990 row (10 MB, 10 MF) the memory fits but compute is half, so the table's compute column looks optimistic. MNIST (47.04 MB at one byte per pixel) was 73.5% of that machine's RAM.
-> - **Skipped:** the Fashion-MNIST pipeline and implementation sections; VC theory is stated, not derived.
+> - **Also added by me:** the float32 range table and the subnormal example; the per-format exp ranges; the exact batch-averaging formula; the toy accuracy.
+> - **Skipped:** `show_images` plotting code and the training curves (images). VC theory is stated, not derived.
 
 **Previous:** [[02 - Linear Regression]] · **Next:** [[04 - Neural Network]]

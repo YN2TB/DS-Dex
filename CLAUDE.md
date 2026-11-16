@@ -50,7 +50,7 @@ Each subject holds `CLAUDE.md` (sources, extraction quirks, boundaries, open ite
 | Monetary and Financial Theories | ✅ 01–12 (1 erratum) |
 | Principles of Marketing | ✅ 01–12 |
 | Business Management | ✅ 01–09 |
-| Deep Learning | ✅ 01–08 ✂️ |
+| Deep Learning | ✅ 01–08 ✂️; deep rework from D2L done 2026-11-16 (2 errata) |
 | Computer Vision | 🔄 01–09 from lectures; 10–14 drafts await slides |
 | Big Data Analytics | ✅ 01–12 (6 errata) |
 | Natural Language Processing | 🚫 (`note/` empty too) |

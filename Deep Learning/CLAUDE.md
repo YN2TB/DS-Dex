@@ -1,11 +1,12 @@
 # Deep Learning
 
-Read with the root `CLAUDE.md` and `../METHOD.md`. Scope, chapters, errata (none; 9 discrepancies declined): `contents/00-Index.md`.
+Read with the root `CLAUDE.md` and `../METHOD.md`. Scope, chapters, errata (E1–E2, found by running D2L's code; 14 discrepancies declined): `contents/00-Index.md`.
 
 ## Source
 
 - *Dive into Deep Learning* (Zhang, Lipton, Li, Smola), Cambridge UP, PyTorch edition: `documents/Dive into Deep Learning.pdf`, 1185 pages. PDF page = book page + 40.
-- The eight topics come from the user's syllabus in `note/Index.md` (read it, never edit `note/`). D2L sections used per note:
+- `slides/`: lecturer's CNN slides 5.1–5.3 only. The user chose (2026-11-16) to write every note from the book; the notes were reworked section by section.
+- The eight topics come from the user's syllabus in `note/Index.md` (read it; `note/` may be edited only for the user's code, see memory). D2L sections used per note:
 
 | Note | Topic | D2L sections |
 |---|---|---|
@@ -38,6 +39,8 @@ Prose and code tokens extract well; display maths is damaged silently.
 | `39c2` | $3\times9c^2$ (multiplication sign lost) |
 
 Bold/blackboard typography is lost (scalar, vector, matrix look identical). Code loses indentation. Figures never extract; printed code outputs do, and they make many claims checkable.
+
+D2L's code is not always right (E1, E2): rerun it in PyTorch (installed globally, 2.11) before trusting a printed result. D2L datasets download from `d2l-data.s3-accelerate.amazonaws.com` and can be checked against the SHA-1 in the code (done for `fra-eng.zip`).
 
 ## Boundaries
 
