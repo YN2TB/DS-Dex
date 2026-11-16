@@ -228,11 +228,11 @@ def bleu(pred_seq, label_seq, k):
 
 The better sequence picks the second-best token at step 2; after that the conditional probabilities differ.
 
-| strategy | sequences scored ($\vert \mathcal Y\vert =10^4$, $T'=10$) |
-|---|---|
-| greedy, $O(\vert \mathcal Y\vert T')$ | $10^5$ |
-| beam, $k=10$, $O(k\vert \mathcal Y\vert T')$ | $10^6$ |
-| exhaustive, $O(\vert \mathcal Y\vert ^{T'})$ | $10^{40}$ |
+| strategy                                     | sequences scored ($\vert \mathcal Y\vert =10^4$, $T'=10$) |
+| -------------------------------------------- | --------------------------------------------------------- |
+| greedy, $O(\vert \mathcal Y\vert T')$        | $10^5$                                                    |
+| beam, $k=10$, $O(k\vert \mathcal Y\vert T')$ | $10^6$                                                    |
+| exhaustive, $O(\vert \mathcal Y\vert ^{T'})$ | $10^{40}$                                                 |
 
 **Beam search** keeps the $k$ best partial sequences. Final candidates are compared with a length-normalized score $\frac{1}{L^\alpha}\log P$: since $\log P$ is a sum of negative terms, unnormalized scores always favour short outputs.
 
