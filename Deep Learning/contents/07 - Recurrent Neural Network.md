@@ -7,7 +7,7 @@ source: "Zhang, Lipton, Li & Smola, *Dive into Deep Learning*, ch. 9 (Recurrent 
 
 # Recurrent Neural Network
 
-D2L ch. 9 and §10.1–10.4: sequence models, tokenization, language models and perplexity, the RNN, backpropagation through time and gradient clipping, then LSTM, GRU, deep and bidirectional RNNs. Each section gives the idea, the analysis, D2L's code and its printed outputs.
+D2L ch. 9 and §10.1–10.4: sequence models, tokenization, language models and perplexity, the RNN, backpropagation through time and gradient clipping, then LSTM, GRU, deep and bidirectional RNNs. Each section gives the idea, the analysis, D2L's code and its printed outputs. The lecture follows D2L closely; its extra framing is in §12.
 
 ## 📘 Main Knowledge
 
@@ -510,6 +510,29 @@ class BiRNNScratch(d2l.Module):
 
 Concise: `nn.GRU(num_inputs, num_hiddens, bidirectional=True)` with `num_hiddens *= 2`. The backward outputs must be reversed again so that position $t$ pairs with position $t$. D2L: mostly useful for encoding sequences and estimating observations from both sides; costly to train because of the long gradient chains.
 
+## From the lecture slides (7 Recurrent Neural Network)
+
+### 12. Lecture 7: what the slides add
+
+The lecture follows D2L §9.4–10.4 in the MXNet edition. The equations, the GRU and LSTM code, and the BiRNN figure are the same as §6 and §9–11. Its framing differs in three places.
+
+**Why sequences need state.** Permuting an image's pixels gives noise. Shuffling a sentence's words destroys its meaning in the same way. Video frames, speech and browsing logs are ordered in the same sense.
+
+**"Recurrent network without hidden state" is just an MLP applied at each step:**
+$$\mathbf H=\phi(\mathbf X\mathbf W_{xh}+\mathbf b_h),\qquad \mathbf O=\mathbf H\mathbf W_{hq}+\mathbf b_q,\qquad \mathbf X\in\mathbb R^{n\times d},\ \mathbf H\in\mathbb R^{n\times h},\ \mathbf O\in\mathbb R^{n\times q}$$
+Each output depends only on the current input, so no temporal dependence can be learned. Adding $\mathbf H_{t-1}\mathbf W_{hh}$ inside $\phi$ gives the RNN of §6. (The slide writes $\mathbf W_{hx}$ once for $\mathbf W_{xh}$.)
+
+**Why gates (slides 13–14).** Three situations motivate them:
+- **An early token matters for everything after it.** The model must keep it, i.e. not update the state. This is the update gate with $Z_t\approx1$.
+- **Some tokens carry no information,** such as HTML tags on a web page. The model must skip them, again via the update gate.
+- **The sequence has breaks,** such as chapter boundaries. The model must reset the state, via the reset gate with $R_t\approx0$.
+
+These are D2L's arguments for the GRU. The slide adds that the reset gate captures short-term dependencies and the update gate long-term ones (§10).
+
+**LSTM hidden state.** $\mathbf H_t=\mathbf O_t\odot\tanh(\mathbf C_t)$ always lies in $(-1,1)$, because $\mathbf O_t\in(0,1)$ and $\tanh\in(-1,1)$. The cell $\mathbf C_t$ itself is unbounded.
+
+**BiRNN.** $\mathbf H_t=[\overrightarrow{\mathbf H}_t,\overleftarrow{\mathbf H}_t]\in\mathbb R^{n\times2h}$ and $\mathbf O_t=\mathbf H_t\mathbf W_{hq}+\mathbf b_q$, with $\mathbf W_{hq}\in\mathbb R^{2h\times q}$ (§11).
+
 ## ✏️ Exercises
 
 > [!example]- **1.** *(Easy) Perplexity*
@@ -603,6 +626,7 @@ Concise: `nn.GRU(num_inputs, num_hiddens, bidirectional=True)` with `num_hiddens
 17. Greedy decoding repeats itself (`a mather a mather`); sampling or beam search ([[08 - Sequence to Sequence|ch. 08]]) helps.
 18. D2L's loader trains on overlapping windows from 5.8% of the book (D12); a perplexity from it is not a whole-book result.
 19. PyTorch recurrent layers have two biases per gate block; parameter counts differ from the textbook formula by $h$ per block.
+20. An "RNN without hidden state" is a per-step MLP; the recurrence $\mathbf H_{t-1}\mathbf W_{hh}$ is what makes it sequential.
 
 > [!warning] Gaps in the source material
 > - **Figures:** partitioning, the unrolled RNN, and LSTM/GRU diagrams are reconstructed from the prose. Lost: Zipf log–log plots (the exponents were fitted from the printed frequency lists instead) and all training/perplexity curves, so no perplexity results are quoted.
@@ -611,5 +635,6 @@ Concise: `nn.GRU(num_inputs, num_hiddens, bidirectional=True)` with `num_hiddens
 > - **Also added by me:** the linear-BPTT check against autograd; PyTorch's two-bias parameter counts; the loader coverage figures and discrepancy D12; the Vocab index check.
 > - **Lost:** the sine-wave and k-step prediction plots and all perplexity curves are images, so no perplexities are quoted; the generated strings are quoted as printed.
 > - **Skipped:** plotting code. Machine translation and attention are in [[08 - Sequence to Sequence|ch. 08]].
+> - **Lecture slides (7), added 2026-11-17:** §12. The slides contain nothing beyond D2L §9.4–10.4 except the framing above; their GRU and LSTM code is D2L's MXNet version of the code in §9–10.
 
 **Previous:** [[06 - Object Detection]] · **Next:** [[08 - Sequence to Sequence]]

@@ -7,7 +7,7 @@ source: "Zhang, Lipton, Li & Smola, Dive into Deep Learning, ch. 3 Linear Neural
 
 # Linear Regression
 
-Linear regression is a one-layer network with no nonlinearity. It is worth a full chapter because every part of training (model, loss, optimizer, data pipeline, evaluation) appears here without an architecture to distract from it. Everything in [[04 - Neural Network]] is this chapter plus nonlinearity. The note follows D2L's order: theory (§3.1), the code framework (§3.2), synthetic data (§3.3), implementation from scratch (§3.4) and with PyTorch (§3.5), generalization (§3.6) and weight decay (§3.7).
+Linear regression is a one-layer network with no nonlinearity. It is worth a full chapter because every part of training (model, loss, optimizer, data pipeline, evaluation) appears here without an architecture to distract from it. Everything in [[04 - Neural Network]] is this chapter plus nonlinearity. The note follows D2L's order: theory (§3.1), the code framework (§3.2), synthetic data (§3.3), implementation from scratch (§3.4) and with PyTorch (§3.5), generalization (§3.6) and weight decay (§3.7). The lectures (2.1, 2.2) use samples-as-columns notation and add a worked house-price example, a gradient-descent demo and regression metrics: §15–17.
 
 ## 📘 Main Knowledge
 
@@ -366,6 +366,112 @@ $\|\mathbf{w}_{\text{true}}\| = 0.1414$. The unregularized estimate has the righ
 
 3. **The concise run is not comparable.** It prints 0.012314 at the same nominal $\lambda=3$, 8.4× the scratch value. `nn.MSELoss` lacks the $\tfrac12$ (halving the effective $\lambda$), and PyTorch's default init $\mathcal{U}(-1/\sqrt d, 1/\sqrt d)$ starts at $\tfrac12\|\mathbf{w}\|^2 = 0.1667$ instead of 0.0100. Forty updates cannot forget that start: pure decay predicts $0.1667\times(1-\eta\lambda)^{80} = 0.0146$, and a simulation gives 0.0140.
 
+## From the lecture slides (2.1 Linear Regression, 2.2 Gradient Descent)
+
+The lectures teach the same model with different notation and add a worked example, a gradient-descent demo and regression metrics. Each number below was recomputed.
+
+### 15. Lecture 2.1: the normal equation with samples as columns
+
+**Notation.** $m$ features, $N$ samples. Each sample $\mathbf x_i\in\mathbb R^m$ is a column, and $\mathbf X=[\mathbf x_1,\dots,\mathbf x_N]\in\mathbb R^{m\times N}$. This is the transpose of D2L's design matrix (rows are samples). The prediction is $\hat y_i=\mathbf x_i^\top\mathbf w$.
+
+**Loss.** The lecture minimizes half the MSE. The $\tfrac12$ only cleans up the gradient; the minimizer is the same:
+$$L(\mathbf w)=\frac{1}{2N}\sum_{i=1}^N(y_i-\mathbf x_i^\top\mathbf w)^2=\frac{1}{2N}\Vert\mathbf y-\mathbf X^\top\mathbf w\Vert_2^2$$
+$$\nabla L(\mathbf w)=\frac1N\mathbf X(\mathbf X^\top\mathbf w-\mathbf y)=\mathbf 0\iff \mathbf X\mathbf X^\top\mathbf w=\mathbf X\mathbf y\iff \mathbf w=(\mathbf X\mathbf X^\top)^\dagger\mathbf X\mathbf y$$
+$\dagger$ is the pseudo-inverse. It equals the inverse when $\mathbf X\mathbf X^\top$ is invertible. Otherwise it picks the minimum-norm solution among the many minimizers (§3).
+
+**Worked example (lecture 2.1).** Four houses, three features, no bias:
+
+| | size (ft²) | bedrooms | age (years) | price ($1000) | fitted |
+|---|---|---|---|---|---|
+| $\mathbf x_1$ | 2000 | 5 | 45 | 400 | 398.081 |
+| $\mathbf x_2$ | 1000 | 3 | 40 | 200 | 203.838 |
+| $\mathbf x_3$ | 1500 | 3 | 30 | 300 | 302.559 |
+| $\mathbf x_4$ | 800 | 2 | 30 | 170 | 165.203 |
+
+$\mathbf w=(0.207392,\ -7.818053,\ 0.497512)$, as on the slide (0.207, −7.818, 0.497).
+- **New house** (1200, 4, 30): $\hat y=232.523$.
+- **First house:** $\hat y_1=398.081$, against a true price of 400.
+
+Both slide predictions use the unrounded $\mathbf w$; with the rounded weights you get 232.068 and 397.320.
+
+- **Slide typo.** The matrix $\mathbf X$ on the slide gives house 4 an age of 36, while the table says 30. The slide's $\mathbf w$ matches 30. With 36 the solution would be $(0.20693, -7.28793, 0.45400)$.
+- **Don't read the bedroom weight as an effect.** The weight is negative, but four houses and three parameters with no intercept cannot separate size from bedrooms (the two rise together). The fit forces the plane through the origin, so the age weight is positive too, against the slide's own intuition that older houses are cheaper.
+
+**Bias trick.** Prepend $x_0=1$ and absorb $b$:
+$$\bar{\mathbf x}=[1,x_1,\dots,x_m]^\top,\quad \bar{\mathbf w}=[b,w_1,\dots,w_m]^\top,\quad y=\mathbf x^\top\mathbf w+b=\bar{\mathbf x}^\top\bar{\mathbf w},\quad \bar{\mathbf w}=(\bar{\mathbf X}\bar{\mathbf X}^\top)^\dagger\bar{\mathbf X}\mathbf y$$
+The slide indexes $\bar{\mathbf x}=[x_0,\dots,x_N]$. The index should run over features ($m$), not samples ($N$). This is the same step as absorbing $b$ in §3.
+
+### 16. Lecture 2.2: gradient descent from first principles
+
+**Why iterate.** Minima solve $f'(x)=0$, but solving that equation directly is often impossible. The derivative can be complicated, the data high-dimensional, or there may be too many data points. GD settles for a local minimum, which in neural networks is usually good enough.
+
+The slide defines a local minimum as "a point where the derivative equals zero". That is only a necessary condition: maxima and saddle points also have $f'=0$. The slide's next line adds the sign change ($f'\lt 0$ to the left, $f'>0$ to the right), which is the real test.
+
+**1-D intuition.** If $f'(x_t)>0$, then $x_t$ lies to the right of $x^*$, and the farther it is the larger $f'$ is. Moving against the derivative gives
+$$x_{t+1}=x_t-\eta f'(x_t),\qquad \eta>0\ \text{(learning rate)}$$
+The multivariable version is $\mathbf w\leftarrow\mathbf w-\eta\nabla_{\mathbf w}f(\mathbf w)$.
+
+**Algorithm (slide).** Initialize $\mathbf w$ randomly. While $\Vert\nabla J(\mathbf w)\Vert>\varepsilon$ and the iteration count is below the maximum: compute $\mathbf g=\nabla J(\mathbf w)$, update $\mathbf w\leftarrow\mathbf w-\eta\mathbf g$, increment the counter.
+
+**Demo: $f(x)=x^2+5\sin x$, $f'(x)=2x+5\cos x$, $\eta=0.1$.** The lecture's code:
+
+```python
+def grad(x):
+    return 2*x + 5*np.cos(x)
+def cost(x):
+    return x**2 + 5*np.sin(x)
+def myGD1(x0, eta):
+    x = [x0]
+    for it in range(100):
+        x_new = x[-1] - eta*grad(x[-1])
+        if abs(grad(x_new)) < 1e-3:   # just a small number
+            break
+        x.append(x_new)
+    return (x, it)
+```
+
+| start | returned $x$ | cost | iterations |
+|---|---|---|---|
+| $x_0=-5$ | −1.110667 | −3.246394 | 11 |
+| $x_0=5$ | −1.110341 | −3.246394 | 29 |
+
+My rerun reproduces both lines digit for digit. The true minimizer is $x^*=-1.110511$ with $f(x^*)=-3.246394$.
+- Both starts reach the same global minimum, but from different sides.
+- From $x_0=5$ the path crosses the hump of $5\sin x$, so it needs more steps.
+- **Code detail.** The loop breaks when the *new* point is good enough, but returns the *previous* point (`x_new` is never appended). The returned $x$ therefore has $\vert f'\vert\approx1.0\times10^{-3}$, just above the tolerance.
+
+**Learning rate (slide).**
+- Too small: slow, and it may stop before reaching the optimum if the iteration budget runs out.
+- Too large: fewer iterations, but steps can overshoot and stay far from the optimum.
+- The stability bound $\eta\lt 2/\lambda_{\max}$ is in [[04 - Neural Network|ch. 04 §23]].
+
+**Linear regression by GD.** Lecture 2.2 switches back to samples as rows:
+$$f(\mathbf w)=\frac{1}{2N}\Vert\mathbf y-\mathbf X\mathbf w\Vert_2^2,\qquad \nabla f=\frac1N\mathbf X^\top(\mathbf X\mathbf w-\mathbf y)$$
+Per sample, $J_j(\mathbf w)=\tfrac12(y^{(j)}-\mathbf x^{(j)\top}\mathbf w)^2$ and $\nabla J_j=\mathbf x^{(j)}(\mathbf x^{(j)\top}\mathbf w-y^{(j)})$. The three variants differ only in how many samples enter each step:
+
+| variant | update |
+|---|---|
+| batch GD | $\mathbf w\leftarrow\mathbf w-\eta\frac1N\sum_{j=1}^N\mathbf x^{(j)}(\mathbf x^{(j)\top}\mathbf w-y^{(j)})$ |
+| SGD (one random sample $j$) | $\mathbf w\leftarrow\mathbf w-\eta\,\mathbf x^{(j)}(\mathbf x^{(j)\top}\mathbf w-y^{(j)})$ |
+| minibatch (shuffle each epoch, split into batches of $k$) | $\mathbf w\leftarrow\mathbf w-\eta\frac{1}{\vert\mathcal B\vert}\sum_{(\mathbf x,y)\in\mathcal B}\nabla J_{\mathbf x y}(\mathbf w)$ |
+
+The slide's batch-GD line writes $\frac1N\sum_j\mathbf x^{(j)}\nabla J_j(\mathbf w)$, which has one $\mathbf x^{(j)}$ too many. Its right-hand side is correct. Minibatch SGD is §5 here; the convergence analysis is ch. 04 §24–25.
+
+### 17. Evaluating a regression model (lecture 2.1)
+
+The slide lists four metrics for observations $y_i$ and predictions $\hat y_i$. The formulas are pasted from a hydrology paper, so they are written in terms of "river stages" $H^{\text{mea}}$, $H^{\text{pre}}$.
+
+| metric | formula | perfect |
+|---|---|---|
+| Nash–Sutcliffe efficiency | $\text{NSE}=1-\dfrac{\sum(y_i-\hat y_i)^2}{\sum(y_i-\bar y)^2}$ | 1 |
+| $R^2$ (slide's form) | squared Pearson correlation of $y$ and $\hat y$ | 1 |
+| MAE | $\frac1n\sum\vert y_i-\hat y_i\vert$ | 0 |
+| RMSE | $\sqrt{\frac1n\sum(y_i-\hat y_i)^2}$ | 0 |
+
+- **NSE is the usual "$1-\text{SSE}/\text{SST}$" $R^2$.** The slide's $R^2$ is the squared correlation. The two coincide for least squares with an intercept on its own training data, and nowhere else.
+- **The correlation form ignores bias and scale.** For $y=(1,2,3,4,5)$ and $\hat y=2y+1$: $r^2=1$, but NSE $=-8$, MAE $=4$, RMSE $=4.243$.
+- **Report an error metric alongside it.** MAE and RMSE are in the units of $y$. RMSE punishes large errors more.
+
 ## ✏️ Exercises
 
 > [!example]- **1.** *(Easy) Normal equations by hand*
@@ -431,6 +537,14 @@ $\|\mathbf{w}_{\text{true}}\| = 0.1414$. The unregularized estimate has the righ
 >
 > **(d)** $10 \times 20/5 = 40$ updates for 200 parameters, far from convergence. The concise model's default init gives $\tfrac12\|\mathbf{w}\|^2 \approx 0.1667$ at the start; decay alone predicts $0.1667\times(1-\eta\lambda)^{80} = 0.0146$, and simulation gives 0.0140. The printed value mostly reflects initialization, so it cannot be compared with the scratch run.
 
+> [!example]- **6.** *(Easy) The lecture's GD exercises*
+> Lecture 2.2 asks for the minimum of **(a)** $f(x)=x^2-2$ and **(b)** $g(x)=\tfrac13x^3-x$. Do it by calculus, then by GD with $\eta=0.1$.
+>
+> ---
+> **(a)** $f'(x)=2x$, so the minimum is $f(0)=-2$. GD gives $x_{t+1}=(1-2\eta)x_t=0.8x_t$, which converges from any start (it does for any $0\lt\eta\lt1$).
+>
+> **(b)** $g'(x)=x^2-1$ is zero at $x=\pm1$. $g''(x)=2x$, so $x=1$ is a local minimum with $g(1)=-\tfrac23$, and $x=-1$ is a local maximum. There is **no global minimum**: $g\to-\infty$ as $x\to-\infty$. GD with $\eta=0.1$ reaches 1 from 0.5, −0.9 or 3. From −1.1 (left of the maximum) it runs away: $x\approx-3.7\times10^7$ after 21 steps. "The minimum value" here means the local one, and GD finds it only from starts to the right of −1.
+
 ## 📝 Summary
 
 - The model is affine, $\hat{\mathbf{y}}=\mathbf{X}\mathbf{w}+b$; absorb $b$ with a column of 1s.
@@ -465,6 +579,9 @@ $\|\mathbf{w}_{\text{true}}\| = 0.1414$. The unregularized estimate has the righ
 17. If $n$ is not divisible by the batch size, the last batch is smaller (8 of 1000 at size 32); `drop_last=True` drops it.
 18. Shuffle the training set every epoch; keep validation order fixed. A dataset sorted by label can make SGD drift one way for many steps.
 19. Huber / smooth-$\ell_1$ caps the gradient at $\pm1$; it is the cheap compromise between squared and absolute loss.
+20. The lecture writes samples as columns ($\mathbf X\in\mathbb R^{m\times N}$, $\mathbf w=(\mathbf X\mathbf X^\top)^\dagger\mathbf X\mathbf y$); D2L and lecture 2.2 write them as rows ($\mathbf w=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf y$). Check which one a question uses before transposing.
+21. $f'(x)=0$ alone does not make a minimum; check the sign change or $f''>0$. A cubic like $\tfrac13x^3-x$ has a local minimum but no global one.
+22. Squared correlation can be 1 for terrible predictions ($\hat y=2y+1$); NSE/$1-\text{SSE}/\text{SST}$, MAE and RMSE cannot.
 
 > [!warning] Gaps in the source material
 > - **Figures:** all are images. The single-layer network diagram and the neuron diagram are fully described by the prose and reconstructed above. The 1-D fit, the complexity curve and the training curves are lost.
@@ -472,6 +589,7 @@ $\|\mathbf{w}_{\text{true}}\| = 0.1414$. The unregularized estimate has the righ
 > - **Added by me:** the ratio of D2L's two timings and the per-element breakdown (§6); the monomial table at $k=200$; the whole audit of the weight-decay experiment, including the 200-seed NumPy reproduction (within 1.8% and 2.3% of the printed values); exercise 4 (condition number, sensitivity, sign flip, SVD shrinkage); the Laplace/median derivation in exercise 2. D2L asks exercises 2 and 4 without answers.
 > - **Taken from the source unverified:** historical citations, the 32–256 batch-size advice, the hardware-efficiency claim, the timing printouts.
 > - **Also added by me:** the first-example noise check; the $(1-\eta)^{96}$ explanation of the scratch vs concise errors with a 20-seed PyTorch rerun (§11); the Huber values.
-- **Skipped:** `ProgressBoard` internals and plotting code; D2L defers `save_hyperparameters` and `draw` to its appendix B.7. $K$-fold CV is described, not implemented.
+> - **Skipped:** `ProgressBoard` internals and plotting code; D2L defers `save_hyperparameters` and `draw` to its appendix B.7. $K$-fold CV is described, not implemented.
+> - **Lecture slides (2.1, 2.2), added 2026-11-17:** §15–17 and exercise 6. The house example, the GD demo (both rows reproduced exactly) and the metrics were recomputed. Slide errors flagged: the age 36 in $\mathbf X$, the bias-trick index $N$, the extra $\mathbf x^{(j)}$ in batch GD, and the "$f'=0$" definition of a minimum. The metric example ($\hat y=2y+1$) is mine.
 
 **Previous:** [[01 - Introduction to Deep Learning]] · **Next:** [[03 - Logistic Regression]]

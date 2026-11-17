@@ -7,7 +7,7 @@ source: "Zhang, Lipton, Li & Smola, *Dive into Deep Learning*, §14.1–14.8 (Im
 
 # Object Detection
 
-Classification says what is in an image; detection says what and where, for every object. D2L §14.1–14.8 covers augmentation and fine-tuning, then bounding boxes, anchor boxes, IoU, anchor labelling, non-maximum suppression, multiscale detection, SSD and the R-CNN family. Every printed tensor in this range was recomputed and matches; no discrepancies were found. The note follows D2L's order and includes its code for each step, from augmentation to TinySSD.
+Classification says what is in an image; detection says what and where, for every object. D2L §14.1–14.8 covers augmentation and fine-tuning, then bounding boxes, anchor boxes, IoU, anchor labelling, non-maximum suppression, multiscale detection, SSD and the R-CNN family. Every printed tensor in this range was recomputed and matches; no discrepancies were found. The note follows D2L's order and includes its code for each step, from augmentation to TinySSD. The lecture adds R-CNN/Faster R-CNN numbers and YOLO, which D2L does not cover: §13–14.
 
 ## 📘 Main Knowledge
 
@@ -563,6 +563,86 @@ Each step replaces a hand-designed stage with a learned one, as in [[05 - Convol
 
 The imbalance in §10 is why Focal Loss was designed for one-stage detectors.
 
+## From the lecture slides (6 Object Detection)
+
+The lecture covers R-CNN, Faster R-CNN and YOLO. It skips anchors-by-code and SSD (D2L's focus, §3–9 here) and adds YOLO, which D2L only mentions in an exercise (§14.7).
+
+### 13. Lecture 6: background, R-CNN and Faster R-CNN in numbers
+
+**Task.** Object detection answers two questions: *what* objects are present (classification) and *where* they are (bounding boxes). The slide's applications are autonomous vehicles, surveillance, medical imaging, robotics and industrial inspection.
+
+**Before deep learning:**
+- hand-crafted features such as HOG (histogram of oriented gradients) and SIFT;
+- a sliding window with an SVM classifier at each position;
+- accurate but slow, and not robust to variation.
+
+**R-CNN** (Girshick, Donahue, Darrell, Malik, CVPR 2014). The method is §11's four steps.
+- **Selective search** groups pixels by colour, texture and intensity, then merges the groups hierarchically into about 2,000 proposals. It covers most object locations but is expensive and cannot be learned.
+- **Feature extraction.** Each proposal is warped to $227\times227$ and passed through AlexNet pretrained on ImageNet, giving a 4096-d feature vector. Per-class SVMs classify it and a box regressor refines it.
+- **Result:** mAP ≈ 53.3% on PASCAL VOC 2012.
+- **The slide's comparison "vs. 33% of previous methods" looks garbled.** The paper's abstract reports an improvement of "more than 30% relative" to the previous best. So 33% is not the earlier mAP: the earlier best was about $53.3/1.3\approx41\%$.
+- **Limits:** about 2,000 CNN passes per image, and the features of every region must be stored.
+
+**Faster R-CNN** (Ren, He, Girshick, Sun, NIPS 2015). The pipeline is image → backbone CNN (VGG16 or ResNet) → **RPN** → **RoI pooling** → class and box. Backbone features are shared by the RPN and the detection head.
+- **RPN.** A $3\times3$ window slides over the feature map and feeds a small intermediate layer (the slide's figure shows 256-d). Two sibling $1\times1$ layers then predict, at each location:
+  - **cls:** $2k$ scores (object vs background for each anchor);
+  - **reg:** $4k$ box offsets.
+- **Anchors.** There are $k=9$ per location (3 scales × 3 aspect ratios), so each location has 18 cls outputs and 36 reg outputs. The top $N\approx300$ proposals go on.
+- **Head.** RoI pooling turns each proposal into a fixed $7\times7$ map. Dense layers then give the class and the refined box.
+
+**Slide results:** about 5–10 fps on a GPU; VOC 2007 mAP ≈ 73.2% against 66.9% for Fast R-CNN; COCO AP ≈ 42%. Two cautions, from the Faster R-CNN paper:
+- **Unequal training data.** The 73.2% comes from training on VOC 2007+2012, while the 66.9% is Fast R-CNN trained on 2007 only. On equal data the paper reports 70.0% vs 73.2% (07+12).
+- **COCO metric.** 42% is AP at IoU 0.5. The stricter COCO AP averaged over IoU 0.5–0.95 is about 21–22%.
+
+The improvement is real; the slide's comparison just overstates it.
+
+### 14. YOLO (lecture 6; not in D2L)
+
+**YOLO v1** (Redmon, Divvala, Girshick, Farhadi, CVPR 2016) is "You Only Look Once". It treats detection as a single regression from image to boxes and classes, in one network pass.
+
+**Grid.** The $448\times448$ input is divided into an $S\times S$ grid. The cell containing an object's centre is responsible for that object. Each cell predicts:
+- $B$ boxes, each with $(x,y,w,h)$ and a **confidence** $=\Pr(\text{object})\cdot\text{IoU}(\text{pred},\text{truth})$;
+- $C$ class probabilities $\Pr(\text{class}\mid\text{object})$, shared by the cell's boxes.
+
+For PASCAL VOC, $S=7$, $B=2$, $C=20$, so the output tensor is $7\times7\times(5\cdot2+20)=7\times7\times30$, i.e. 1,470 numbers. $(x,y)$ are relative to the cell, $(w,h)$ to the whole image.
+
+**Network.** 24 convolutional layers, with alternating $1\times1$ reduction layers, followed by 2 dense layers (4096, then the 1470-number output). It is pretrained on ImageNet at $224\times224$, then the resolution is doubled to 448 for detection.
+
+**Workflow (slide):**
+1. Split the image into grid cells.
+2. Each cell predicts boxes $(x,y,w,h,\text{conf})$.
+3. Compute the confidences.
+4. Predict the class probabilities.
+5. Score each box: class-specific score = confidence × class probability.
+6. Run NMS (§6) to remove duplicates.
+7. Output the final boxes and labels.
+
+**Loss (slide).** It is sum-squared error over the grid ($\mathbb 1_{ij}^{\text{obj}}=1$ if box $j$ of cell $i$ is responsible for an object):
+$$\begin{aligned}
+&\lambda_{\text{coord}}\sum_{i=0}^{S^2}\sum_{j=0}^{B}\mathbb 1_{ij}^{\text{obj}}\big[(x_i-\hat x_i)^2+(y_i-\hat y_i)^2\big]
++\lambda_{\text{coord}}\sum_{i=0}^{S^2}\sum_{j=0}^{B}\mathbb 1_{ij}^{\text{obj}}\Big[\big(\sqrt{w_i}-\sqrt{\hat w_i}\big)^2+\big(\sqrt{h_i}-\sqrt{\hat h_i}\big)^2\Big]\\
+&+\sum_{i=0}^{S^2}\sum_{j=0}^{B}\mathbb 1_{ij}^{\text{obj}}(C_i-\hat C_i)^2
++\lambda_{\text{noobj}}\sum_{i=0}^{S^2}\sum_{j=0}^{B}\mathbb 1_{ij}^{\text{noobj}}(C_i-\hat C_i)^2
++\sum_{i=0}^{S^2}\mathbb 1_i^{\text{obj}}\sum_{c\in\text{classes}}\big(p_i(c)-\hat p_i(c)\big)^2
+\end{aligned}$$
+- **Weights.** The paper sets $\lambda_{\text{coord}}=5$ and $\lambda_{\text{noobj}}=0.5$. Most cells contain no object, and down-weighting their confidence errors is YOLO's answer to the imbalance of §10.
+- **Why $\sqrt{w},\sqrt{h}$.** The same absolute error matters more for a small box than for a large one, and the square root shrinks large-box errors.
+
+**Results (slide):**
+- **Accuracy:** mAP 63.4% on VOC 2007, below Faster R-CNN's 73.2% (07+12 training data).
+- **Speed:** about 45 fps on a Titan X, against Faster R-CNN's 5–10 fps.
+- **Practical:** one network trained end to end, simple to deploy.
+- **Limits:** each cell predicts only 2 boxes and one class, so small, overlapping or crowded objects are missed; localization is coarse.
+
+**Version mix-up on the slide.** "Backbone (Darknet-19 or Darknet-53), Neck (FPN, PAN), Head" describes later YOLO versions: Darknet-19 is YOLOv2's backbone, Darknet-53 is YOLOv3's, and PAN necks came with v4 onward. YOLOv1 has the 24-layer network above, shown in the slide's own architecture figure. Modern YOLO versions are packaged by Ultralytics (`docs.ultralytics.com`).
+
+| | R-CNN | Faster R-CNN | YOLO v1 | SSD (§9) |
+|---|---|---|---|---|
+| stages | proposals, then per-region CNN | RPN + head, shared CNN | one pass | one pass |
+| proposals | selective search (~2,000) | RPN, 9 anchors per location (~300 kept) | none (grid) | none (multiscale anchors) |
+| VOC 2007 mAP (from the slides) | n/a (53.3 on VOC 2012) | 73.2 | 63.4 | n/a |
+| speed | very slow | 5–10 fps | ~45 fps | fast |
+
 ## ✏️ Exercises
 
 > [!example]- **1.** *(Easy) IoU*
@@ -642,11 +722,15 @@ The imbalance in §10 is why Focal Loss was designed for one-stage detectors.
 14. Anchor classes are shifted by +1 so that 0 means background; decoded predictions use −1 for background or suppressed.
 15. `multibox_prior` scales widths by `in_height / in_width` so ratio-1 anchors are square in pixels.
 16. Per-anchor accuracy is a poor detection metric under heavy imbalance; use per-object precision/recall or mAP.
+17. YOLO v1 outputs $S\times S\times(5B+C)$; for VOC, $7\times7\times30$. Confidence is $\Pr(\text{obj})\times\text{IoU}$, and the class-specific score multiplies it by $\Pr(\text{class}\mid\text{obj})$.
+18. An RPN with $k$ anchors per location outputs $2k$ objectness scores and $4k$ box offsets per location ($k=9$: 18 and 36).
+19. When comparing detectors, check that the training data and the IoU threshold match. The lecture's 73.2% vs 66.9% and its COCO "AP ≈ 42%" (IoU 0.5) both need that caveat.
 
 > [!warning] Gaps in the source material
 > - **Figures:** IoU, assignment, SSD, R-CNN and RoI pooling diagrams are reconstructed from the prose. Lost: the cat/dog photo with anchors, augmentation grids, hot-dog samples, multiscale anchor plots, and all training curves (so no accuracies are quoted).
 > - **Added by me:** the all-background baseline for D2L's class error (§10); the `4.17e-06` explanation (eps and float32); the anchor-corner check at pixel (250, 250); the focal-loss table; the IoU formula $(1-d)/(1+d)$ and the nested case (D2L ex. 14.4.2); the IoU matrix in §5; the imbalance and threshold tables (§10); the 48× pyramid saving; the head parameter comparison; the R-CNN 2,000× figure and comparison tables; the NMS failure case; label-memory arithmetic. Hard-negative mining, Soft-NMS, GIoU, mAP and DETR are named beyond D2L (Focal Loss and smooth $\ell_1$ are in D2L's exercises).
 > - **No discrepancies** in this range.
 > - **Skipped:** plotting helpers (`show_bboxes`, `bbox_to_rect`); segmentation, transposed convolution, FCN, style transfer and the Kaggle sections (§14.9–14.14), which are outside the syllabus topic.
+> - **Lecture slides (6), added 2026-11-17:** §13–14. YOLO is not in D2L. The YOLO grid, output size and loss come from the slides, while $\lambda_{\text{coord}}=5$, $\lambda_{\text{noobj}}=0.5$, the 24+2 layer count and the training-resolution detail come from the YOLO paper, which the slide figures reproduce. The cautions about R-CNN's "33%", Faster R-CNN's training sets and the COCO metric, and the YOLO version mix-up come from the original papers as I know them; I could not check those papers against a PDF here.
 
 **Previous:** [[05 - Convolutional Neural Network]] · **Next:** [[07 - Recurrent Neural Network]]

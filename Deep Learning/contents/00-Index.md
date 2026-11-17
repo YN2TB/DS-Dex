@@ -2,29 +2,31 @@
 subject: Deep Learning
 chapter: 00
 tags: [ds, moc, deep-learning]
-source: "Zhang, Lipton, Li & Smola — Dive into Deep Learning (PyTorch edition)"
+source: "Zhang, Lipton, Li & Smola — Dive into Deep Learning (PyTorch edition); lecture slides by Dr. Nguyễn Thị Kim Ngân"
 ---
 
 # Deep Learning — Map of Content
 
-Notes for the Deep Learning course (Data Science, NEU). Single source: Zhang, Lipton, Li & Smola, *Dive into Deep Learning* (D2L), Cambridge University Press edition, PyTorch.
+Notes for the Deep Learning course (Data Science, NEU). Sources: Zhang, Lipton, Li & Smola, *Dive into Deep Learning* (D2L), Cambridge University Press edition, PyTorch; and the lecturer's slides (Dr. Nguyễn Thị Kim Ngân), 16 decks in `slides/`.
 
 ## Scope
 
 The eight topics come from the user's own syllabus (`note/Index.md`). D2L chapters are used as material for them; where a topic spans several chapters they are merged.
 
-**Deep rework (done 2026-11-16).** The slides in `slides/` cover only CNN (5.1–5.3), so the book is the study source. Each note follows its D2L sections one by one, with their worked examples, D2L's PyTorch code and the printed outputs, recomputed where possible. Status 📗 = reworked.
+**Deep rework (done 2026-11-16).** Each note follows its D2L sections one by one, with their worked examples, D2L's PyTorch code and the printed outputs, recomputed where possible. Status 📗 = reworked.
+
+**Slides merged (2026-11-17).** The full slide set turned up after the rework. The slides follow D2L closely (often its MXNet edition) and use Keras for case studies. Each note ends its main part with a "From the lecture slides" block holding only what the slides add: other notation, worked examples, Keras/MXNet code, YOLO, Luong attention, BERT/GPT. Slide errors are listed below (S1–S15). Status 📘 = reworked and checked against the slides.
 
 | # | Note | Covers | Status |
 |---|---|---|---|
-| 01 | [[01 - Introduction to Deep Learning]] | data, model, objective, optimizer; kinds of learning; decisions vs argmax; why deep learning took off; derivatives, gradients, chain rule, autograd | 📗 |
-| 02 | [[02 - Linear Regression]] | squared loss as MLE; normal equations; minibatch SGD; Module/DataModule/Trainer; scratch and concise code; generalization; weight decay | 📗 |
-| 03 | [[03 - Logistic Regression]] | softmax, cross-entropy, information theory; Fashion-MNIST, Classifier, scratch and concise code, LogSumExp; test-set size; distribution shift and corrections | 📗 |
-| 04 | [[04 - Neural Network]] | MLPs, activations, implementation, backprop, memory, vanishing/exploding gradients, initialization, dropout, Kaggle workflow; modules, parameters, custom layers, file I/O, GPUs; GD, Newton, SGD, minibatches, momentum to Adam, schedules | 📗 |
-| 05 | [[05 - Convolutional Neural Network]] | convolution, padding, stride, channels, pooling with code; LeNet → AlexNet, VGG, NiN, GoogLeNet, batch/layer norm, ResNet, ResNeXt, DenseNet with code; design spaces and RegNet | 📗 |
-| 06 | [[06 - Object Detection]] | augmentation and fine-tuning with code; boxes, IoU, anchors, labelling, NMS with code; multiscale anchors; banana dataset; TinySSD with training and losses; R-CNN family | 📗 |
-| 07 | [[07 - Recurrent Neural Network]] | sequence models and the sine experiment; text pipeline and Vocab; n-grams, Zipf, perplexity, partitioning; RNN, BPTT, clipping, LSTM, GRU, deep and bidirectional, each with code | 📗 |
-| 08 | [[08 - Sequence to Sequence]] | MT data and loaders; encoder–decoder, GRU seq2seq, masked loss, BLEU; beam search; attention lookup, Nadaraya–Watson, masked softmax, additive and dot-product; Bahdanau; multi-head; positional encoding; Transformer, all with code | 📗 |
+| 01 | [[01 - Introduction to Deep Learning]] | data, model, objective, optimizer; kinds of learning; decisions vs argmax; why deep learning took off; derivatives, gradients, chain rule, autograd; lecture definitions | 📘 |
+| 02 | [[02 - Linear Regression]] | squared loss as MLE; normal equations; minibatch SGD; Module/DataModule/Trainer; scratch and concise code; generalization; weight decay; lecture: samples-as-columns normal equation, house example, GD demo and exercises, NSE/R²/MAE/RMSE | 📘 |
+| 03 | [[03 - Logistic Regression]] | softmax, cross-entropy, information theory; Fashion-MNIST, Classifier, scratch and concise code, LogSumExp; test-set size; distribution shift and corrections; lecture: binary logistic regression by MLE (study-hours fit), one-vs-rest, softmax gradient $\frac1N\mathbf X\mathbf E^\top$ | 📘 |
+| 04 | [[04 - Neural Network]] | MLPs, activations, implementation, backprop, memory, vanishing/exploding gradients, initialization, dropout, Kaggle workflow; modules, parameters, custom layers, file I/O, GPUs; GD, Newton, SGD, minibatches, momentum to Adam, schedules; lecture: error-term backprop, MXNet ↔ PyTorch, Leaky ReLU, Keras BN/dropout, transfer learning | 📘 |
+| 05 | [[05 - Convolutional Neural Network]] | convolution, padding, stride, channels, pooling with code; LeNet → AlexNet, VGG, NiN, GoogLeNet, batch/layer norm, ResNet, ResNeXt, DenseNet with code; design spaces and RegNet; lecture: Keras MNIST case study, data augmentation/synthesis/transfer overview | 📘 |
+| 06 | [[06 - Object Detection]] | augmentation and fine-tuning with code; boxes, IoU, anchors, labelling, NMS with code; multiscale anchors; banana dataset; TinySSD with training and losses; R-CNN family; lecture: R-CNN/Faster R-CNN numbers, YOLO v1 | 📘 |
+| 07 | [[07 - Recurrent Neural Network]] | sequence models and the sine experiment; text pipeline and Vocab; n-grams, Zipf, perplexity, partitioning; RNN, BPTT, clipping, LSTM, GRU, deep and bidirectional, each with code; lecture framing | 📘 |
+| 08 | [[08 - Sequence to Sequence]] | MT data and loaders; encoder–decoder, GRU seq2seq, masked loss, BLEU; beam search; attention lookup, Nadaraya–Watson, masked softmax, additive and dot-product; Bahdanau; multi-head; positional encoding; Transformer, all with code; lecture: context-vector notation, attention by hand, Luong attention, BERT and GPT | 📘 |
 
 ### Mapping to D2L
 
@@ -43,21 +45,55 @@ Two additions beyond the topic list:
 1. **Optimizers (ch. 12) are in note 04.** The syllabus has no optimizer topic, but every later model is trained with momentum or Adam.
 2. **Attention and the Transformer (11.1–11.7) are in note 08.** Seq2seq leads directly into attention.
 
+### Lecture slides
+
+Lecturer: Dr. Nguyễn Thị Kim Ngân. Course outline (deck 1): introduction, linear regression, logistic regression, gradient descent, neural networks, CNNs, RNNs, GANs.
+
+**Assessment (deck 1):**
+- Classwork 50%: attendance 10%; midterm 40% (exercises, in-class project or test).
+- Final exam 50%: project or computer test.
+
+**Reading list (deck 1):**
+- Prince, *Understanding Deep Learning* (MIT Press 2023).
+- Chollet, *Deep Learning with Python* (Manning 2017).
+- D2L in Vietnamese (*Đắm mình trong học sâu*, d2l-vi).
+- Nguyễn Thanh Tuấn, *Deep learning cơ bản*.
+- machinelearningcoban.com.
+
+| Deck | Pages | Note |
+|---|---|---|
+| 1 Introduction | 22 | 01 §11 |
+| 2.1 Linear Regression | 18 | 02 §15, §17 |
+| 2.2 Gradient Descent | 25 | 02 §16, ex. 6 |
+| 3.1 Logistic Regression | 18 | 03 §15 |
+| 3.2 Softmax Regression | 15 | 03 §16 |
+| 4.1 Neural Network | 20 | 04 §33 |
+| 4.2 Computing in deep learning (MXNet) | 14 | 04 §34 (and §15–17) |
+| 4.3 Optimal Training | 29 | 04 §35 |
+| 5.1 CNN | 44 | 05 §2–8, §19 |
+| 5.2 Modern CNNs | 29 | 05 §9–16, §19 |
+| 5.3 CNN Techniques | 17 | 05 §20 (and 06 §1–2) |
+| 6 Object Detection | 33 | 06 §11, §13–14 |
+| 7 RNN | 33 | 07 §6–11, §12 |
+| 8 Encoder–Decoder | 15 | 08 §1–3, §11 |
+| 9 Attention Mechanism | 28 | 08 §4–10, §12–13 |
+| 10 GAN | 17 | not written: not examined (user, 2026-11-17) |
+
 ### Not covered
 
 | D2L chapter | Reason |
 |---|---|
 | 2 Preliminaries (except 2.4–2.5) | covered by [[Linear Algebra/contents/00-Index\|Linear Algebra]], [[Probability Theory/contents/00-Index\|Probability Theory]], [[Mathematical Statistics/contents/00-Index\|Mathematical Statistics]] |
 | 13 Computational Performance; 14.9–14.14 segmentation, style transfer, Kaggle | engineering ([[MLOps/contents/00-Index\|MLOps]]) or beyond the detection topic |
-| 15–16 NLP | belongs to the separate (currently blocked) NLP subject |
+| 15–16 NLP | belongs to the separate (currently blocked) NLP subject; only the BERT overview (15.8, 15.10) is used, in 08 §13 |
 | 17 Reinforcement Learning | covered in [[Machine Learning/contents/00-Index\|Machine Learning]] |
 | 18 Gaussian Processes | not deep learning, not on the list |
 | 19 Hyperparameter Optimization | MLOps territory |
-| 20 GANs | not on the list; the most likely addition if the course covers it |
+| 20 GANs | the lecture has a GAN deck (10), but it is not examined (user, 2026-11-17); write it from deck 10 and D2L ch. 20 only if asked |
 | Appendices | maths duplicates; tools not examinable |
 
-> [!question] Worth checking with the lecturer
-> If GANs or NLP are examined in this course, D2L ch. 20 or ch. 15–16 would need adding.
+> [!note] Settled by the slides (2026-11-17)
+> GANs have a deck but are not examined. NLP appears only as BERT/GPT inside the attention deck, covered in 08 §13.
 
 ## Source hazard
 
@@ -88,6 +124,30 @@ Found during the deep rework by running D2L's own code (PyTorch 2.11).
 |---|---|---|---|---|
 | E1 | §6.5.2 `MyLinear` | `forward` uses `self.weight.data`, `self.bias.data` | output has no gradient; `backward()` raises an error, so the layer cannot be trained | printed forward values are fine (ch. 04 §19) |
 | E2 | §12.11.3 multi-factor run | plots the schedule by stepping the same optimizer and scheduler 30 times, then trains | learning rate is already 0.125 and stays 0.125 for all 30 epochs | the printed 0.889 is a constant-rate run (ch. 04 §32) |
+
+## Slide errors
+
+Found while checking the lecture slides against D2L, the original papers and my own recomputation. They are flagged where they occur in the notes.
+
+| # | Deck, page | Slide says | Correct | Note |
+|---|---|---|---|---|
+| S1 | 2.1 p14 | $\mathbf X$ gives house 4 age 36 | 30 (as in the table; the slide's $\mathbf w$ matches 30) | 02 §15 |
+| S2 | 2.1 p15 | $\bar{\mathbf x}=[x_0,\dots,x_N]$ | index runs over features $m$ | 02 §15 |
+| S3 | 2.2 p3–4 | a local minimum is where $f'=0$ | necessary only; also needs the sign change | 02 §16 |
+| S4 | 2.2 p22 | $\frac1N\sum_j\mathbf x^{(j)}\nabla J_j$ | one $\mathbf x^{(j)}$ too many | 02 §16 |
+| S5 | 2.1 p17 | $R^2$ as squared correlation, next to NSE | fine as a definition, but it ignores bias and scale | 02 §17 |
+| S6 | 3.2 p15 | $-\frac1N(\sum\log a+\frac\lambda2\Vert\mathbf W\Vert_F^2)$ | penalty must be added: $-\frac1N\sum\log a+\frac\lambda2\Vert\mathbf W\Vert_F^2$ | 03 §16 |
+| S7 | 4.1 p14–20 | two weight conventions without comment | both valid; don't mix | 04 §33 |
+| S8 | 4.3 p12 | $\lambda$ small "to ensure the solution … is too far" | "is not too far" | 04 §35 |
+| S9 | 4.3 p26 | $\mathbf x-\eta\operatorname{diag}(\mathbf H)^{-1}\nabla f$ called Newton | diagonal preconditioning (D2L §12.3.3) | 04 §35 |
+| S10 | 5.1 p20 | avg(3,4,6,7) = 7, avg(4,5,7,8) = 8 | 5 and 6 (the slide's figure is right) | 05 §19 |
+| S11 | 5.1 p39 | diagram: 28×28×32 maps, flatten 6,272 | the code (padding `valid`) gives 4,608; 6,272 needs `same` | 05 §19 |
+| S12 | 6 p11 | R-CNN 53.3% "vs. 33% of previous methods" | the paper claims >30% *relative* gain; previous best ≈ 41% | 06 §13 |
+| S13 | 6 p22 | Faster R-CNN 73.2% vs Fast R-CNN 66.9% | different training sets (07+12 vs 07); like-for-like 73.2 vs 70.0; COCO "42%" is AP@0.5 | 06 §13 |
+| S14 | 6 p26 | YOLO backbone Darknet-19/53, neck FPN/PAN | later versions (v2, v3, v4+); v1 is 24 conv + 2 FC | 06 §14 |
+| S15 | 8 p12; 9 p20, p27 | $O(\vert\mathcal Y\vert^{T})$; self vs multi-head as alternatives; GPT sketch with cross-attention | $T'$; independent axes; decoder-only has no cross-attention | 08 §11–13 |
+
+S12–S14 rely on the original papers as I know them; I have not checked those papers against a PDF.
 
 ## Discrepancies (declined as errata)
 

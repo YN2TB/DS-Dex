@@ -7,7 +7,7 @@ source: "Zhang, Lipton, Li & Smola, Dive into Deep Learning, ch. 1 (§1.1–1.8,
 
 # Introduction to Deep Learning
 
-D2L ch. 1 sets up the vocabulary of machine learning and the history behind deep learning. §2.4–2.5 add the two tools every later chapter uses: derivatives and automatic differentiation. This note follows the book section by section.
+D2L ch. 1 sets up the vocabulary of machine learning and the history behind deep learning. §2.4–2.5 add the two tools every later chapter uses: derivatives and automatic differentiation. This note follows the book section by section. Lecture 1 adds little beyond ch. 1; its definitions are in §11.
 
 ## 📘 Main Knowledge
 
@@ -434,6 +434,35 @@ Each run builds a specific graph for that input. $f$ is linear in $a$ with a pie
 
 **Four steps to remember:** (i) attach gradients to the variables you differentiate with respect to; (ii) record the computation of the target; (iii) run backpropagation; (iv) read the gradient.
 
+## From the lecture slides (1 Introduction)
+
+### 11. Lecture 1: definitions and toolkit
+
+The lecture's definitions agree with D2L ch. 1 (§1–4 here).
+
+**Definitions.**
+- **Machine learning:** data analysis that automates analytical model building. It is a branch of AI in which systems learn from data, identify patterns and make decisions with minimal human intervention.
+- **Deep learning:** a subset of ML that uses neural networks with multiple hidden layers to learn hierarchical representations from data automatically (Goodfellow, Bengio & Courville 2016; LeCun, Bengio & Hinton 2015).
+
+**Three kinds of learning:**
+
+| kind | data | goal | lecture's examples |
+|---|---|---|---|
+| supervised | labelled pairs $\{(\mathbf x_i,y_i)\}$ | learn $f:\mathbf x\to y$ | regression (house price), classification (spam) |
+| unsupervised | unlabelled $\{\mathbf x_i\}$ | find hidden structure | clustering (customer segments), dimensionality reduction (visualization) |
+| reinforcement | interaction: agent, environment, actions, rewards | a policy maximizing cumulative reward | robot navigation, chess and Go, self-driving cars |
+
+**Applications listed:** self-driving cars, voice assistants (Siri, Alexa), image recognition (auto-tagging, Facebook's DeepFace), machine translation (Google Translate).
+
+**Toolkit:** NumPy (matrices), Pandas (data handling and I/O), scikit-learn (classical ML), TensorFlow or PyTorch (deep learning); datasets from Kaggle.
+
+The lectures' code comes in three frameworks:
+- these notes use **PyTorch**, following D2L;
+- slides 4.2, 5.1–5.2 and 7 use **MXNet** (D2L's other edition);
+- slides 4.3 and 5.1 use **Keras**.
+
+[[04 - Neural Network|Ch. 04 §34]] has a translation table.
+
 ## ✏️ Exercises
 
 > [!example]- **1.** *(Easy) The contractor*
@@ -547,5 +576,6 @@ Each run builds a specific graph for that input. $f$ is linear in $a$ with a pie
 > - **Formulas:** the text layer turns `∞` into `1`, drops minus and multiplication signs and writes `:` for decimal points. The mushroom formula and all §2.4 formulas were rebuilt from the prose; the derivative table, gradient rules and every autograd output were rerun (sympy, PyTorch 2.11) and match the book.
 > - **Added by me:** the threshold $1/(L+1)$; the per-example ratios from Table 1.5.1 (D2L's compute claim holds only from 2000; logged as declined discrepancy D1 in [[00-Index]]); the Archimedes numerical check; the $2+3h$ error and central-difference remark; the accumulated-gradient value [1,5,9,13]; the weighted-`v` and control-flow values; exercise answers.
 > - **Not covered:** installation, notation, §2.1–2.3 and §2.6 (tensors, preprocessing, linear algebra, probability: see [[Linear Algebra/contents/00-Index|Linear Algebra]] and [[Probability Theory/contents/00-Index|Probability Theory]]), §2.7 documentation.
+> - **Lecture slides (1), added 2026-11-17:** §11. The course outline, assessment and reading list are in [[00-Index]].
 
 **Previous:** [[00-Index]] · **Next:** [[02 - Linear Regression]]

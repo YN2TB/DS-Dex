@@ -1,11 +1,12 @@
 # Deep Learning
 
-Read with the root `CLAUDE.md` and `../METHOD.md`. Scope, chapters, errata (E1–E2, found by running D2L's code; 14 discrepancies declined): `contents/00-Index.md`.
+Read with the root `CLAUDE.md` and `../METHOD.md`. Scope, chapters, errata (E1–E2, found by running D2L's code; 14 discrepancies declined; slide errors S1–S15): `contents/00-Index.md`.
 
 ## Source
 
 - *Dive into Deep Learning* (Zhang, Lipton, Li, Smola), Cambridge UP, PyTorch edition: `documents/Dive into Deep Learning.pdf`, 1185 pages. PDF page = book page + 40.
-- `slides/`: lecturer's CNN slides 5.1–5.3 only. The user chose (2026-11-16) to write every note from the book; the notes were reworked section by section.
+- `slides/`: the lecturer's full set, 16 decks (found 2026-11-17). The notes were first reworked from the book (2026-11-16), then each got a "From the lecture slides" block with what the slides add. The deck → note map and slide errors S1–S15 are in the index. Deck 10 (GAN) is not examined, so it is not written unless the user asks (memory `dl-slides-gan`).
+- Slide text extracts with pypdf, but most formulas, figures and all code are images. Render pages with PyMuPDF (`fitz`, installed) and read the images. The slide code is MXNet (D2L's other edition) or Keras; TensorFlow is not installed, so Keras code is quoted, not run.
 - The eight topics come from the user's syllabus in `note/Index.md` (read it; `note/` may be edited only for the user's code, see memory). D2L sections used per note:
 
 | Note | Topic | D2L sections |
@@ -19,7 +20,7 @@ Read with the root `CLAUDE.md` and `../METHOD.md`. Scope, chapters, errata (E1�
 | 07 | Recurrent Neural Network | ch. 9; 10.1–10.4 |
 | 08 | Sequence to Sequence | 10.5–10.8; 11.1–11.7 (attention, Transformer) |
 
-My two scope calls: optimizers go in 04; attention/Transformer go in 08.
+My two scope calls: optimizers go in 04; attention/Transformer go in 08. The slides add YOLO (06), Luong attention and BERT/GPT (08, from D2L §11.9, §15.8–15.10), none of which are D2L sections of the original plan.
 
 ## Extraction quirks
 

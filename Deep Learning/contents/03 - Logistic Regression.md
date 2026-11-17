@@ -7,7 +7,7 @@ source: "Zhang, Lipton, Li & Smola, Dive into Deep Learning, ch. 4 Linear Neural
 
 # Logistic Regression
 
-> [!info] Naming
+> [!info] Naming The lectures (3.1, 3.2) derive binary logistic regression from maximum likelihood and the softmax gradient in matrix form: §15–16.
 > The syllabus says *Logistic Regression*; D2L calls the chapter *Softmax Regression*. Softmax regression with $q=2$ classes is exactly binary logistic regression (§7), so this note covers the general case. Compared with [[02 - Linear Regression]], three things change: the targets (one-hot), the output layer (one affine function per class) and the loss (cross-entropy). The note follows D2L's order: theory (§4.1), the Fashion-MNIST data (§4.2), the `Classifier` base class (§4.3), implementations from scratch and with PyTorch (§4.4–4.5), generalization (§4.6) and distribution shift (§4.7).
 
 ## 📘 Main Knowledge
@@ -359,6 +359,102 @@ A strategy that works in a stationary environment may fail once the environment 
 
 A deployed model automates decisions about people. For a medical model you must know which populations it works for. A training sample that differs from the deployment population can give high test accuracy and unsafe behaviour.
 
+## From the lecture slides (3.1 Logistic Regression, 3.2 Softmax Regression)
+
+D2L derives softmax first and treats two classes as a special case (§7). The lectures go the other way. They derive binary logistic regression from maximum likelihood, then generalize it to softmax with an explicit matrix gradient. Numbers below were recomputed.
+
+### 15. Lecture 3.1: binary logistic regression
+
+**One form, three models.** All three compute $y=f(\mathbf w^\top\mathbf x)$ and differ only in $f$:
+
+| model | $f$ | output |
+|---|---|---|
+| linear regression | $f(s)=s$ | any real number |
+| perceptron (PLA) | $f(s)=\operatorname{sgn}(s)$ | $\pm1$ |
+| logistic regression | $f(s)=\sigma(s)=\dfrac{1}{1+e^{-s}}$ | $(0,1)$, read as a probability |
+
+The slide's candidate curves:
+- the hard threshold;
+- $\sigma(s)$;
+- $e^s/(e^s+e^{-s})$, which is just $\sigma(2s)=(1+\tanh s)/2$;
+- a linear function.
+
+**Why the sigmoid is chosen:**
+- it is bounded in $(0,1)$, with $\lim_{s\to-\infty}\sigma=0$ and $\lim_{s\to\infty}\sigma=1$;
+- it is smooth;
+- its derivative is $\sigma'(s)=\sigma(s)(1-\sigma(s))$ (checked with sympy).
+
+**Likelihood.** Let $z_i=\sigma(\mathbf w^\top\mathbf x_i)$ be the model's probability of class 1. Then $P(y_i=1\mid\mathbf x_i;\mathbf w)=z_i$ and $P(y_i=0\mid\mathbf x_i;\mathbf w)=1-z_i$, or in one line
+$$P(y_i\mid\mathbf x_i;\mathbf w)=z_i^{y_i}(1-z_i)^{1-y_i}$$
+With independent samples the likelihood is the product $\prod_i z_i^{y_i}(1-z_i)^{1-y_i}$ (MLE). Taking $-\log$ turns the product into a sum, avoids underflow, and gives the binary cross-entropy of §7:
+$$J(\mathbf w)=-\sum_{i=1}^N\big(y_i\log z_i+(1-y_i)\log(1-z_i)\big)$$
+
+**Gradient.** The factor $\sigma'=\sigma(1-\sigma)$ cancels the denominators, leaving
+$$\frac{\partial J_i}{\partial\mathbf w}=(z_i-y_i)\,\mathbf x_i\qquad\Longrightarrow\qquad \mathbf w\leftarrow\mathbf w+\eta\,(y_i-z_i)\,\mathbf x_i\ \ \text{(slide's SGD step)}$$
+This is the same form as linear regression's SGD step (§16 of [[02 - Linear Regression|ch. 02]]) with $\mathbf x_i^\top\mathbf w$ replaced by $z_i$. I checked it with sympy.
+
+**Prediction.** $\hat y=1$ if $\sigma(\mathbf w^\top\mathbf x)\ge0.5$, i.e. if $\mathbf w^\top\mathbf x\ge0$, so the decision boundary is linear.
+
+**The lecture's dataset and exercise.** Twenty students studied 0.5–5.5 hours; 10 passed:
+
+| hours | .5 | .75 | 1 | 1.25 | 1.5 | 1.75 | 1.75 | 2 | 2.25 | 2.5 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| pass | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+
+| hours | 2.75 | 3 | 3.25 | 3.5 | 4 | 4.25 | 4.5 | 4.75 | 5 | 5.5 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| pass | 1 | 0 | 1 | 0 | 1 | 1 | 1 | 1 | 1 | 1 |
+
+The exercise asks for the model. The maximum-likelihood fit (Newton's method run to convergence) is
+$$P(\text{pass}\mid h)=\sigma(-4.0777+1.5046\,h)$$
+- **Decision boundary:** $h=4.0777/1.5046=2.71$ hours.
+- **Training accuracy** at the 0.5 threshold is 0.80. The minimum negative log-likelihood is 8.030.
+- **Plain SGD.** The slide's update with a fixed $\eta=0.05$ for 20,000 epochs ends near $(-4.09, 1.61)$. A constant step keeps SGD bouncing around the optimum; it settles only if the step decays ([[04 - Neural Network|ch. 04 §24]]).
+
+Probability of passing:
+
+| hours | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| $P(\text{pass})$ | 0.071 | 0.256 | 0.607 | 0.874 | 0.969 |
+
+### 16. Lecture 3.2: softmax regression in matrix form
+
+**One-vs-rest first.** For $C$ classes, the slide first trains $C$ binary logistic models, each one "class $i$ vs not $i$". Their outputs $a_i=\sigma(z_i)$ each lie in $(0,1)$ but do not sum to 1. Softmax fixes that.
+
+**Notation (slide).** $\mathbf x\in\mathbb R^{d+1}$ with $x_0=1$; $\mathbf W\in\mathbb R^{(d+1)\times C}$ with one column $\mathbf w_i$ per class; the logits are $\mathbf z=\mathbf W^\top\mathbf x$ and the probabilities are
+$$a_i=\frac{\exp(z_i)}{\sum_{j=1}^C\exp(z_j)},\qquad P(y=i\mid\mathbf x;\mathbf W)=a_i$$
+
+**The slide's four examples:**
+
+| $\mathbf z$ | softmax | slide |
+|---|---|---|
+| (2, 2, 2) | (0.333, 0.333, 0.333) | same |
+| (2, 1.8, 0) | (0.512, 0.419, 0.069) | same |
+| (−1, −1.5, −2) | (0.506, 0.307, 0.186) | 0.507 for the first |
+| (3, 3, 0.1) | (0.487, 0.487, 0.027) | 0.486 for the first two |
+
+The last-digit differences are rounding. Together the rows show three properties:
+- equal logits give equal probabilities;
+- order is preserved;
+- negative logits are fine, since only differences matter.
+
+**Loss.** The cross-entropy of distributions $\mathbf p$, $\mathbf q$ is $H(\mathbf p,\mathbf q)=-\sum_i p_i\log q_i$. With a one-hot label $\mathbf y_i$ (as a column of $\mathbf Y\in\{0,1\}^{C\times N}$):
+$$J_i(\mathbf W)=-\sum_{j=1}^C y_{ji}\log a_{ji}=-\log a_{y_i,i},\qquad J(\mathbf W)=-\frac1N\sum_{i=1}^N\log a_{y_i,i}$$
+Since $\sum_jy_{ji}=1$, this expands to $J_i=-\sum_jy_{ji}\mathbf w_j^\top\mathbf x_i+\log\sum_k\exp(\mathbf w_k^\top\mathbf x_i)$, the LogSumExp form of §12.
+
+**Gradient.** Per column,
+$$\nabla_{\mathbf w_j}J_i=-y_{ji}\mathbf x_i+\frac{\exp(\mathbf w_j^\top\mathbf x_i)}{\sum_k\exp(\mathbf w_k^\top\mathbf x_i)}\mathbf x_i=(a_{ji}-y_{ji})\,\mathbf x_i=e_{ji}\,\mathbf x_i$$
+Stack the error $\mathbf e_i=\mathbf a_i-\mathbf y_i$ and $\mathbf E=\mathbf A-\mathbf Y\in\mathbb R^{C\times N}$:
+$$\nabla_{\mathbf W}J_i=\mathbf x_i\mathbf e_i^\top,\qquad \nabla_{\mathbf W}J=\frac1N\sum_i\mathbf x_i\mathbf e_i^\top=\frac1N\mathbf X\mathbf E^\top\quad(\mathbf X\in\mathbb R^{d\times N})$$
+Against finite differences on a random 4×3 problem the maximum error is $4\times10^{-10}$. This is §6's "softmax minus one-hot", written for the whole batch.
+
+**Minibatch update.** With $\mathbf X_b\in\mathbb R^{d\times N_b}$ and $\mathbf E_b\in\mathbb R^{C\times N_b}$:
+$$\mathbf W\leftarrow\mathbf W-\frac{\eta}{N_b}\mathbf X_b\mathbf E_b^\top$$
+
+**Weight decay, and a sign slip on the slide.** The slide writes $\bar J=-\frac1N\big(\sum_i\log a_{y_i,i}+\frac\lambda2\Vert\mathbf W\Vert_F^2\big)$. As written, the leading minus also flips the penalty, so the loss would *reward* large weights. The intended loss is
+$$\bar J(\mathbf W)=-\frac1N\sum_{i=1}^N\log a_{y_i,i}+\frac\lambda2\Vert\mathbf W\Vert_F^2,\qquad \nabla\bar J=\frac1N\mathbf X\mathbf E^\top+\lambda\mathbf W$$
+which is weight decay as in [[02 - Linear Regression|ch. 02 §13]].
+
 ## ✏️ Exercises
 
 > [!example]- **1.** *(Easy) Softmax mechanics*
@@ -473,6 +569,8 @@ A deployed model automates decisions about people. For a medical model you must 
 18. Images are `[batch, channels, height, width]`; `nn.Flatten()` keeps the batch axis and flattens the rest.
 19. Averaging batch means is exact only with equal batch sizes; the small last batch gets extra weight.
 20. D2L's reported "test" accuracies on Fashion-MNIST are really validation accuracies.
+21. Logistic regression's SGD step $\mathbf w\leftarrow\mathbf w+\eta(y_i-z_i)\mathbf x_i$ has the same shape as linear regression's; only $z_i=\sigma(\mathbf w^\top\mathbf x_i)$ differs. Softmax's batch gradient is $\frac1N\mathbf X\mathbf E^\top$ with $\mathbf E=\mathbf A-\mathbf Y$ (samples as columns).
+22. A penalty is added to the loss, never subtracted. The lecture's regularized softmax loss puts $\frac\lambda2\Vert\mathbf W\Vert_F^2$ inside $-\frac1N(\cdot)$; take it out.
 
 > [!warning] Gaps in the source material
 > - **Figures:** the softmax-as-network diagram is reconstructed from the prose. The photo/cartoon images and the soft-drink map are lost but only illustrate claims stated in the text.
@@ -481,5 +579,6 @@ A deployed model automates decisions about people. For a medical model you must 
 > - **Cross-check with ch. 01:** D2L says a 1995 Sun SPARCStation 5 had 64 MB and 5 MFLOPS. Against Table 1.5.1's 1990 row (10 MB, 10 MF) the memory fits but compute is half, so the table's compute column looks optimistic. MNIST (47.04 MB at one byte per pixel) was 73.5% of that machine's RAM.
 > - **Also added by me:** the float32 range table and the subnormal example; the per-format exp ranges; the exact batch-averaging formula; the toy accuracy.
 > - **Skipped:** `show_images` plotting code and the training curves (images). VC theory is stated, not derived.
+> - **Lecture slides (3.1, 3.2), added 2026-11-17:** §15–16. I fitted the study-hours MLE and probabilities myself (the slide only poses the exercise); checked the softmax examples (last-digit rounding differences); checked the gradient $\frac1N\mathbf X\mathbf E^\top$ against finite differences; flagged the slide's regularized-loss sign.
 
 **Previous:** [[02 - Linear Regression]] · **Next:** [[04 - Neural Network]]

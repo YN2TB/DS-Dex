@@ -7,7 +7,7 @@ source: "Zhang, Lipton, Li & Smola, *Dive into Deep Learning*, ch. 5 (Multilayer
 
 # Neural Network
 
-This note merges three D2L chapters and follows each in order: ch. 5 (MLPs, implementation, backpropagation, numerical stability, generalization, dropout, the Kaggle house-price workflow), ch. 6 (the Builders' Guide: modules, parameters, initialization, custom layers, file I/O, GPUs) and ch. 12 (gradient descent, SGD, minibatches, momentum through Adam, learning-rate schedules). The syllabus has no separate optimizer topic, so ch. 12 lives here (scope call recorded in [[00-Index]]).
+This note merges three D2L chapters and follows each in order: ch. 5 (MLPs, implementation, backpropagation, numerical stability, generalization, dropout, the Kaggle house-price workflow), ch. 6 (the Builders' Guide: modules, parameters, initialization, custom layers, file I/O, GPUs) and ch. 12 (gradient descent, SGD, minibatches, momentum through Adam, learning-rate schedules). The syllabus has no separate optimizer topic, so ch. 12 lives here (scope call recorded in [[00-Index]]). The lectures (4.1–4.3) add error-term backprop, the MXNet version of the Builders' Guide, and transfer learning: §33–35.
 
 ## 📘 Main Knowledge
 
@@ -838,6 +838,108 @@ class CosineScheduler:
 
 D2L's closing point: optimizer and schedule choices change not only the training loss but also how much the model overfits, for the same training error.
 
+## From the lecture slides (4.1 Neural Network, 4.2 Computing, 4.3 Optimal Training)
+
+The three lectures follow D2L ch. 5, 6 and 12, but use different notation, MXNet and Keras code, and add transfer learning.
+
+### 33. Lecture 4.1: backpropagation with error terms
+
+**Neuron and layers.**
+- **Neuron:** it computes $\text{Net}=\sum_iw_ix_i$ and outputs $y=f(\text{Net})$. The biological analogy: dendrites carry inputs, the soma sums them, the axon carries the output, and synapses join neurons.
+- **Layers:** a network has an input layer, hidden layers and an output layer. The slide counts layers as **$L$ = hidden layers + 1**, so the input layer is not counted; its figure has $L=3$.
+- **Activations:** sigmoid, tanh and ReLU (§2).
+- **Network types:** feedforward networks here, recurrent ones in [[07 - Recurrent Neural Network|ch. 07]].
+
+**Notation (slides 14–19).** With $\mathbf W^{(l)}\in\mathbb R^{d^{(l-1)}\times d^{(l)}}$, a weight $w_{ij}^{(l)}$ connects unit $i$ of layer $l-1$ to unit $j$ of layer $l$:
+$$\mathbf a^{(0)}=\mathbf x,\qquad \mathbf z^{(l)}=\mathbf W^{(l)\top}\mathbf a^{(l-1)}+\mathbf b^{(l)},\qquad \mathbf a^{(l)}=f(\mathbf z^{(l)}),\qquad \hat{\mathbf y}=\mathbf a^{(L)}$$
+
+**Backprop.** Define the error term $e_j^{(l)}=\partial J/\partial z_j^{(l)}$. The chain rule gives
+$$\frac{\partial J}{\partial w_{ij}^{(l)}}=e_j^{(l)}a_i^{(l-1)},\qquad \frac{\partial J}{\partial b_j^{(l)}}=e_j^{(l)},\qquad e_j^{(l)}=\Big(\sum_{k=1}^{d^{(l+1)}}e_k^{(l+1)}w_{jk}^{(l+1)}\Big)f'(z_j^{(l)})$$
+In matrix form:
+$$\mathbf e^{(l)}=\big(\mathbf W^{(l+1)}\mathbf e^{(l+1)}\big)\odot f'(\mathbf z^{(l)}),\qquad \frac{\partial J}{\partial\mathbf W^{(l)}}=\mathbf a^{(l-1)}\mathbf e^{(l)\top}$$
+The recursion starts at the output layer, where $\mathbf e^{(L)}=\partial J/\partial\mathbf z^{(L)}$; for softmax with cross-entropy this is $\mathbf a^{(L)}-\mathbf y$ (ch. 03 §16).
+
+I checked these formulas against PyTorch autograd on a random 4–5–3–2 sigmoid network with squared loss. The maximum difference was $7\times10^{-18}$.
+
+**Slide 20 ("GD method") switches convention.** It writes $\mathbf z^{(l)}=\mathbf W^{(l)}\mathbf a^{(l-1)}+\mathbf b^{(l)}$, i.e. $\mathbf W^{(l)}\in\mathbb R^{d^{(l)}\times d^{(l-1)}}$, as D2L does (§5). The formulas transpose accordingly:
+$$\boldsymbol\delta^{(L)}=\frac{\partial\mathcal L}{\partial\mathbf a^{(L)}}\odot f'(\mathbf z^{(L)}),\quad \boldsymbol\delta^{(l)}=(\mathbf W^{(l+1)})^\top\boldsymbol\delta^{(l+1)}\odot f'(\mathbf z^{(l)}),\quad \frac{\partial\mathcal L}{\partial\mathbf W^{(l)}}=\boldsymbol\delta^{(l)}\mathbf a^{(l-1)\top},\quad \frac{\partial\mathcal L}{\partial\mathbf b^{(l)}}=\boldsymbol\delta^{(l)}$$
+The slide writes "·" for the elementwise product. Both conventions are right; just don't mix them in one derivation.
+
+**The loop:**
+1. Initialize weights with small random values.
+2. Repeat until convergence or the epoch limit: forward pass, loss, backward pass (error terms from the output back), gradients, update $\mathbf W^{(l)}\leftarrow\mathbf W^{(l)}-\eta\,\partial\mathcal L/\partial\mathbf W^{(l)}$ (and the same for $\mathbf b$).
+
+### 34. Lecture 4.2: the Builders' Guide in MXNet
+
+Lecture 4.2 is D2L ch. 6 (§15–17 here) in the MXNet edition. Its examples are the same: `MLP`, `MySequential`, `NestMLP`/`chimera`, the nested `rgnet`, `MyInit` and direct assignment. The slide defines a **block** as input, output, parameters (possibly none), a forward method and a backward method. In both frameworks the backward method is generated automatically by autograd. Translation table:
+
+| lecture (MXNet Gluon) | this note (PyTorch) |
+|---|---|
+| `nn.Block` | `nn.Module` |
+| `nn.Dense(256, activation='relu')` | `nn.LazyLinear(256)` then `nn.ReLU()` |
+| `net = nn.Sequential(); net.add(...)` | `nn.Sequential(...)` |
+| `net.initialize()` | not needed: parameters exist at construction (lazy layers at the first call, §18) |
+| `self._children[block.name] = block` | `self.add_module(str(idx), module)` |
+| `net[0].params`, `net.collect_params()` | `net[0].state_dict()`, `net.named_parameters()` |
+| `net.collect_params('.*weight')` (regex) | filter `named_parameters()` by name |
+| name `dense0_weight` | name `0.weight` |
+| `net[1].bias.data()`, `net[0].weight.grad()` | `net[1].bias.data`, `net[0].weight.grad` (attributes, no call) |
+| `init.Normal(sigma=0.01)`, `init.Constant(1)`, `init.Xavier()` | `nn.init.normal_(w, std=0.01)`, `nn.init.constant_(w, 1)`, `nn.init.xavier_uniform_(w)` |
+| `net.initialize(init=..., force_reinit=True)` | `net.apply(init_fn)` |
+| `class MyInit(init.Initializer)` with `_init_weight` | a plain function passed to `net.apply` |
+
+`MyInit` draws from $U(-10,10)$ and zeroes entries with $\vert w\vert\lt5$, the same toy distribution as §17.
+
+### 35. Lecture 4.3: optimal training
+
+The lecture has three parts: (1) mitigating vanishing gradients, (2) training refinements, (3) transfer learning. It ends with a GD recap.
+
+**(1) Vanishing gradients.** The gradient with respect to $\mathbf W_l$ is a product of Jacobians $\mathbf M_L\cdots\mathbf M_{l+1}\mathbf v_l$ (§7). There are three remedies.
+- **Activation.** The sigmoid's $\sigma'\le0.25$ vanishes for large $\vert x\vert$ (§9). ReLU has $f'=1$ for $x>0$. **Leaky ReLU** uses $f(x)=x$ for $x>0$ and $\alpha x$ for $x\le0$, with $\alpha\in(0,1)$, so its gradient $\alpha$ is never exactly 0 and units cannot die.
+- **Initialization.** The "default" $\mathcal N(0,0.01^2)$ is too small. For a 256-wide layer, $n\sigma^2=0.0256$, so the activation variance shrinks about 40-fold per layer. Xavier, $U\big[-\sqrt6/\sqrt{n_{\text{in}}+n_{\text{out}}},\ \sqrt6/\sqrt{n_{\text{in}}+n_{\text{out}}}\big]$, has variance $2/(n_{\text{in}}+n_{\text{out}})$ and suits sigmoid and tanh (§11).
+- **Batch normalization.** $\text{BN}(\mathbf x)=\boldsymbol\gamma\odot(\mathbf x-\hat{\boldsymbol\mu})/\hat{\boldsymbol\sigma}+\boldsymbol\beta$ ([[05 - Convolutional Neural Network|ch. 05 §13]]). The Keras example puts BN between the linear layer and the activation:
+
+```python
+model = models.Sequential([
+    layers.Dense(64, input_shape=(20,), activation=None),
+    layers.BatchNormalization(),
+    layers.Activation('relu'),
+    layers.Dense(32, activation=None),
+    layers.BatchNormalization(),
+    layers.Activation('relu'),
+    layers.Dense(2, activation='softmax')])
+```
+
+**(2) Regularization and dropout.**
+- **Regularized loss.** $f_{\text{reg}}(\mathbf w)=f(\mathbf w)+\lambda R(\mathbf w)$, with LASSO $R=\Vert\mathbf w\Vert_1$ and Ridge $R=\Vert\mathbf w\Vert_2^2$.
+  - The slide says $\lambda$ is small "to ensure the solution of $f_{\text{reg}}$ is too far from the solution of $f$". The intended wording is "is *not* too far".
+  - Ridge with minibatch SGD is weight decay ([[02 - Linear Regression|ch. 02 §13]]): $\mathbf w\leftarrow(1-\eta\lambda)\mathbf w-\frac{\eta}{\vert\mathcal B\vert}\sum_{i\in\mathcal B}\mathbf x^{(i)}(\mathbf w^\top\mathbf x^{(i)}+b-y^{(i)})$.
+- **Dropout.** Each iteration zeroes a random fraction (at most 50%) of a layer's units (§13). The lecture's Keras examples are a binary classifier with 60 inputs: `Dropout(0.2)` on the input layer, or after each hidden layer.
+  - Hidden layers use `kernel_constraint=MaxNorm(3)`. It rescales each unit's incoming weight vector so its norm is at most 3.
+  - The optimizer is `SGD(learning_rate=0.1, momentum=0.9)` with `loss='binary_crossentropy'`.
+  - Keras's `Dropout(0.2)` drops 20% of units, like PyTorch's `nn.Dropout(p=0.2)`.
+
+**(3) Transfer learning.**
+- **Phase 1:** the base network is a pretrained model with its top dense layers removed.
+- **Phase 2:** a new MLP head with random weights.
+- The base turns inputs into useful features, and the head learns the new task from them. The full treatment, with D2L's hot-dog example, is [[06 - Object Detection|ch. 06 §2]].
+
+The lecture's code:
+
+```python
+base_network = MobileNet(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
+model = Sequential([base_network, Flatten(), Dense(1, activation='sigmoid')])
+model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy'])
+```
+
+The base is not frozen. Keras layers are trainable by default, so this fine-tunes everything. For pure feature extraction, set `base_network.trainable = False` first.
+
+**GD recap (slides 25–29):**
+- **GD:** $\mathbf x\leftarrow\mathbf x-\eta\nabla f(\mathbf x)$.
+- **Slide 26** labels $\mathbf x\leftarrow\mathbf x-\eta\operatorname{diag}(\mathbf H_f)^{-1}\nabla f(\mathbf x)$ as Newton's method. It is the diagonal approximation, i.e. **preconditioning** (D2L §12.3.3). Full Newton uses $\mathbf H_f^{-1}$ (§23).
+- **SGD:** the gradient of one uniformly drawn $f_i$ is an unbiased estimate of $\nabla f=\frac1n\sum_i\nabla f_i$ (§24).
+- **Minibatch:** $\mathbf g_t=\partial_{\mathbf w}\frac{1}{\vert\mathcal B_t\vert}\sum_{i\in\mathcal B_t}f(\mathbf x_i,\mathbf w)$ and $\mathbf w\leftarrow\mathbf w-\eta\mathbf g_t$ (§25).
+
 ## ✏️ Exercises
 
 > [!example]- **1.** *(Easy) The linear collapse*
@@ -956,6 +1058,10 @@ D2L's closing point: optimizer and schedule choices change not only the training
 22. SGD with a constant learning rate does not converge to the minimum; it hovers at a noise floor.
 23. Fit standardization on training data only in real deployments; D2L pools train and test features for the competition.
 24. Moving tensors to the CPU each step (printing the loss, `.numpy()`) stalls the GPU.
+25. Two backprop conventions appear in lecture 4.1: $\mathbf z=\mathbf W^\top\mathbf a+\mathbf b$ (error recursion $\mathbf W^{(l+1)}\mathbf e^{(l+1)}$, gradient $\mathbf a\mathbf e^\top$) and $\mathbf z=\mathbf W\mathbf a+\mathbf b$ (recursion $(\mathbf W^{(l+1)})^\top\boldsymbol\delta^{(l+1)}$, gradient $\boldsymbol\delta\mathbf a^\top$). Pick one per derivation.
+26. The lecture counts layers as hidden + output ($L$ = hidden + 1); the input layer is not a layer.
+27. A transfer-learning model whose base is not frozen is fine-tuning, not feature extraction. In Keras set `trainable = False`; in PyTorch set `requires_grad_(False)`.
+28. $\operatorname{diag}(\mathbf H)^{-1}$ scaling is preconditioning, not Newton's method.
 
 > [!warning] Gaps in the source material
 > - **Figures:** the MLP diagram, computational graph and dropout diagram are reconstructed from the prose. Activation plots, optimizer trajectory plots and schedule curves are lost, but the trajectories were recovered numerically from the printed endpoints.
@@ -966,5 +1072,6 @@ D2L's closing point: optimizer and schedule choices change not only the training
 > - **Also added by me:** the closed forms for D2L's GD, Newton and schedule printouts; the Newton error sequence on cosh; the $2mnp$ count; the Kaggle log-RMSE conversion; the plain-list and tied-gradient checks (exercise 2); the corrected dropout keep count (10 or 11).
 > - **Skipped:** convexity proofs (§12.2, see [[Optimization/contents/02 - Convex Sets and Convex Functions|Optimization]]); download helpers; the `Animator`/plotting code; multi-GPU training (ch. 13, see [[MLOps/contents/00-Index|MLOps]]).
 > - Literature results (double descent, NTK, 10,000-layer training) are quoted, not derived.
+> - **Lecture slides (4.1–4.3), added 2026-11-17:** §33–35. The error-term backprop was checked against autograd; the MXNet ↔ PyTorch table is mine; the Keras code is quoted from the slides (not run: TensorFlow is not installed). Flagged: the slide-20 convention switch, "too far" for "not too far", and the diag-Hessian step labelled Newton. The "Parallel blocks" slide (4.2 p7) is a figure only.
 
 **Previous:** [[03 - Logistic Regression]] · **Next:** [[05 - Convolutional Neural Network]]

@@ -7,7 +7,7 @@ source: "Zhang, Lipton, Li & Smola, *Dive into Deep Learning*, ch. 7 (Convolutio
 
 # Convolutional Neural Network
 
-D2L ch. 7 builds the convolution from first principles and implements it; ch. 8 goes through LeNet → AlexNet → VGG → NiN → GoogLeNet → batch norm → ResNet → ResNeXt → DenseNet → design spaces (RegNet). Each section below gives the idea, D2L's PyTorch code and the printed shapes. All printed shapes and worked examples were recomputed and match the book.
+D2L ch. 7 builds the convolution from first principles and implements it; ch. 8 goes through LeNet → AlexNet → VGG → NiN → GoogLeNet → batch norm → ResNet → ResNeXt → DenseNet → design spaces (RegNet). Each section below gives the idea, D2L's PyTorch code and the printed shapes. All printed shapes and worked examples were recomputed and match the book. The lectures (5.1–5.3) add a Keras MNIST case study and the data-synthesis and transfer-learning overview: §19–20.
 
 ## 📘 Main Knowledge
 
@@ -737,6 +737,66 @@ Convolutions hold under 8% of the parameters and over 85% of the computation; de
 
 To make a network smaller, shrink the head (NiN, global average pooling); to make it faster, shrink the convolutions (grouped convolutions, $1\times1$ bottlenecks). (This table is my compilation; D2L gives no parameter counts.)
 
+## From the lecture slides (5.1 CNN, 5.2 Modern CNNs, 5.3 CNN Techniques)
+
+Lectures 5.1 and 5.2 follow D2L ch. 7–8 in the MXNet edition. They use the same examples: the 19/25/37/43 cross-correlation, the 6×8 edge image with kernel $[1,-1]$, learning that kernel, the multi-channel sum 56, max pooling 4/5/7/8, LeNet with BN, and AlexNet through DenseNet. What they add is below.
+
+### 19. Lecture 5.1: slide corrections and the Keras MNIST case study
+
+**Corrections and differences:**
+- **Average pooling.** The slide's text gives $\text{avg}(3,4,6,7)=7$ and $\text{avg}(4,5,7,8)=8$. The correct values are **5** and **6**. The figure on the same slide shows the right output $\begin{pmatrix}2&3\\5&6\end{pmatrix}$.
+- **Padding formula.** It uses total padding: adding $p_h$ rows in all gives $(n_h-k_h+p_h+1)\times(n_w-k_w+p_w+1)$, and $p_h=k_h-1$ keeps the size. This is the same as §3.
+- **NiN block (5.2).** The slide says one conv, two $1\times1$ convs, "and then a ReLU". In D2L's code a ReLU follows each of the three convs (§11).
+- **DenseNet transition layer (5.2).** The slide lists BN, $1\times1$ conv, $2\times2$ average pooling. D2L's code also has a ReLU after BN (§16).
+
+**Keras MNIST case study.**
+- **Data.** MNIST has 60,000 training and 10,000 test images. The lecture keeps the first 50,000 for training and holds out the last 10,000 for validation.
+- **Input shape.** Keras wants channels last, so it reshapes to $(N,28,28,1)$; PyTorch uses $(N,1,28,28)$. The slide writes the shape as $(N,W,H,D)$, but Keras's order is (batch, height, width, channels); for square images the difference does not show.
+- **Labels.** They become one-hot via `np_utils.to_categorical(y, 10)`, e.g. 5 → `[0,0,0,0,0,1,0,0,0,0]`. PyTorch's `CrossEntropyLoss` takes integer labels instead.
+
+```python
+model = Sequential()
+model.add(Conv2D(32, (3, 3), activation='sigmoid', input_shape=(28, 28, 1)))
+model.add(Conv2D(32, (3, 3), activation='sigmoid'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(128, activation='sigmoid'))
+model.add(Dense(10, activation='softmax'))
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+H = model.fit(X_train, Y_train, validation_data=(X_val, Y_val), batch_size=32, epochs=10, verbose=1)
+score = model.evaluate(X_test, Y_test, verbose=0)
+```
+
+**The code and its diagram disagree.** Keras's default is `padding='valid'`. My shape and parameter counts:
+
+| | code as written (`valid`) | slide diagram (needs `padding='same'`) |
+|---|---|---|
+| conv1 → conv2 → pool | 26 → 24 → 12 | 28 → 28 → 14 |
+| flatten | $12\cdot12\cdot32=4{,}608$ | $14\cdot14\cdot32=6{,}272$ |
+| parameters | 320 + 9,248 + 589,952 + 1,290 = **600,810** | 320 + 9,248 + 802,944 + 1,290 = **813,802** |
+
+The dense layer holds 98% of the parameters either way, the pattern of §18. Sigmoid everywhere is a LeNet-era choice; ReLU trains faster (§9).
+
+The lecture's **exercise** is the same pipeline on CIFAR-10: 50,000 training and 10,000 test colour images of size $32\times32\times3$, 10 classes, so `input_shape=(32, 32, 3)`.
+
+### 20. Lecture 5.3: CNN techniques
+
+The slide lists four causes of poor predictive performance:
+- too little or unrepresentative data;
+- class imbalance;
+- an overly complex architecture;
+- optimization difficulties.
+
+It then gives three remedies.
+
+| technique | what | where |
+|---|---|---|
+| **Data augmentation** | random rotations, flips, crops, scaling, shifts, zoom, colour changes, noise; the goal is that "the model never sees the same image twice"; reduces overfitting | [[06 - Object Detection\|ch. 06 §1]] |
+| **Data synthesis** | generate new samples: image blending and composition, style transfer, GAN-generated images, simulated environments; for small or imbalanced datasets and to cut labelling cost | not in D2L |
+| **Transfer learning** | pretrain on a large dataset (ImageNet); reuse the weights, frozen (feature extraction) or partly/fully fine-tuned; optional final fine-tuning on the small task dataset | [[06 - Object Detection\|ch. 06 §2]], [[04 - Neural Network\|ch. 04 §35]] |
+
+The slide's transfer example is dogs vs cats. Both classes already exist in ImageNet, so the pretrained features fit well and training is faster and more accurate. Transfer helps less when the new images look nothing like ImageNet's.
+
 ## ✏️ Exercises
 
 > [!example]- **1.** *(Easy) Shapes and odd kernels*
@@ -847,6 +907,8 @@ To make a network smaller, shrink the head (NiN, global average pooling); to mak
 16. BN `momentum` is not optimizer momentum. A bias directly before BN is wasted.
 17. Upsampling $28\times28$ images to $224\times224$ adds compute, not information; D2L does it only to keep the original architectures.
 18. DenseNet's concatenations are memory-hungry even though the parameter count is small.
+19. Keras `Conv2D` defaults to `padding='valid'` (shrinks by $k-1$); PyTorch `nn.Conv2d` defaults to `padding=0`, the same thing. "Same" padding must be asked for.
+20. Keras images are channels-last $(N,H,W,C)$; PyTorch is channels-first $(N,C,H,W)$.
 
 > [!warning] Gaps in the source material
 > - **Figures:** diagrams of cross-correlation, padding, channels, pooling, LeNet, Inception, residual and dense blocks are reconstructed from the prose and printed shapes. Lost: Waldo images, biological filters, AlexNet's learned filters, pixel-usage heat maps, the nested function-class diagram, and all training curves (so no accuracies are reported).
@@ -856,5 +918,6 @@ To make a network smaller, shrink the head (NiN, global average pooling); to mak
 > - **Lost:** Fashion-MNIST training curves are images, so no accuracies are reported; the design-space CDF plots (Fig. 8.8.2) are lost but their conclusions are stated in the text.
 > - **Skipped:** download helpers and plotting code. Augmentation and fine-tuning are in [[06 - Object Detection|ch. 06]].
 > - Hardware figures and historical claims are quoted from D2L.
+> - **Lecture slides (5.1–5.3), added 2026-11-17:** §19–20. My notes cross-check every 5.1–5.2 example against the D2L sections above. Flagged: the average-pooling text (7, 8 → 5, 6), the Keras diagram vs code (6,272 vs 4,608), and the NiN/transition ReLUs. Parameter counts are mine; the Keras code is quoted, not run.
 
 **Previous:** [[04 - Neural Network]] · **Next:** [[06 - Object Detection]]

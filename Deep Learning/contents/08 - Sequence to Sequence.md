@@ -7,7 +7,7 @@ source: "Zhang, Lipton, Li & Smola, *Dive into Deep Learning*, §10.5–10.8 (Ma
 
 # Sequence to Sequence
 
-D2L §10.5–10.8 covers the translation data, the encoder–decoder, BLEU and beam search, each with code. §11.1–11.7 (attention and the Transformer) is added to this topic as a scope extension recorded in [[00-Index]], since seq2seq without attention stops just before the modern approach.
+D2L §10.5–10.8 covers the translation data, the encoder–decoder, BLEU and beam search, each with code. §11.1–11.7 (attention and the Transformer) is added to this topic as a scope extension recorded in [[00-Index]], since seq2seq without attention stops just before the modern approach. The lectures (8 Encoder–Decoder, 9 Attention) also add Luong attention and BERT/GPT: §11–13.
 
 ## 📘 Main Knowledge
 
@@ -629,6 +629,130 @@ Printed translations: "go ." → "va !" (1.000), "i lost ." → "j'ai perdu ." (
 
 D2L's summary: the Transformer is an encoder–decoder, but either half can be used alone; residual connections and layer norm make deep stacks trainable; the positionwise FFN applies one MLP to every position. Vision Transformers (§11.8) and large-scale pretraining (§11.9) build on it.
 
+## From the lecture slides (8 Encoder–Decoder, 9 Attention Mechanism)
+
+### 11. Lecture 8: the encoder–decoder in symbols
+
+**Preprocessing (slide 3).**
+- Read the parallel corpus.
+- Tokenize into words and punctuation.
+- Build a separate vocabulary for each language.
+- Make every sentence exactly `num_steps` tokens, by truncating or padding with `<pad>` (§1).
+
+**Encoder.** It reads $x_1,\dots,x_T$ with $\mathbf h_t=f(\mathbf x_t,\mathbf h_{t-1})$. A function $q$ then summarizes all states into a context vector:
+$$\mathbf c=q(\mathbf h_1,\dots,\mathbf h_T)\qquad(\text{D2L and §2: }\mathbf c=\mathbf h_T)$$
+
+**Decoder.** It models $P(y_{t'}\mid y_1,\dots,y_{t'-1},\mathbf c)$ with its own state:
+$$\mathbf s_{t'}=g(\mathbf y_{t'-1},\mathbf c,\mathbf s_{t'-1})$$
+- Its initial state is the encoder's final state.
+- Each step outputs scores over the vocabulary, turned into probabilities by softmax and trained with cross-entropy.
+- At prediction time the previous predicted token is fed back in (greedy decoding: "hello world ." → "bonjour le monde .").
+
+**Beam search (slides 12–14).**
+- **Search space.** With vocabulary $\mathcal Y$ (including `<eos>`) and maximum output length $T'$, there are $O(\vert\mathcal Y\vert^{T'})$ possible outputs. The slide writes $\vert\mathcal Y\vert^{T}$; $T$ is the *input* length, so it should be $T'$.
+- **The algorithm.**
+  - Keep the $k$ best first tokens.
+  - At each later step, extend each of the $k$ candidates by every token, giving $k\vert\mathcal Y\vert$ candidates, and keep the $k$ best.
+  - Finally, cut each candidate at its `<eos>`.
+- **Example.** The slide's example ($k=2$, length 3, candidates A, C, AB, CE, ABD, CED) is D2L's (§3).
+
+### 12. Lecture 9: attention worked by hand, and Luong attention
+
+**Roles in encoder–decoder attention (slide 5):**
+
+| role | source | meaning |
+|---|---|---|
+| key $K_i$ | encoder state $\mathbf h_i$ | what input word $i$ represents |
+| value $V_i$ | encoder state $\mathbf h_i$ | the content to extract |
+| query $Q$ | decoder state $\mathbf s_{t-1}$ | what the decoder is looking for now |
+| weights $\alpha$ | softmax of scores | soft alignment between input and output |
+| context $\mathbf c_t$ | $\sum_i\alpha_i V_i$ | passed to the decoder |
+
+**Steps.**
+1. Take $Q=\mathbf s_{t-1}$.
+2. Score each key, e.g. $\text{score}(Q,K_i)=Q^\top K_i$.
+3. Compute $\alpha_i=\dfrac{e^{\text{score}(Q,K_i)}}{\sum_je^{\text{score}(Q,K_j)}}$.
+4. Form $\mathbf c_t=\sum_i\alpha_i\mathbf h_i$.
+5. A dense layer with softmax predicts the next word from $\mathbf c_t$ and $\mathbf s_{t-1}$.
+
+**Worked example (slides 7–11): "Tôi là người Việt Nam" → "I am Vietnamese".** The encoder gives $\mathbf h_1,\dots,\mathbf h_5$, one per source word.
+
+| output | query | $\alpha$ over (Tôi, là, người, Việt, Nam) | context |
+|---|---|---|---|
+| I | $\mathbf s_0$ | (0.8, 0.05, 0.05, 0.05, 0.05) | mostly "Tôi" |
+| am | $\mathbf s_1$ | (0.1, 0.7, 0.1, 0.05, 0.05) | mostly "là" |
+| Vietnamese | $\mathbf s_2$ | (0.05, 0.05, 0.2, 0.35, 0.35) | "người Việt Nam" |
+
+Each row sums to 1, and the context is $\mathbf c_t=\sum_i\alpha_{t,i}\mathbf h_i$; for "I", $\mathbf c_1=0.8\mathbf h_1+0.05(\mathbf h_2+\mathbf h_3+\mathbf h_4+\mathbf h_5)$. The weights are illustrative, not from a trained model. The third row shows the point of *soft* alignment: one output word can draw on three input words, which a fixed context vector cannot do selectively.
+
+**Bahdanau attention (2015).** It scores the *previous* decoder state against each encoder state with a small feed-forward network:
+$$e_{t,i}=\mathbf v_a^\top\tanh(\mathbf W_s\mathbf s_{t-1}+\mathbf W_h\mathbf h_i),\qquad \alpha_{t,i}=\frac{\exp(e_{t,i})}{\sum_j\exp(e_{t,j})},\qquad \mathbf c_t=\sum_i\alpha_{t,i}\mathbf h_i$$
+This is additive attention (§4) with $\mathbf W_q=\mathbf W_s$, $\mathbf W_k=\mathbf W_h$, $\mathbf w_v=\mathbf v_a$, as used in §5. The slide's figure has a bidirectional encoder, $\mathbf h_i=[\overrightarrow{\mathbf h}_i,\overleftarrow{\mathbf h}_i]$.
+
+**Luong attention (2015, not in D2L).** There are two differences from Bahdanau. First, the current decoder state $\mathbf s_t$ is computed before attending, and that state is the query. Second, the scoring is multiplicative, which is faster but can be less expressive. Three score functions:
+
+| name | score $e_{t,i}$ | parameters |
+|---|---|---|
+| dot | $\mathbf s_t^\top\mathbf h_i$ | none; needs equal sizes |
+| general | $\mathbf s_t^\top\mathbf W_a\mathbf h_i$ | $\mathbf W_a$; sizes may differ |
+| concat | $\mathbf v_a^\top\tanh(\mathbf W_a[\mathbf s_t;\mathbf h_i])$ | like Bahdanau, but uses $\mathbf s_t$ |
+
+Then, as before, $\alpha_{t,i}=\operatorname{softmax}_i(e_{t,i})$ and $\mathbf c_t=\sum_i\alpha_{t,i}\mathbf h_i$. In Luong et al.'s paper, $\mathbf c_t$ and $\mathbf s_t$ are then combined, as $\tanh(\mathbf W_c[\mathbf c_t;\mathbf s_t])$, to predict $y_t$. That detail is from the paper, not the slide. Scaled dot-product attention (§6) is Luong's dot score divided by $\sqrt d$.
+
+**Self-attention and multi-head (slides 15–20).**
+- **Projections.** $\mathbf Q=\mathbf X\mathbf W^Q$, $\mathbf K=\mathbf X\mathbf W^K$, $\mathbf V=\mathbf X\mathbf W^V$, and $\text{Attention}(\mathbf Q,\mathbf K,\mathbf V)=\operatorname{softmax}(\mathbf Q\mathbf K^\top/\sqrt{d_k})\mathbf V$. In the original Transformer $d_k=64=512/8$ (§6–7).
+- **Multi-head.** $\text{MultiHead}(\mathbf Q,\mathbf K,\mathbf V)=\text{Concat}(\text{head}_1,\dots,\text{head}_h)\mathbf W^O$ with $\text{head}_i=\text{Attention}(\mathbf Q\mathbf W_i^Q,\mathbf K\mathbf W_i^K,\mathbf V\mathbf W_i^V)$. The slide's 8-head illustration shows the input passed through 8 sets of $\mathbf W_i^{Q,K,V}$, outputs $\mathbf Z_0,\dots,\mathbf Z_7$ concatenated and multiplied by $\mathbf W^O$ (§7).
+- **The comparison table conflates two things.** Slide 20 contrasts "self-attention" (one sequence) with "multi-head attention" (several heads). These are independent choices: *self* vs *cross* says where $\mathbf Q,\mathbf K,\mathbf V$ come from, and *single* vs *multi-head* says how many attention functions run in parallel. The Transformer uses multi-head self-attention.
+- **The Transformer** (slides 21–24) matches §10:
+  - Encoder block: multi-head self-attention, add & norm, then an FFN (two linear layers with ReLU), add & norm.
+  - Decoder block: masked self-attention, then cross-attention to the encoder, then the FFN, each with add & norm.
+  - $N=6$ blocks in the original.
+
+### 13. Encoder-only and decoder-only: BERT and GPT (lecture 9; D2L §11.9, §15.8–15.10)
+
+D2L §11.9 sorts Transformers into three modes:
+
+| mode | attention pattern | example | pretraining objective |
+|---|---|---|---|
+| encoder-only | every token attends to every token | BERT | masked language modelling |
+| encoder–decoder | encoder: all-to-all; decoder: causal + cross-attention | original Transformer, T5, BART | translation; reconstructing corrupted spans (T5) |
+| decoder-only | each token attends to itself and earlier tokens (causal) | GPT | next-token prediction (target = input shifted by one) |
+
+**BERT** (Devlin et al. 2018; "Bidirectional Encoder Representations from Transformers") is a stack of Transformer encoder blocks.
+- **Bidirectional.** A token's representation uses context on both sides, because nothing is masked in encoder self-attention.
+- **Input.**
+  - One text: `<cls>` text `<sep>`. Two texts: `<cls>` A `<sep>` B `<sep>`.
+  - Each token's embedding is the sum of a token embedding, a segment embedding ($\mathbf e_A$ or $\mathbf e_B$) and a **learnable** positional embedding. The original Transformer's positional encodings are fixed sinusoids (§9).
+
+Sizes (D2L §15.10):
+
+| | layers | hidden size | heads | parameters |
+|---|---|---|---|---|
+| BERT-Base | 12 | 768 | 12 | 110 million |
+| BERT-Large | 24 | 1024 | 16 | 340 million |
+
+My count with a 30,522-token vocabulary, 512 positions, FFN width $4H$ and the pooler gives 109,482,240 and 335,141,888. D2L §11.9 once says "350-million-parameter BERT".
+
+**Pretraining tasks:**
+- **Masked language modelling (MLM).** 15% of tokens are selected for prediction. Of those, 80% are replaced by `<mask>`, 10% by a random token and 10% left unchanged. The `<mask>` token never appears during fine-tuning, and the mix reduces that mismatch. Slide example: "The cat [MASK] on the mat." → "sat".
+- **Next sentence prediction (NSP).** Half the pairs are consecutive sentences ("IsNext"), half are random. A one-hidden-layer MLP on the `<cls>` representation classifies them. RoBERTa later found NSP of little use (D2L §11.9).
+
+**Fine-tuning.** Add a small output layer, e.g. on `<cls>` for classification, and update all parameters. Tasks:
+- text classification (sentiment);
+- text-pair classification (paraphrase, inference);
+- question answering (SQuAD);
+- tagging (named-entity recognition).
+
+Benchmarks: GLUE, SQuAD. Variants: RoBERTa, ALBERT (parameter sharing), DistilBERT (distillation), multilingual mBERT; D2L adds SpanBERT and ELECTRA.
+
+**GPT** is a Transformer decoder trained as a language model.
+- It drops the encoder *and* the cross-attention sublayer (D2L §11.9.3). The slide's GPT sketch still draws a cross-attention block, which a decoder-only model cannot have; the slide marks its figure "illustrative".
+- **GPT** had 100 million parameters and was fine-tuned per task.
+- **GPT-2** had 1.5 billion, trained on 40 GB of text, and handled several tasks without parameter updates.
+- **GPT-3** was trained on 300 billion tokens and introduced in-context learning: zero-, one- and few-shot prompts, no gradient updates.
+
+BERT suits understanding tasks (it sees the whole input); GPT suits generation (it produces one token at a time).
+
 ## ✏️ Exercises
 
 > [!example]- **1.** *(Easy) BLEU by hand*
@@ -725,6 +849,9 @@ D2L's summary: the Transformer is an encoder–decoder, but either half can be u
 15. Scale embeddings by $\sqrt d$ before adding sinusoidal encodings, or position swamps content.
 16. The decoder's initial state is the encoder's final state only if both have the same layers and width; otherwise add a projection.
 17. `nn.Embedding` is a lookup of learned rows, equivalent to one-hot × weight matrix.
+18. Bahdanau queries with the previous decoder state $\mathbf s_{t-1}$ and an additive score; Luong first computes $\mathbf s_t$ and scores multiplicatively (dot, general, concat).
+19. Self vs cross attention and single vs multi-head are independent axes; the Transformer encoder uses multi-head self-attention, its decoder also multi-head cross-attention.
+20. BERT = encoder-only, bidirectional, MLM (15%: 80/10/10) + NSP, learnable positions; GPT = decoder-only, causal, next-token prediction, no cross-attention.
 
 > [!warning] Gaps in the source material
 > - **Figures:** greedy/beam probability trees, attention pooling, multi-head and Transformer diagrams are reconstructed from the prose (the trees' probabilities are in the text). Lost: attention heatmaps, kernel-regression plots, positional-encoding plots, and all training curves, so no loss or BLEU curves are quoted.
@@ -733,6 +860,7 @@ D2L's summary: the Transformer is an encoder–decoder, but either half can be u
 > - **Discrepancies:** D13 (BLEU weighting described backwards), D14 (length normalization said to penalize long sequences).
 > - **Checked against the real data** (fra-eng.zip, SHA-1 matching D2L's): positions of D2L's test sentences in the 641 loaded pairs, the memorized outputs (pairs 77, 173, 273), vocabulary sizes, `<unk>` rate and token counts; parameter counts of the three models.
 > - **Lost:** Nadaraya–Watson fit plots and all attention heatmaps and loss curves (images); their conclusions are stated in the text.
-> - **Skipped:** plotting helpers; vision Transformers and large-scale pretraining (§11.8–11.9; BERT/GPT belong to the blocked NLP subject).
+> - **Skipped:** plotting helpers; vision Transformers (§11.8). Large-scale pretraining (§11.9) is summarized in §13 because the lecture covers BERT; the BERT pretraining code (§15.9–15.10) belongs to the NLP subject.
+> - **Lecture slides (8, 9), added 2026-11-17:** §11–13. BERT and GPT are now covered at overview level from D2L §11.9 and §15.8–15.10 (the pretraining code in §15.9–15.10 is left to the NLP subject). Luong attention is not in D2L: the three scores come from the slide, the $\tanh(\mathbf W_c[\mathbf c_t;\mathbf s_t])$ step from the paper. Flagged: $\vert\mathcal Y\vert^{T}$ → $\vert\mathcal Y\vert^{T'}$; the self vs multi-head table; the cross-attention block in the GPT sketch. The BERT parameter count is mine.
 
 **Previous:** [[07 - Recurrent Neural Network]] · **Next:** end of subject (see [[00-Index]])
